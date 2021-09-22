@@ -1,0 +1,8 @@
+node_modules
+.circleci
+.vscode
+.idea
+.git
+.gitignore
+Dockerfile
+README.md

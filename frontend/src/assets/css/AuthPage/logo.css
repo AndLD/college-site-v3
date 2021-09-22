@@ -1,0 +1,24 @@
+/* Скольжение логотипа */
+@keyframes logo-sliding {
+    from {
+        right: 360px;
+    }
+    to {
+        right: 60px;
+    }
+}
+/* Логотип в правом верхнем углу экрана */
+#logo {
+    width: 150px;
+    position: absolute;
+    top: 60px;
+    right: 60px;
+
+    border-radius: 50%;
+
+    /* animation: smooth-loading 2s ease; */
+    animation: logo-sliding 2s ease;
+}
+#logo:hover {
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.25);
+}
