@@ -55,7 +55,7 @@
 /* Слой для отображения градиента на фоне */
 .background-gradient-layer {
     background-size: cover;
-    background: linear-gradient(to right, rgb(145, 213, 255) 35%, rgba(0, 0, 0, 0) 90%) no-repeat;
+    background: linear-gradient(to right, rgb(0, 39, 102) 35%, rgba(0, 0, 0, 0) 90%) no-repeat;
     background-position: 0 0;
     background-size: 100vw;
     height: 100vh;
@@ -100,53 +100,20 @@ h2 {
 }
 /* Логотип Google */
 .auth-form .google-btn img {
-    max-width: 30%;
+    max-width: 100%;
     transition: inherit;
 }
 
 /* Кнопка авторизации */
 .auth-form .google-btn {
     transition: all ease 0.5s;
+    width: 30%;
+    margin: auto;
+    cursor: pointer;
 }
 .auth-form .google-btn:hover {
-    cursor: pointer;
     transform: rotateZ(-10deg);
 }
 .auth-form .google-btn:hover img {
     transform: scale(1.1);
-}
-
-.auth-form input {
-    margin-bottom: 10px;
-    padding: 10px 0 10px 0;
-
-    font-size: 0.9vw;
-    width: 60%;
-}
-
-.auth-form .password-input {
-    margin: auto;
-    position: relative;
-}
-
-.auth-form .password-input .show-password-btn {
-    background-color: white;
-    padding: 0px 2px 4px 2px;
-    position: absolute;
-    right: 20%;
-    bottom: 16px;
-    border: 1px solid gray;
-    border-radius: 30px;
-    color: gray;
-    cursor: pointer;
-    transition: all ease 0.3s;
-}
-
-.auth-form .password-input .show-password-btn:hover {
-    border-color: rgb(66, 132, 234);
-    color: rgb(66, 132, 234);
-}
-
-.auth-form .default-btn {
-    margin: auto;
 }

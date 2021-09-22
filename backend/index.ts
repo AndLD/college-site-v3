@@ -12,23 +12,29 @@ const apiRouter = Router()
 app.use('/api', apiRouter)
 
 // Роутер незащищенных маршрутов
-const publicRouter = Router()
-apiRouter.use('/public', publicRouter)
+// const publicRouter = Router()
+// apiRouter.use('/public', publicRouter)
 
 // Меню
-publicRouter.use('/menu', setReqEntity(entities.MENU), menuPublicRouter)
+// publicRouter.use('/menu', setReqEntity(entities.MENU), menuPublicRouter)
 
 // Роутер защищенных маршрутов
 const privateRouter = Router()
 apiRouter.use('/private', isAuthorized, privateRouter)
 
 // Меню
-privateRouter.use('/menu', setReqEntity(entities.MENU), menuPrivateRouter)
+// privateRouter.use('/menu', setReqEntity(entities.MENU), menuPrivateRouter)
 // Настройки
-privateRouter.use('/settings', setReqEntity(entities.SETTINGS), settingsPrivateRouter)
+// privateRouter.use('/settings', setReqEntity(entities.SETTINGS), settingsPrivateRouter)
 
 // Статистика (тестовый роут)
 privateRouter.get('/statistics', async (_: Any, res: Any) => {
+    return res.json({
+        incomes: 5000,
+        outcomes: 2000
+    })
+})
+app.get('/statistics', async (_: Any, res: Any) => {
     return res.json({
         incomes: 5000,
         outcomes: 2000

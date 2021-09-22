@@ -4,10 +4,11 @@ dotenv.config()
 const express = require('express')
 const cors = require('cors')
 
-export const app = express()
+const server = express()
 
-app.use(express.json())
-app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }))
-app.use(loggerMiddleware)
+server.use(express.json())
+server.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }))
+server.use(loggerMiddleware)
 
+export const app = server
 export const Router = express.Router

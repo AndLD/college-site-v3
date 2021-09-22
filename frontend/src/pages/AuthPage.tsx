@@ -1,7 +1,6 @@
-import { useEffect, useRef } from 'react'
 import { getAuth, GoogleAuthProvider, signInWithPopup } from '@firebase/auth'
 import { useDispatch } from 'react-redux'
-import { setAuth, setToken } from '../store/actions'
+import { setAuth } from '../store/actions'
 import '../assets/css/AuthPage/authPage.css'
 import googleLogo from '../assets/images/google.png'
 import Logo from '../components/AuthPage/Logo'
@@ -11,37 +10,25 @@ const firebaseAuth = getAuth()
 function Auth() {
     const dispatch = useDispatch()
 
-    const backgroundImageLayerRef: any = useRef(null)
-
-    useEffect(() => {
-        firebaseAuth.onAuthStateChanged((userCredentials: any) => {
-            if (userCredentials)
-                userCredentials.getIdToken().then((token: string) => {
-                    dispatch(setAuth(true))
-                    dispatch(setToken(token))
-                    console.log(token)
-                })
-        })
-    }, [])
-
-    useEffect(() => {
-        setTimeout(() => {
-            backgroundImageLayerRef.current.style = 'animation: background-image-sliding-idle 60s linear infinite;'
-        }, 3000)
-    }, [])
-
-    const loginWithGoogle = (e: any) => {
+    function loginWithGoogle(e: any) {
         e.preventDefault()
-        signInWithPopup(firebaseAuth, new GoogleAuthProvider()).then((userCredentials) => {
-            if (userCredentials) {
-                dispatch(setAuth(true))
-            }
-        })
+        signInWithPopup(firebaseAuth, new GoogleAuthProvider())
+            .then((userCredentials) => {
+                if (userCredentials) {
+                    dispatch(setAuth(true))
+                }
+            })
+            .catch((e) => {
+                console.log(e.toString())
+            })
     }
 
     return (
         <div id="auth-page">
-            <div className="background-image-layer" ref={backgroundImageLayerRef}>
+            <div
+                className="background-image-layer"
+                style={{ animation: 'background-image-sliding-idle 60s linear infinite', animationDelay: '3s' }}
+            >
                 <div className="background-gradient-layer">
                     <div className="auth-wrapper">
                         <Logo />
