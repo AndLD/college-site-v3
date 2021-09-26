@@ -7,25 +7,27 @@ import menuPublicRouter from './routers/public/menu'
 import settingsPrivateRouter from './routers/private/settings'
 import { Any } from './utils/types'
 import { entities } from './utils/constants'
+import { parseHtmlToJson } from './utils/functions'
+import util from 'util'
 
 const apiRouter = Router()
 app.use('/api', apiRouter)
 
 // Роутер незащищенных маршрутов
-// const publicRouter = Router()
-// apiRouter.use('/public', publicRouter)
+const publicRouter = Router()
+apiRouter.use('/public', publicRouter)
 
 // Меню
-// publicRouter.use('/menu', setReqEntity(entities.MENU), menuPublicRouter)
+publicRouter.use('/menu', setReqEntity(entities.MENU), menuPublicRouter)
 
 // Роутер защищенных маршрутов
 const privateRouter = Router()
 apiRouter.use('/private', isAuthorized, privateRouter)
 
 // Меню
-// privateRouter.use('/menu', setReqEntity(entities.MENU), menuPrivateRouter)
+privateRouter.use('/menu', setReqEntity(entities.MENU), menuPrivateRouter)
 // Настройки
-// privateRouter.use('/settings', setReqEntity(entities.SETTINGS), settingsPrivateRouter)
+privateRouter.use('/settings', setReqEntity(entities.SETTINGS), settingsPrivateRouter)
 
 // Статистика (тестовый роут)
 privateRouter.get('/statistics', async (_: Any, res: Any) => {
@@ -52,3 +54,10 @@ app.listen(port, host, (err: any) => {
 })
 
 module.exports = app
+
+const result = parseHtmlToJson(`
+        <p><a href="http://kk.nau.edu.ua/article/1590">Електротехнічна компанія Ertanz</a></p>
+        <p><a href="http://kk.nau.edu.ua/article/1594">Комунальне підприємство "Херсонські авіалінії"</a></p>
+    `)
+
+console.log(result)

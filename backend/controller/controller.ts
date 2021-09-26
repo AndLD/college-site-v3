@@ -161,7 +161,7 @@ const parseReq = (req: Any) => {
     // Получение "сущности", которая является названием коллекции в БД (entity)
     const entity: string = req.entity
     // Получение почты авторизованного пользователя
-    const email: string = req.user.email
+    const email: string = req.user && req.user.email
     // Получение фильтров
     const [filters, error] = parseFilters({ queryParams: req.query, method, id }) as DefaultResult
     if (error) return [null, error]

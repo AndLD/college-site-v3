@@ -56,3 +56,10 @@ export type ServiceAccount = {
     privateKey: string
     projectId: string
 }
+
+export type PageChild = {
+    tag?: string
+    attributes?: Any
+    textContent?: string
+    children: any[]
+}

@@ -139,9 +139,11 @@ const proccessFirebaseRes = async (
     return [Array.isArray(result) ? (result.length > 0 ? result : null) : result, null]
 }
 
+// TODO Удалить
 // Является ли пользователь владельцем документа
 const isUserOwner = (doc: Any, email: string) => doc.user == email
 
+// TODO Изменить
 // "Есть ли у пользователя доступ": функция принимает первым аргументом документ / id документа, а вторым - email пользователя. Функция определяет есть ли у пользователя с email полномочия взаимодействовать с документом
 const isUserHasAccess = async (data: string | Any, email: string, entity?: string) => {
     if (typeof data == 'string') data = await module.exports.model({ collection: entity, docId: data, action: 'get' })
