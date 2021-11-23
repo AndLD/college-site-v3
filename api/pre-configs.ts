@@ -7,7 +7,20 @@ const cors = require('cors')
 const server = express()
 
 server.use(express.json())
-server.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }))
+
+const whitelist = process.env.WHITELIST_URLS
+const corsOptions = {
+    origin: function (origin: string, callback: any) {
+        if (!origin || whitelist?.indexOf(origin) !== -1) {
+            callback(null, true)
+        } else {
+            callback(new Error('Not allowed by CORS'))
+        }
+    },
+    credentials: true
+}
+
+server.use(cors(corsOptions))
 server.use(loggerMiddleware)
 
 export const app = server

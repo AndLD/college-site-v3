@@ -61,11 +61,11 @@ export const controller = tryCatch(async function (req: Any, res: Any) {
             error: callbackError.msg
         })
 
-    if (modelResult && modelResult._triggersResult) delete modelResult._triggersResult
+    if (modelResult?._triggersResult) delete modelResult._triggersResult
 
     return res.json({
         result: modelResult,
-        additionalResults: callbacksResults && callbacksResults.length ? callbacksResults : undefined
+        additionalResults: callbacksResults?.length ? callbacksResults : undefined
     })
 } as Controller)
 

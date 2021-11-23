@@ -1,9 +1,9 @@
-import ProfilePage from '../pages/ProfilePage'
+import AdminPage from '../pages/AdminPage'
 
 const publicRoutes = [
     {
-        path: '/profile',
-        component: ProfilePage,
+        path: '/admin',
+        component: AdminPage,
         exact: true
     }
 ]

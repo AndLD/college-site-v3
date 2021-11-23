@@ -14,7 +14,6 @@ const { db, documentId } = firebase
 
 export const model = async ({ email, collection, where, docId, action, obj, triggers, noRecursion }: ModelArgs) => {
     validateModelArgs({ where, docId, action })
-
     let result, triggersResult, error
 
     // Выполнение триггеров
@@ -23,26 +22,29 @@ export const model = async ({ email, collection, where, docId, action, obj, trig
         if (error) return [null, error] as DefaultResult
     }
 
-    if (!docId && action == 'get' && !noRecursion) {
-        ;[result, error] = await module.exports.model({ collection, where, action, noRecursion: true })
-        if (error) return [null, error] as DefaultResult
-    }
-    // При получении, изменении, удалении объекта по id необходимо проверить, есть у юзера доступ к данному объекту
-    if (email && docId && (action == 'get' || action == 'update' || action == 'delete')) {
-        ;[result, error] = await module.exports.model({ collection, docId, action: 'get' })
-        if (error) return [null, error] as DefaultResult
-        if (result) {
-            // Проверка, есть ли у юзера доступ к объекту
-            // if (!(await isUserHasAccess(result, email))) return [null, errors.USER_HAS_NO_RIGHTS] as DefaultResult
-        } else return [null, errors.DOC_NOT_FOUND] as DefaultResult
-    }
+    // // Если GET, не указан ID, рекурсия позволена
+    // if (!docId && action == 'get' && !noRecursion) {
+    //     ;[result, error] = await module.exports.model({ collection, where, action, noRecursion: true })
+    //     if (error) return [null, error] as DefaultResult
+    // }
+
+    // // Если GET || PUT || DELETE, указан email, указан ID
+    // // При получении, изменении, удалении объекта по id необходимо проверить, есть у юзера доступ к данному объекту
+    // if (/*email && */ docId && (action == 'get' || action == 'update' || action == 'delete')) {
+    //     ;[result, error] = await module.exports.model({ collection, docId, action: 'get' })
+    //     if (error) return [null, error] as DefaultResult
+    //     if (result) {
+    //         // Проверка, есть ли у юзера доступ к объекту
+    //         // if (!(await isUserHasAccess(result, email))) return [null, errors.USER_HAS_NO_RIGHTS] as DefaultResult
+    //     } else return [null, errors.DOC_NOT_FOUND] as DefaultResult
+    // }
 
     const queryRef = prepareQueryRef({ collection, where, docId, action })
 
     // Making request
     const firebaseRes = await queryRef[action](obj)
 
-    ;[result, error] = await proccessFirebaseRes(firebaseRes, collection, docId, action, result)
+    ;[result, error] = await processFirebaseRes(firebaseRes, collection, docId, action, result)
 
     if (error) return [null, error] as DefaultResult
 
@@ -95,7 +97,7 @@ const prepareQueryRef = ({
 }
 
 // Processing firebase response for different types of actions
-const proccessFirebaseRes = async (
+const processFirebaseRes = async (
     firebaseRes: Any,
     collection: string,
     docId: string | undefined,

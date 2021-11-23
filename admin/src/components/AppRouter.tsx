@@ -27,7 +27,7 @@ const AppRouter = () => {
                     <Route path={route.path} component={route.component} exact={route.exact} key={route.path} />
                 ))}
 
-                <Redirect to={auth ? '/profile' : '/auth'} />
+                <Redirect to={auth ? '/admin' : '/auth'} />
             </Switch>
         </BrowserRouter>
     )

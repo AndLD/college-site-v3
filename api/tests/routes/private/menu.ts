@@ -15,7 +15,7 @@ export const menuPrivateRouterTests = {
         })
     },
     get: () => {
-        let idState: { state: string, setState: SetStateFunction } = useState()
+        let idState: { state: string; setState: SetStateFunction } = useState()
 
         describe('GET / --> menu', () => {
             it('default', () => makeRequest({ route }))
@@ -54,7 +54,7 @@ export const menuPrivateRouterTests = {
     },
     put() {
         describe('PUT /:id --> menu', () => {
-            let idState: { state: string, setState: SetStateFunction } = useState()
+            let idState: { state: string; setState: SetStateFunction } = useState()
 
             beforeAll(() => menuRequests.defaultPost(idState.setState))
 
@@ -118,7 +118,7 @@ export const menuPrivateRouterTests = {
     },
     delete() {
         describe('DELETE /:id --> menu', () => {
-            let idState: { state: string, setState: SetStateFunction } = useState()
+            let idState: { state: string; setState: SetStateFunction } = useState()
 
             beforeAll(() => menuRequests.defaultPost(idState.setState))
 
