@@ -17,7 +17,7 @@ function App() {
                 userCredentials.getIdToken().then((token: string) => {
                     dispatch(setAuth(true))
                     dispatch(setToken(token))
-                    console.log(token)
+                    // console.log(token)
                 })
             else {
                 dispatch(setAuth(false))

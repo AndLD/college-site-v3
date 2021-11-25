@@ -1,9 +1,9 @@
-import AuthPage from '../pages/AuthPage'
+import Auth from '../pages/Auth'
 
 const publicRoutes = [
     {
         path: '/auth',
-        component: AuthPage,
+        component: Auth,
         exact: true
     }
 ]

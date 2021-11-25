@@ -11,6 +11,8 @@ const AppRouter = () => {
     const auth = useSelector((state: RootStateOrAny) => state.app.auth)
     const [routes, setRoutes] = useState(publicRoutes)
 
+    const [currentPage] = useState(window.localStorage.getItem('currentPage'))
+
     useEffect(() => {
         if (auth === true) {
             setRoutes([...privateRoutes, ...publicRoutes.filter((route) => route.path !== '/auth')])
@@ -27,7 +29,9 @@ const AppRouter = () => {
                     <Route path={route.path} component={route.component} exact={route.exact} key={route.path} />
                 ))}
 
-                <Redirect to={auth ? '/admin' : '/auth'} />
+                <Redirect
+                    to={auth ? `/admin/${currentPage === 'Dashboard' || !currentPage ? '' : currentPage}` : '/auth'}
+                />
             </Switch>
         </BrowserRouter>
     )

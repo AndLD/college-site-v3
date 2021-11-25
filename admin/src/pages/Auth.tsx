@@ -1,7 +1,7 @@
 import '../assets/css/AuthPage/authPage.css'
-import AuthCard from '../components/AuthPage/AuthCard'
+import AuthCard from '../components/Auth/AuthCard'
 
-function AuthPage() {
+function Auth() {
     return (
         <div id="auth-page">
             <div
@@ -16,4 +16,4 @@ function AuthPage() {
     )
 }
 
-export default AuthPage
+export default Auth
