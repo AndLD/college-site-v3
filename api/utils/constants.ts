@@ -19,6 +19,7 @@ export const entities: {
     ARTICLE: 'articles',
     MENU: 'menu',
     USERS: 'users',
-    SLIDERIMG: 'sliderImgs',
-    HISTORY: 'history'
+    // SLIDERIMG: 'sliderImgs',
+    APP_SETTINGS: 'app-settings',
+    ACTIONS: 'actions'
 }

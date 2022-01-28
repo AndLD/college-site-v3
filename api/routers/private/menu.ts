@@ -1,4 +1,4 @@
-import { Router } from '../../pre-configs'
+import { Router } from 'express'
 import { controller } from '../../controller/controller'
 import { validateBody } from '../../middlewares/validation'
 
@@ -11,7 +11,5 @@ export default Router()
     .post('/', validateBody, controller)
     // Изменение блока меню по id
     .put('/:id', validateBody, controller)
-    // Удаление блока меню по id
-    .delete('/:id', controller)
-    // // Удаление блоков меню по массиву id
-    // .delete('/', controller)
+    // Удаление блоков меню по массиву id
+    .delete('/', controller)

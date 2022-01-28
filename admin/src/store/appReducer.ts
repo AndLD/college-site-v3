@@ -1,4 +1,12 @@
-import { SHOW_LOADER, HIDE_LOADER, SET_AUTH, SET_TOKEN, SET_MENU_COLLAPSED } from './types'
+import {
+    SHOW_LOADER,
+    HIDE_LOADER,
+    SET_AUTH,
+    SET_TOKEN,
+    SET_MENU_COLLAPSED,
+    SET_ACTION_MODAL_VISIBILITY,
+    SET_ACTION
+} from './types'
 
 const initialState = {
     loading: false,
@@ -6,7 +14,9 @@ const initialState = {
     token: window.localStorage.getItem('token') || '',
     menu: {
         collapsed: window.localStorage.getItem('adminMenuCollapsed') === 'true' ? true : false
-    }
+    },
+    actionModalVisibility: false,
+    action: 'Add'
 }
 
 export const appReducer = (
@@ -32,6 +42,11 @@ export const appReducer = (
             return { ...state, loading: true }
         case HIDE_LOADER:
             return { ...state, loading: false }
+
+        case SET_ACTION_MODAL_VISIBILITY:
+            return { ...state, actionModalVisibility: action.payload }
+        case SET_ACTION:
+            return { ...state, action: action.payload }
 
         default:
             return state

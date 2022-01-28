@@ -6,27 +6,27 @@ import * as t from 'ts-interface-checker'
 
 export const IMenuElement = t.iface([], {
     title: 'string',
-    link: 'string',
-    hidden: 'boolean',
+    link: t.opt('string'),
+    hidden: t.opt('boolean'),
     children: t.array('IMenuElement')
 })
 
 export const IMenuBlock = t.iface([], {
     id: t.opt('string'),
+    description: t.opt('string'),
     menu: t.array('IMenuElement'),
-    selected: t.opt('boolean'),
     timestamp: 'number',
     lastUpdateTimestamp: t.opt('number')
 })
 
 export const IMenuBlockPost = t.iface([], {
-    menu: t.array('IMenuElement'),
-    selected: t.opt('boolean')
+    description: t.opt('string'),
+    menu: t.array('IMenuElement')
 })
 
 export const IMenuBlockPut = t.iface([], {
-    menu: t.array('IMenuElement'),
-    selected: t.opt('boolean')
+    description: t.opt('string'),
+    menu: t.opt(t.array('IMenuElement'))
 })
 
 const exportedTypeSuite: t.ITypeSuite = {

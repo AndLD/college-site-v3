@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import LogoutButton from './LogoutButton'
 import { Layout, Badge, Avatar, Dropdown, Popover, Card, Tooltip, Menu } from 'antd'
 import { MenuUnfoldOutlined, MenuFoldOutlined, BellOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons'
@@ -20,6 +20,9 @@ interface ITokenData {
 export default function AdminHeader() {
     const dispatch = useDispatch()
     const token = useSelector((state: any) => state.app.token)
+    const [avatarLoaded, setAvatarLoaded] = useState(false)
+    useEffect(() => {}, [])
+
     const collapsed = useSelector((state: any) => state.app.menu.collapsed)
 
     return (
@@ -32,18 +35,18 @@ export default function AdminHeader() {
                 <Popover
                     content={
                         <div>
-                            <Card style={{ margin: '5px 0' }}>
+                            <Card size="small" style={{ margin: '5px 0' }}>
                                 <Tooltip placement="topLeft" title="Go to action...">
                                     <Link to="#">New article</Link>
                                 </Tooltip>
                                 <div></div>
                             </Card>
-                            <Card style={{ margin: '5px 0' }}>
+                            <Card size="small" style={{ margin: '5px 0' }}>
                                 <Tooltip placement="topLeft" title="Go to action...">
                                     <Link to="#">New news</Link>
                                 </Tooltip>
                             </Card>
-                            <Card style={{ margin: '5px 0' }}>
+                            <Card size="small" style={{ margin: '5px 0' }}>
                                 <Tooltip placement="topLeft" title="Go to action...">
                                     <Link to="#">Article 'Адміністрація коледжу' updated</Link>
                                 </Tooltip>
@@ -75,7 +78,17 @@ export default function AdminHeader() {
                     <Avatar
                         style={{ margin: '0 24px', cursor: 'pointer' }}
                         shape="square"
-                        icon={<img src={(jwtDecode(token) as ITokenData).picture} alt="Avatar" />}
+                        icon={
+                            <>
+                                <img
+                                    src={(jwtDecode(token) as ITokenData).picture}
+                                    onLoad={() => setAvatarLoaded(true)}
+                                    alt="Avatar"
+                                    style={{ display: avatarLoaded ? 'inline' : 'none' }}
+                                />
+                                {!avatarLoaded && <UserOutlined />}
+                            </>
+                        }
                     />
                 </Dropdown>
             </span>

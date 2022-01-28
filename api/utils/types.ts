@@ -1,3 +1,4 @@
+import { NextFunction, Request, Response } from 'express'
 import { IMenuBlock } from './interfaces/menu/menu'
 
 export type Any = { [key: string]: any }
@@ -9,7 +10,7 @@ export type Error = {
 export type DefaultResult = [Any | null, Error | null]
 export type ArrayResult = [Any | [] | null, Error | null]
 
-export type Controller = (req: Any, res: Any, next?: any) => any
+export type Controller = (req: Request, res: Response, next?: NextFunction) => any
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
 export type LogicOperator = '<' | '<=' | '==' | '>=' | '>'
@@ -43,14 +44,23 @@ export type ModelArgs = {
     collection: string
     where?: Filter[]
     docId?: string
+    docIds?: string[]
+    pagination?: Pagination
+    select?: string[]
     action: ModelAction
     obj?: Any
     triggers?: ControllerTrigger[]
     noRecursion?: boolean
 }
 export type Entity = IMenuBlock
-export type EntityName = 'menu' | 'articles' | 'news' | 'users' | 'history'
-export type ModelResult = { [key in keyof Entity | '_triggersResult']: any }
+export type EntityName = 'menu' | 'articles' | 'news' | 'users' | 'actions' | 'app-settings'
+export type ModelResult = {
+    mainResult: { [key in keyof Entity]: any } | null
+    _triggersResult?: any
+    _meta?: {
+        pagination?: { [key in keyof Pagination | 'total']: any }
+    }
+}
 
 export type ServiceAccount = {
     clientEmail: string
@@ -72,3 +82,13 @@ export type State = {
 }
 export type SetStateFunction = (newState: any) => void
 export type Subscriber = (newState?: any) => void
+
+export type Pagination = {
+    results: number
+    page: number
+}
+
+export type AppSettings = {
+    selectedMenuId?: string
+    pinnedNewsIds?: string[]
+}

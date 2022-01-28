@@ -1,12 +1,13 @@
 import { Layout } from 'antd'
 import { useSelector } from 'react-redux'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import logo from '../assets/images/logo.png'
 
 import '../styles/AdminPage.scss'
 
 import AdminHeader from './AdminHeader/AdminHeader'
 import AdminMenu from './AdminMenu'
+import ActionModal from './ActionModal'
 
 const { Sider, Content } = Layout
 
@@ -18,7 +19,7 @@ function AdminLayout({ children, currentPage }: any) {
     }, [])
 
     return (
-        <Layout style={{ height: '100vh' }}>
+        <Layout style={{ minHeight: '100vh' }}>
             <Sider trigger={null} collapsible collapsed={collapsed}>
                 <div className="logo">
                     <img
@@ -43,6 +44,7 @@ function AdminLayout({ children, currentPage }: any) {
                 <AdminMenu currentPage={currentPage || 'Dashboard'} />
             </Sider>
             <Layout className="site-layout">
+                <ActionModal />
                 <AdminHeader />
                 <Content
                     className="site-layout-background"

@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { getAuth } from '@firebase/auth'
 import 'antd/dist/antd.css'
-import './App.css'
+import './App.scss'
 import AppRouter from './components/AppRouter'
 import { setAuth, setToken } from './store/actions'
 
@@ -17,7 +17,6 @@ function App() {
                 userCredentials.getIdToken().then((token: string) => {
                     dispatch(setAuth(true))
                     dispatch(setToken(token))
-                    // console.log(token)
                 })
             else {
                 dispatch(setAuth(false))

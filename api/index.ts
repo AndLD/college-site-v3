@@ -1,5 +1,5 @@
 import logger from './utils/logger'
-import { app, Router } from './pre-configs'
+import { app } from './pre-configs'
 import { isAuthorized } from './middlewares/auth'
 import { setReqEntity } from './middlewares/decorators'
 import menuPrivateRouter from './routers/private/menu'
@@ -7,6 +7,8 @@ import menuPublicRouter from './routers/public/menu'
 import usersPrivateRouter from './routers/private/users'
 import { Any } from './utils/types'
 import { entities } from './utils/constants'
+import { Request, Response, Router } from 'express'
+import appSettingsPrivateRouter from './routers/private/app-settings'
 
 const apiRouter = Router()
 app.use('/api', apiRouter)
@@ -24,17 +26,19 @@ apiRouter.use('/private', isAuthorized, privateRouter)
 
 // Меню
 privateRouter.use('/menu', setReqEntity(entities.MENU), menuPrivateRouter)
-// Настройки
-privateRouter.use('/users', setReqEntity(entities.USERS), usersPrivateRouter)
+// Настройки (app-settings)
+privateRouter.use('/settings', setReqEntity(entities.APP_SETTINGS), appSettingsPrivateRouter)
+// Пользователи
+privateRouter.use('/user', setReqEntity(entities.USERS), usersPrivateRouter)
 
 // Статистика (тестовый роут)
-privateRouter.get('/statistics', async (_: Any, res: Any) => {
+privateRouter.get('/statistics', async (_: Request, res: Response) => {
     return res.json({
         incomes: 5000,
         outcomes: 2000
     })
 })
-app.get('/statistics', async (_: Any, res: Any) => {
+app.get('/statistics', async (_: Request, res: Response) => {
     return res.json({
         incomes: 5000,
         outcomes: 2000
@@ -42,13 +46,8 @@ app.get('/statistics', async (_: Any, res: Any) => {
 })
 
 const port = process.env.PORT
-const host = process.env.HOST
-app.listen(port, host, (err: any) => {
-    if (err) {
-        logger.error(`Error while starting the server: ./{err}`)
-    } else {
-        logger.info(`Server has been started on http://${host}:${port}`)
-    }
+app.listen(port, () => {
+    logger.info(`Server has been started on ${port}`)
 })
 
 module.exports = app

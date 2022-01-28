@@ -1,24 +1,24 @@
 export interface IMenuElement {
     title: string
-    link: string
-    hidden: boolean
+    link?: string
+    hidden?: boolean
     children: IMenuElement[]
 }
 
 export interface IMenuBlock {
     id?: string
+    description?: string
     menu: IMenuElement[]
-    selected?: boolean
     timestamp: number
     lastUpdateTimestamp?: number
 }
 
 export interface IMenuBlockPost {
+    description?: string
     menu: IMenuElement[]
-    selected?: boolean
 }
 
 export interface IMenuBlockPut {
-    menu: IMenuElement[]
-    selected?: boolean
+    description?: string
+    menu?: IMenuElement[]
 }

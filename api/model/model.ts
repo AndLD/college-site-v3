@@ -6,15 +6,27 @@ import {
     DefaultResult,
     Filter,
     ModelAction,
-    ModelArgs
+    ModelArgs,
+    ModelResult,
+    Pagination
 } from '../utils/types'
-import { errors } from '../utils/constants'
 
 const { db, documentId } = firebase
 
-export const model = async ({ email, collection, where, docId, action, obj, triggers, noRecursion }: ModelArgs) => {
+export const model = async ({
+    email,
+    collection,
+    where,
+    docId,
+    docIds,
+    pagination,
+    select,
+    action,
+    obj,
+    triggers /*, noRecursion*/
+}: ModelArgs) => {
     validateModelArgs({ where, docId, action })
-    let result, triggersResult, error
+    let mainResult, triggersResult, error
 
     // Выполнение триггеров
     if (triggers) {
@@ -39,18 +51,29 @@ export const model = async ({ email, collection, where, docId, action, obj, trig
     //     } else return [null, errors.DOC_NOT_FOUND] as DefaultResult
     // }
 
-    const queryRef = prepareQueryRef({ collection, where, docId, action })
+    if (action === 'delete' && docIds) {
+        ;[mainResult, error] = await makeBatchedDeletes({ collection, docIds, action })
 
-    // Making request
-    const firebaseRes = await queryRef[action](obj)
+        if (error) return [null, error] as DefaultResult
+    } else {
+        const queryRef = prepareQueryRef({ collection, where, docId, pagination, select, action })
 
-    ;[result, error] = await processFirebaseRes(firebaseRes, collection, docId, action, result)
+        // Making request
+        const firebaseRes = await queryRef[action](obj)
 
-    if (error) return [null, error] as DefaultResult
+        ;[mainResult, error] = await processFirebaseRes(firebaseRes, collection, docId, action, mainResult)
 
-    if (triggersResult && Object.keys(triggersResult as Any).length)
-        return [{ ...result, _triggersResult: triggersResult }, null]
-    else return [result, null] as DefaultResult
+        if (error) return [null, error] as DefaultResult
+    }
+
+    let result: ModelResult = action == 'add' || action == 'update' ? { ...mainResult } : { mainResult }
+
+    if (triggersResult && Object.keys(triggersResult as Any).length) result._triggersResult = triggersResult
+
+    if (pagination)
+        result._meta = { ...result._meta, pagination: { ...pagination, total: await getCollectionLength(collection) } }
+
+    return [result, null] as DefaultResult
 }
 
 const callTriggers = async (triggers: ControllerTrigger[], args: ControllerTriggerArgs) => {
@@ -67,21 +90,23 @@ const callTriggers = async (triggers: ControllerTrigger[], args: ControllerTrigg
 
 // ! Валидировать все аргументы функции
 const validateModelArgs = ({ where, docId, action }: { where?: Filter[]; docId?: string; action: ModelAction }) => {
-    if (!['get', 'add', 'update', 'delete'].includes(action)) throw 'validateModelArgs: Incorrect action'
     if (['add', 'update', 'delete'].includes(action) && where) throw 'validateModelArgs: Incorrect mix: action & where'
-    if ((action == 'update' || action == 'delete') && !docId)
-        throw `validateModelArgs: Missing docId during "${action}" action`
+    if (action == 'update' && !docId) throw `validateModelArgs: Missing docId during "${action}" action`
 }
 
 const prepareQueryRef = ({
     collection,
     where,
     docId,
+    pagination,
+    select,
     action
 }: {
     collection: string
     where?: Filter[]
     docId?: string
+    pagination?: Pagination
+    select?: string[]
     action: ModelAction
 }) => {
     let queryRef: any = db.collection(collection)
@@ -93,7 +118,43 @@ const prepareQueryRef = ({
     // GET
     if (where && action == 'get') for (const whereArgs of where) queryRef = queryRef.where(...whereArgs)
 
+    if (action == 'get' && pagination)
+        queryRef = queryRef /*.orderBy('timestamp')*/
+            .offset((pagination.page - 1) * pagination.results)
+            .limit(pagination.results)
+
+    if (action == 'get' && select) queryRef = queryRef.select(...select)
+
     return queryRef
+}
+
+//TODO REFACTOR
+//! For multiple deletion only
+const makeBatchedDeletes = ({
+    collection,
+    docIds,
+    action
+}: {
+    collection: string
+    docIds: string[]
+    action: ModelAction
+}) => {
+    if (action === 'delete') {
+        const batch = db.batch()
+
+        for (const id of docIds) {
+            batch[action](db.collection(collection).doc(id))
+        }
+
+        return [batch.commit(), null]
+    }
+    return [null, { msg: 'Incorrect action: "delete" is only available for makeBatchedDeletes function', code: 500 }]
+}
+
+// Count documents of a collection
+const getCollectionLength = async (collection: string) => {
+    const list = await db.collection(collection).listDocuments()
+    return (list as any)?.length
 }
 
 // Processing firebase response for different types of actions

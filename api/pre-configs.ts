@@ -24,4 +24,3 @@ server.use(cors(corsOptions))
 server.use(loggerMiddleware)
 
 export const app = server
-export const Router = express.Router
