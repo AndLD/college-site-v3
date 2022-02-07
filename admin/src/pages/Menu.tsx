@@ -1,11 +1,27 @@
-import { Typography, Table, Tree, Button, Empty, Spin, Popconfirm, Divider, Badge, Tabs } from 'antd'
+import {
+    Typography,
+    Table,
+    Tree,
+    Button,
+    Empty,
+    Spin,
+    Popconfirm,
+    Divider,
+    Badge,
+    Tabs
+} from 'antd'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import { useSelector } from 'react-redux'
 import { useEffect, useState } from 'react'
 import AdminLayout from '../components/AdminLayout'
 import { generateKey } from 'fast-key-generator'
 import { errorNotification, successNotification, warningNotification } from '../utils/notifications'
-import { IMenuBlock, IMenuElementOfTree } from '../utils/types'
+import {
+    IMenuBlock,
+    IMenuBlockUpdate as IMenuBlockUpdate,
+    IMenuElement,
+    IMenuElementOfTree
+} from '../utils/types'
 import { privateRoutes } from '../utils/constants'
 import '../styles/Menu.scss'
 import MenuTreeElement from '../components/Menu/MenuTreeElement'
@@ -31,9 +47,12 @@ function Menu() {
     })
     const [selectedRows, setSelectedRows] = useState([])
     const [selectedMenu, setSelectedMenu] = useState<IMenuBlock | undefined>()
+    const [selectedMenuControlsEnabled, setSelectedMenuControlsEnabled] = useState<boolean>(false)
 
     // const [checkedTreeKeys, setCheckedTreeKeys] = useState<any>([])
+    const [initialTreeData, setInitialTreeData] = useState<IMenuElementOfTree[]>([])
     const [treeData, setTreeData] = useState<IMenuElementOfTree[]>([])
+    const [treeDataUpdates, setTreeDataUpdates] = useState<IMenuBlockUpdate[]>([])
 
     const columns = [
         {
@@ -123,7 +142,8 @@ function Menu() {
             params: {
                 ids: selectedRows
                     .map((elem: any) => {
-                        if (selectedMenu && elem.id === selectedMenu.id) isSelectedMenuUpdateNeeds = true
+                        if (selectedMenu && elem.id === selectedMenu.id)
+                            isSelectedMenuUpdateNeeds = true
                         return elem.id
                     })
                     .toString()
@@ -172,6 +192,71 @@ function Menu() {
             .catch((err: AxiosError) => errorNotification(err.message))
     }
 
+    function updateTreeDataMenu(key: string, body: any) {
+        const newTreeData = []
+
+        for (const elem of treeData) {
+            // console.log(elem)
+            newTreeData.push(updateTreeDataElem(elem))
+        }
+
+        setTreeData(newTreeData)
+
+        function updateTreeDataElem(elem: IMenuElementOfTree) {
+            const newTreeDataElem = {
+                ...elem,
+                children: [] as IMenuElementOfTree[]
+            }
+
+            if (elem.key == key) {
+                newTreeDataElem.title = (
+                    <MenuTreeElement
+                        elem={{
+                            title: body['title'] || newTreeDataElem.title.props.elem.title,
+                            hidden:
+                                body['hidden'] !== undefined
+                                    ? body['hidden']
+                                    : newTreeDataElem.hidden || false,
+                            link: body['link'] || newTreeDataElem.link,
+                            key: newTreeDataElem.key
+                        }}
+                        treeDataUpdatesState={[treeDataUpdates, setTreeDataUpdates]}
+                    />
+                )
+                for (const field in body) {
+                    if (field != 'title') {
+                        ;(newTreeDataElem as any)[field] = body[field]
+                    } // newTreeDataElem.title.props.elem.title
+                }
+            }
+            for (const child of elem.children) {
+                newTreeDataElem.children.push(updateTreeDataElem(child))
+            }
+
+            return newTreeDataElem
+        }
+    }
+
+    useEffect(() => {
+        const newUpdate = treeDataUpdates[treeDataUpdates.length - 1]
+
+        if (!newUpdate) {
+            setSelectedMenuControlsEnabled(false)
+            return
+        }
+
+        if (newUpdate.type == 'Update' && newUpdate.body) {
+            updateTreeDataMenu(newUpdate.key, newUpdate.body)
+        }
+
+        setSelectedMenuControlsEnabled(true)
+    }, [treeDataUpdates])
+
+    // function isTreeDataUpdated() {
+    //     console.log(JSON.stringify(treeData) === JSON.stringify(initialTreeData))
+    //     return JSON.stringify(treeData) === JSON.stringify(initialTreeData)
+    // }
+
     function configMenu() {
         const menu = selectedMenu?.menu
 
@@ -182,17 +267,53 @@ function Menu() {
         }
 
         setTreeData(menu as IMenuElementOfTree[])
+        setInitialTreeData(menu as IMenuElementOfTree[])
 
         function configElem(elem: IMenuElementOfTree) {
             elem.key = generateKey({})
             elem.title = (
                 <MenuTreeElement
-                    elem={{ title: elem.title, hidden: elem.hidden || false, link: elem.link, key: elem.key }}
+                    elem={{
+                        title: elem.title,
+                        hidden: elem.hidden || false,
+                        link: elem.link,
+                        key: elem.key
+                    }}
+                    treeDataUpdatesState={[treeDataUpdates, setTreeDataUpdates]}
                 />
             )
             for (const child of elem.children as IMenuElementOfTree[]) {
                 configElem(child)
             }
+        }
+    }
+
+    function deconfigMenu() {
+        const menu = treeData
+
+        if (!menu) return
+
+        const deconfiguredMenu = []
+
+        for (const elem of menu as IMenuElement[]) {
+            deconfiguredMenu.push(deconfigElem(elem))
+        }
+
+        return deconfiguredMenu
+
+        function deconfigElem(elem: IMenuElement) {
+            const title = (elem.title as any).props.elem.title
+            const deconfiguredElem = {
+                title,
+                link: elem.link,
+                children: []
+            } as IMenuElement
+
+            for (const child of elem.children as IMenuElement[]) {
+                deconfiguredElem.children.push(deconfigElem(child))
+            }
+
+            return deconfiguredElem
         }
     }
 
@@ -212,8 +333,8 @@ function Menu() {
 
                     if (!menu) {
                         warningNotification('No selected menu found!')
-                        setSelectedMenu(undefined)
-                        setTreeData([])
+                        // setSelectedMenu(undefined)
+                        // setTreeData([])
                     }
                     setSelectedMenu(menu)
                 }
@@ -228,7 +349,8 @@ function Menu() {
     }, [selectedMenu])
 
     useEffect(() => {
-        console.log('treeData', treeData)
+        // console.log('treeData', treeData)
+        deconfigMenu()
     }, [treeData])
 
     useEffect(() => {
@@ -257,7 +379,11 @@ function Menu() {
                             okText="Yes"
                             cancelText="No"
                         >
-                            <Button style={{ margin: '0 0 0 5px' }} type="primary" disabled>
+                            <Button
+                                style={{ margin: '0 0 0 5px' }}
+                                type="primary"
+                                disabled={!selectedMenuControlsEnabled}
+                            >
                                 Save
                             </Button>
                         </Popconfirm>
@@ -269,7 +395,7 @@ function Menu() {
                             <div style={{ textAlign: 'center' }}>
                                 <Spin size="large" />
                             </div>
-                        ) : treeData.length === 0 ? (
+                        ) : !treeData.length ? (
                             <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
                         ) : (
                             <Tree
@@ -282,9 +408,9 @@ function Menu() {
                                 // setCheckedTreeKeys(checkedKeys)
                                 // console.log('checked', checkedKeys, info)
                                 // }}
-                                onSelect={(selectedKeys, info) => {
-                                    console.log('selected', selectedKeys, info)
-                                }}
+                                // onSelect={(selectedKeys, info) => {
+                                //     console.log('selected', selectedKeys, info)
+                                // }}
                                 treeData={treeData}
                             />
                         )}
@@ -307,7 +433,10 @@ function Menu() {
                                 tableData &&
                                 tableData.map((row: any) => ({
                                     ...row,
-                                    status: selectedMenu && row.id === selectedMenu.id ? 'Selected' : 'Not selected'
+                                    status:
+                                        selectedMenu && row.id === selectedMenu.id
+                                            ? 'Selected'
+                                            : 'Not selected'
                                 }))
                             }
                             pagination={pagination}

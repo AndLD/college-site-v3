@@ -18,6 +18,12 @@ export interface IMenuElement {
 
 export interface IMenuElementOfTree extends IMenuElement {
     children: IMenuElementOfTree[]
-    key: string | number
+    key: string
     title: any
+}
+
+export interface IMenuBlockUpdate {
+    type: 'Add' | 'Update' | 'Delete',
+    key: string,
+    body: any
 }
