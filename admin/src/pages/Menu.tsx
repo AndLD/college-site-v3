@@ -344,6 +344,11 @@ function Menu() {
 
     function updateSelectedMenu() {}
 
+    function resetSelectedMenuChanges() {
+        setTreeData(initialTreeData)
+        setTreeDataUpdates([])
+    }
+
     useEffect(() => {
         if (selectedMenu) configMenu()
     }, [selectedMenu])
@@ -372,6 +377,19 @@ function Menu() {
             <Tabs>
                 <TabPane tab="Selected menu" key={1}>
                     <div style={{ textAlign: 'right', margin: '0 0 16px 0' }}>
+                        <Popconfirm
+                            title="Are you sure to reset changes?"
+                            onConfirm={resetSelectedMenuChanges}
+                            okText="Yes"
+                            okButtonProps={{
+                                danger: true
+                            }}
+                            cancelText="No"
+                        >
+                            <Button danger disabled={!selectedMenuControlsEnabled}>
+                                Reset
+                            </Button>
+                        </Popconfirm>
                         <Popconfirm
                             disabled
                             title="Are you sure to update current menu?"
