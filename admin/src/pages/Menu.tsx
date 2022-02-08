@@ -8,7 +8,7 @@ import {
     Popconfirm,
     Divider,
     Badge,
-    Tabs,
+    Tabs
 } from 'antd'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import { useSelector } from 'react-redux'
@@ -20,7 +20,7 @@ import {
     IMenuBlock,
     IMenuBlockUpdate as IMenuBlockUpdate,
     IMenuElement,
-    IMenuElementOfTree,
+    IMenuElementOfTree
 } from '../utils/types'
 import { privateRoutes } from '../utils/constants'
 import '../styles/Menu.scss'
@@ -39,11 +39,11 @@ function Menu() {
     const [tableData, setTableData] = useState([])
     const [pagination, setPagination] = useState({
         current: 1,
-        pageSize: 5,
+        pageSize: 5
     })
     const [loading, setLoading] = useState({
         tree: false,
-        table: false,
+        table: false
     })
     const [selectedRows, setSelectedRows] = useState([])
     const [selectedMenu, setSelectedMenu] = useState<IMenuBlock | undefined>()
@@ -57,21 +57,21 @@ function Menu() {
     const columns = [
         {
             title: 'ID',
-            dataIndex: 'id',
+            dataIndex: 'id'
         },
         {
             title: 'Description',
-            dataIndex: 'description',
+            dataIndex: 'description'
         },
         {
             title: 'Timestamp',
             dataIndex: 'timestamp',
-            render: (value: number) => value && new Date(value).toLocaleString(),
+            render: (value: number) => value && new Date(value).toLocaleString()
         },
         {
             title: 'Last Update Timestamp',
             dataIndex: 'lastUpdateTimestamp',
-            render: (value: number) => value && new Date(value).toLocaleString(),
+            render: (value: number) => value && new Date(value).toLocaleString()
         },
         {
             title: 'Status',
@@ -91,19 +91,19 @@ function Menu() {
                         {value === 'Selected' ? 'deselect' : 'select'}
                     </Button>
                 </div>
-            ),
-        },
+            )
+        }
     ]
 
     function selectMenu(id: string) {
         axios(privateRoutes.APP_SETTINGS, {
             method: 'PUT',
             data: {
-                selectedMenuId: id,
+                selectedMenuId: id
             },
             headers: {
-                Authorization: `Bearer ${token}`,
-            },
+                Authorization: `Bearer ${token}`
+            }
         })
             .then((res: AxiosResponse) => {
                 if (res.data.result === true) {
@@ -119,11 +119,11 @@ function Menu() {
         axios(privateRoutes.APP_SETTINGS, {
             method: 'PUT',
             data: {
-                selectedMenuId: null,
+                selectedMenuId: null
             },
             headers: {
-                Authorization: `Bearer ${token}`,
-            },
+                Authorization: `Bearer ${token}`
+            }
         })
             .then((res: AxiosResponse) => {
                 if (res.data.result === true) {
@@ -146,11 +146,11 @@ function Menu() {
                             isSelectedMenuUpdateNeeds = true
                         return elem.id
                     })
-                    .toString(),
+                    .toString()
             },
             headers: {
-                Authorization: `Bearer ${token}`,
-            },
+                Authorization: `Bearer ${token}`
+            }
         })
             .then(() => {
                 if (isSelectedMenuUpdateNeeds) fetchSelectedMenu()
@@ -164,17 +164,17 @@ function Menu() {
     function fetchMenu(pagination: any) {
         setLoading({
             ...loading,
-            table: true,
+            table: true
         })
         axios(privateRoutes.MENU, {
             params: {
                 page: pagination.current,
                 results: pagination.pageSize,
-                select: 'id,description,timestamp,lastUpdateTimestamp',
+                select: 'id,description,timestamp,lastUpdateTimestamp'
             },
             headers: {
-                Authorization: `Bearer ${token}`,
-            },
+                Authorization: `Bearer ${token}`
+            }
         })
             .then((res: AxiosResponse) => {
                 // if (!isMounted) return
@@ -182,11 +182,11 @@ function Menu() {
                 setTableData(res.data.result)
                 setLoading({
                     ...loading,
-                    table: false,
+                    table: false
                 })
                 setPagination({
                     ...pagination,
-                    total: res.data.meta.pagination.total,
+                    total: res.data.meta.pagination.total
                 })
             })
             .catch((err: AxiosError) => errorNotification(err.message))
@@ -205,7 +205,7 @@ function Menu() {
         function updateTreeDataElem(elem: IMenuElementOfTree) {
             const newTreeDataElem = {
                 ...elem,
-                children: [] as IMenuElementOfTree[],
+                children: [] as IMenuElementOfTree[]
             }
 
             if (elem.key == key) {
@@ -218,7 +218,7 @@ function Menu() {
                                     ? body['hidden']
                                     : newTreeDataElem.hidden || false,
                             link: body['link'] || newTreeDataElem.link,
-                            key: newTreeDataElem.key,
+                            key: newTreeDataElem.key
                         }}
                         treeDataUpdatesState={[treeDataUpdates, setTreeDataUpdates]}
                     />
@@ -277,7 +277,7 @@ function Menu() {
                         title: elem.title,
                         hidden: elem.hidden || false,
                         link: elem.link,
-                        key: elem.key,
+                        key: elem.key
                     }}
                     treeDataUpdatesState={[treeDataUpdates, setTreeDataUpdates]}
                 />
@@ -306,7 +306,7 @@ function Menu() {
             const deconfiguredElem = {
                 title,
                 link: elem.link,
-                children: [],
+                children: []
             } as IMenuElement
 
             for (const child of elem.children as IMenuElement[]) {
@@ -320,7 +320,7 @@ function Menu() {
     function fetchSelectedMenu() {
         setLoading({
             ...loading,
-            tree: true,
+            tree: true
         })
         axios('http://localhost:8080/api/public/menu')
             .then((res) => {
@@ -328,7 +328,7 @@ function Menu() {
                     const menu = res.data.result
                     setLoading({
                         ...loading,
-                        tree: false,
+                        tree: false
                     })
 
                     if (!menu) {
@@ -382,7 +382,7 @@ function Menu() {
                             onConfirm={resetSelectedMenuChanges}
                             okText="Yes"
                             okButtonProps={{
-                                danger: true,
+                                danger: true
                             }}
                             cancelText="No"
                         >
@@ -443,7 +443,7 @@ function Menu() {
                                 type: 'checkbox',
                                 onChange: (_: any, selectedRows: any) => {
                                     setSelectedRows(selectedRows)
-                                },
+                                }
                             }}
                             columns={columns}
                             rowKey={(record: any) => record.id}
@@ -454,7 +454,7 @@ function Menu() {
                                     status:
                                         selectedMenu && row.id === selectedMenu.id
                                             ? 'Selected'
-                                            : 'Not selected',
+                                            : 'Not selected'
                                 }))
                             }
                             pagination={pagination}
