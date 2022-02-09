@@ -322,6 +322,13 @@ function Menu() {
             children: info.dragNode.children
         }
 
+        // console.log({
+        //     dropKey,
+        //     dragKey,
+        //     dropPosition,
+        //     dropToGap: info.dropToGap
+        // })
+
         let menu = treeData
 
         menu = menu.filter(filterForDragKey)
@@ -346,7 +353,7 @@ function Menu() {
                         }
                     }
                     if (dropPosition == 0) {
-                        menu[i].children.push(dragElem)
+                        menu[i].children.unshift(dragElem)
                     }
                     if (dropPosition == 1) {
                         if (i + 1 < menu.length) {
