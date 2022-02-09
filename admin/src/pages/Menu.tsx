@@ -49,8 +49,6 @@ function Menu() {
     const [selectedMenu, setSelectedMenu] = useState<IMenuBlock | undefined>()
     const [selectedMenuControlsEnabled, setSelectedMenuControlsEnabled] = useState<boolean>(false)
 
-    // const [checkedTreeKeys, setCheckedTreeKeys] = useState<any>([])
-    const [initialTreeData, setInitialTreeData] = useState<IMenuElementOfTree[]>([])
     const [treeData, setTreeData] = useState<IMenuElementOfTree[]>([])
     const [treeDataUpdates, setTreeDataUpdates] = useState<IMenuBlockUpdate[]>([])
 
@@ -196,7 +194,6 @@ function Menu() {
         const newTreeData = []
 
         for (const elem of treeData) {
-            // console.log(elem)
             newTreeData.push(updateTreeDataElem(elem))
         }
 
@@ -226,7 +223,7 @@ function Menu() {
                 for (const field in body) {
                     if (field != 'title') {
                         ;(newTreeDataElem as any)[field] = body[field]
-                    } // newTreeDataElem.title.props.elem.title
+                    }
                 }
             }
             for (const child of elem.children) {
@@ -252,13 +249,8 @@ function Menu() {
         setSelectedMenuControlsEnabled(true)
     }, [treeDataUpdates])
 
-    // function isTreeDataUpdated() {
-    //     console.log(JSON.stringify(treeData) === JSON.stringify(initialTreeData))
-    //     return JSON.stringify(treeData) === JSON.stringify(initialTreeData)
-    // }
-
     function configMenu() {
-        const menu = selectedMenu?.menu
+        const menu = JSON.parse(JSON.stringify(selectedMenu?.menu))
 
         if (!menu) return
 
@@ -266,8 +258,7 @@ function Menu() {
             configElem(elem)
         }
 
-        setTreeData(menu as IMenuElementOfTree[])
-        setInitialTreeData(menu as IMenuElementOfTree[])
+        return menu as IMenuElementOfTree[]
 
         function configElem(elem: IMenuElementOfTree) {
             elem.key = generateKey({})
@@ -317,6 +308,69 @@ function Menu() {
         }
     }
 
+    function onDrop(info: any) {
+        const dropKey = info.node.key
+        const dragKey = info.dragNode.key
+        const dropPos = info.node.pos
+        const dropPosition = info.dropPosition - Number(dropPos[dropPos.length - 1])
+
+        const dragElem: IMenuElementOfTree = {
+            key: dragKey,
+            title: info.dragNode.title,
+            hidden: info.dragNode.hidden,
+            link: info.dragNode.link,
+            children: info.dragNode.children
+        }
+
+        let menu = treeData
+
+        menu = menu.filter(filterForDragKey)
+
+        insertDragElem(menu)
+
+        function filterForDragKey(elem: IMenuElementOfTree) {
+            if (elem.key !== dragKey) {
+                elem.children = elem.children.filter(filterForDragKey)
+                return true
+            }
+        }
+
+        function insertDragElem(menu: IMenuElementOfTree[]) {
+            for (let i = 0; i < menu.length; i++) {
+                if (menu[i].key === dropKey) {
+                    if (dropPosition == -1) {
+                        if (i - 1 >= 0) {
+                            menu.splice(i - 1, 0, dragElem)
+                        } else {
+                            menu.unshift(dragElem)
+                        }
+                    }
+                    if (dropPosition == 0) {
+                        menu[i].children.push(dragElem)
+                    }
+                    if (dropPosition == 1) {
+                        if (i + 1 < menu.length) {
+                            menu.splice(i + 1, 0, dragElem)
+                        } else {
+                            menu.push(dragElem)
+                        }
+                    }
+                    return true
+                }
+                if (insertDragElem(menu[i].children)) return true
+            }
+        }
+
+        setTreeData(menu)
+        setTreeDataUpdates([
+            ...treeDataUpdates,
+            {
+                type: 'Update',
+                key: dragKey
+            }
+        ])
+    }
+
     function fetchSelectedMenu() {
         setLoading({
             ...loading,
@@ -342,21 +396,24 @@ function Menu() {
             .catch((err: AxiosError) => errorNotification(err.message))
     }
 
-    function updateSelectedMenu() {}
+    function saveSelectedMenuChanges() {}
 
     function resetSelectedMenuChanges() {
-        setTreeData(initialTreeData)
+        const menu = configMenu()
+        if (!menu) {
+            errorNotification('Error reseting selected menu changes!')
+            return
+        }
+        setTreeData(menu)
         setTreeDataUpdates([])
     }
 
     useEffect(() => {
-        if (selectedMenu) configMenu()
+        if (selectedMenu) {
+            const menu = configMenu()
+            menu && setTreeData(menu)
+        }
     }, [selectedMenu])
-
-    useEffect(() => {
-        // console.log('treeData', treeData)
-        deconfigMenu()
-    }, [treeData])
 
     useEffect(() => {
         setIsMounted(true)
@@ -393,7 +450,7 @@ function Menu() {
                         <Popconfirm
                             disabled
                             title="Are you sure to update current menu?"
-                            onConfirm={updateSelectedMenu}
+                            onConfirm={saveSelectedMenuChanges}
                             okText="Yes"
                             cancelText="No"
                         >
@@ -417,18 +474,10 @@ function Menu() {
                             <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
                         ) : (
                             <Tree
-                                // checkedKeys={checkedTreeKeys}
-                                // checkable
-                                // checkStrictly
                                 selectable={false}
                                 showLine
-                                // onCheck={(checkedKeys, info) => {
-                                // setCheckedTreeKeys(checkedKeys)
-                                // console.log('checked', checkedKeys, info)
-                                // }}
-                                // onSelect={(selectedKeys, info) => {
-                                //     console.log('selected', selectedKeys, info)
-                                // }}
+                                draggable
+                                onDrop={onDrop}
                                 treeData={treeData}
                             />
                         )}

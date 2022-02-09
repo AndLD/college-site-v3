@@ -23,7 +23,7 @@ export interface IMenuElementOfTree extends IMenuElement {
 }
 
 export interface IMenuBlockUpdate {
-    type: 'Add' | 'Update' | 'Delete',
-    key: string,
-    body: any
+    type: 'Add' | 'Update' | 'Delete'
+    key: string
+    body?: any
 }
