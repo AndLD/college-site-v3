@@ -1,9 +1,9 @@
 .menu-description-action {
-    display: none;
+    visibility: hidden;
 }
 
 .menu-description:hover {
     .menu-description-action {
-        display: inline;
+        visibility: visible;
     }
 }
