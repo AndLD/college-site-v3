@@ -26,6 +26,8 @@ import { privateRoutes } from '../utils/constants'
 import '../styles/Menu.scss'
 import MenuTreeElement from '../components/Menu/MenuTreeElement'
 import MenuTableControls from '../components/Menu/MenuTable/MenuTableControls'
+import { EditOutlined } from '@ant-design/icons'
+import '../App.scss'
 
 const { Title } = Typography
 
@@ -471,7 +473,18 @@ function Menu() {
                         </Popconfirm>
                     </div>
                     <div>
-                        <Title level={4}>{selectedMenu?.description}</Title>
+                        <Title level={4} className="menu-description">
+                            {selectedMenu?.description}
+                            <EditOutlined
+                                className="menu-description-action"
+                                style={{
+                                    fontSize: '20px',
+                                    margin: '0 5px',
+                                    transform: 'translateY(20%)'
+                                }}
+                                onClick={() => {}}
+                            />
+                        </Title>
                         <p>{selectedMenu?.id}</p>
                         {loading.tree ? (
                             <div style={{ textAlign: 'center' }}>

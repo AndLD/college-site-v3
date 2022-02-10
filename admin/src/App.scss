@@ -1,0 +1,9 @@
+.menu-description-action {
+    display: none;
+}
+
+.menu-description:hover {
+    .menu-description-action {
+        display: inline;
+    }
+}
