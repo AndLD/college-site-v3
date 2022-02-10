@@ -28,7 +28,6 @@ import '../styles/Menu.scss'
 import MenuTreeElement from '../components/Menu/MenuTreeElement'
 import MenuTableControls from '../components/Menu/MenuTable/MenuTableControls'
 import { CloseOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons'
-import '../App.scss'
 
 const { Title } = Typography
 
