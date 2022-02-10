@@ -419,6 +419,9 @@ function Menu() {
             errorNotification('Error reseting selected menu changes!')
             return
         }
+
+        setMenuDescription(selectedMenu?.description || '')
+
         setTreeData(menu)
         setTreeDataUpdates([])
     }
@@ -454,6 +457,7 @@ function Menu() {
                 <TabPane tab="Selected menu" key={1}>
                     <div style={{ textAlign: 'right', margin: '0 0 16px 0' }}>
                         <Popconfirm
+                            disabled={!selectedMenuControlsEnabled}
                             title="Are you sure to reset changes?"
                             onConfirm={resetSelectedMenuChanges}
                             okText="Yes"
@@ -467,8 +471,8 @@ function Menu() {
                             </Button>
                         </Popconfirm>
                         <Popconfirm
-                            disabled
-                            title="Are you sure to update current menu?"
+                            disabled={!selectedMenuControlsEnabled}
+                            title="Are you sure to update selected menu?"
                             onConfirm={saveSelectedMenuChanges}
                             okText="Yes"
                             cancelText="No"
@@ -493,6 +497,7 @@ function Menu() {
                             {menuDescriptionEditMode ? (
                                 <>
                                     <Input
+                                        size="large"
                                         placeholder="New description"
                                         value={newMenuDescription}
                                         onChange={(event: ChangeEvent<HTMLInputElement>) =>
@@ -511,6 +516,8 @@ function Menu() {
                                         onClick={() => {
                                             setMenuDescriptionEditMode(false)
                                             setMenuDescription(newMenuDescription)
+                                            // setMenuDescriptionUpdated(true)
+                                            setSelectedMenuControlsEnabled(true)
                                         }}
                                     />
                                     <CloseOutlined
@@ -526,7 +533,11 @@ function Menu() {
                                 </>
                             ) : (
                                 <>
-                                    {menuDescription}
+                                    {menuDescription ? (
+                                        menuDescription
+                                    ) : (
+                                        <span style={{ color: '#d4d4d4' }}>No description</span>
+                                    )}
                                     <EditOutlined
                                         className="menu-description-action"
                                         style={{
