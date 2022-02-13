@@ -24,6 +24,6 @@ export interface IMenuElementOfTree extends IMenuElement {
 
 export interface IMenuBlockUpdate {
     type: 'Add' | 'Update' | 'Delete'
-    key: string
+    key?: string
     body?: any
 }

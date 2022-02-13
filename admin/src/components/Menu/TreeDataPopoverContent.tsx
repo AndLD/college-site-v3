@@ -10,9 +10,9 @@ export function TreeDataPopoverContent({
 }: {
     form: any
     action: string
-    onAction?: (key: string, body: any) => void
+    onAction?: (key: string | undefined, body: any) => void
     initialValues?: any
-    treeDataKey: string
+    treeDataKey?: string
 }) {
     return (
         <div>

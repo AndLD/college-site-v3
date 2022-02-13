@@ -1,5 +1,5 @@
 import { DeleteOutlined, EditOutlined, PlusCircleOutlined } from '@ant-design/icons'
-import { Form, Popconfirm, Popover } from 'antd'
+import { Form, Popconfirm, Popover, Tooltip } from 'antd'
 import { SetStateAction, useEffect, useState } from 'react'
 import { IMenuElement, IMenuElementOfTree, IMenuBlockUpdate } from '../../utils/types'
 import { TreeDataPopoverContent } from './TreeDataPopoverContent'
@@ -15,6 +15,7 @@ export default function MenuTreeElement({
     const [updateForm] = Form.useForm()
 
     const [updatePopoverVisible, setUpdatePopoverVisible] = useState<boolean>(false)
+    const [addPopoverVisible, setAddPopoverVisible] = useState<boolean>(false)
 
     return (
         <div
@@ -23,14 +24,36 @@ export default function MenuTreeElement({
                 color: elem.hidden ? '#d4d4d4' : 'black'
             }}
         >
-            <span>{elem.title}</span>
+            <Tooltip title={elem.link || 'No link'} mouseEnterDelay={0} mouseLeaveDelay={0}>
+                <span>{elem.title}</span>
+            </Tooltip>
             <Popover
                 content={
-                    <TreeDataPopoverContent form={addForm} action="Add" treeDataKey={elem.key} />
+                    <TreeDataPopoverContent
+                        form={addForm}
+                        action="Add"
+                        treeDataKey={elem.key}
+                        initialValues={{
+                            hidden: false
+                        }}
+                        onAction={(key: string | undefined, body: any) => {
+                            setTreeDataUpdates([
+                                ...treeDataUpdates,
+                                {
+                                    type: 'Add',
+                                    key,
+                                    body
+                                }
+                            ])
+                            setAddPopoverVisible(false)
+                        }}
+                    />
                 }
+                visible={addPopoverVisible}
                 onVisibleChange={(visible) => {
+                    setAddPopoverVisible(visible)
                     if (!visible) {
-                        // addForm.resetFields()
+                        addForm.resetFields()
                     }
                 }}
                 trigger="click"
@@ -52,7 +75,7 @@ export default function MenuTreeElement({
                             link: elem.link
                         }}
                         treeDataKey={elem.key}
-                        onAction={(key: string, body: any) => {
+                        onAction={(key: string | undefined, body: any) => {
                             setTreeDataUpdates([
                                 ...treeDataUpdates,
                                 {

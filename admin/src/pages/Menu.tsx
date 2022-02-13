@@ -9,7 +9,10 @@ import {
     Divider,
     Badge,
     Tabs,
-    Input
+    Input,
+    Popover,
+    Form,
+    Tooltip
 } from 'antd'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import { useSelector } from 'react-redux'
@@ -27,7 +30,8 @@ import { privateRoutes } from '../utils/constants'
 import '../styles/Menu.scss'
 import MenuTreeElement from '../components/Menu/MenuTreeElement'
 import MenuTableControls from '../components/Menu/MenuTable/MenuTableControls'
-import { CloseOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons'
+import { CloseOutlined, EditOutlined, PlusCircleOutlined, SaveOutlined } from '@ant-design/icons'
+import { TreeDataPopoverContent } from '../components/Menu/TreeDataPopoverContent'
 
 const { Title } = Typography
 
@@ -57,6 +61,10 @@ function Menu() {
     const [menuDescriptionEditMode, setMenuDescriptionEditMode] = useState<boolean>(false)
     const [newMenuDescription, setNewMenuDescription] = useState<string>('')
     const [menuDescription, setMenuDescription] = useState<string>('')
+
+    const [addRootElemToTreeDataMenuForm] = Form.useForm()
+    const [addRootElemToTreeDataMenuPopoverVisible, setAddRootElemToTreeDataMenuPopoverVisible] =
+        useState<boolean>(false)
 
     const columns = [
         {
@@ -196,7 +204,49 @@ function Menu() {
             .catch((err: AxiosError) => errorNotification(err.message))
     }
 
-    function updateTreeDataMenu(key: string, body: any) {
+    function addChildToTreeDataMenu(key: string | undefined, body: any) {
+        // TODO: Understand why 'const menu = treeData' does not work? Only this works:
+        const menu = [...treeData]
+
+        const childContent = {
+            title: body['title'],
+            hidden: body['hidden'] || false,
+            link: body['link'],
+            key: generateKey({})
+        }
+
+        const newTreeDataElem = {
+            ...childContent,
+            title: (
+                <MenuTreeElement
+                    elem={childContent}
+                    treeDataUpdatesState={[treeDataUpdates, setTreeDataUpdates]}
+                />
+            ),
+            children: []
+        }
+
+        if (key)
+            for (const elem of menu) {
+                addChildToTreeDataElem(elem)
+            }
+        else {
+            menu.push(newTreeDataElem)
+        }
+
+        setTreeData(menu)
+
+        function addChildToTreeDataElem(elem: IMenuElementOfTree) {
+            if (elem.key == key) {
+                elem.children.push(newTreeDataElem)
+            } else
+                for (const child of elem.children) {
+                    addChildToTreeDataElem(child)
+                }
+        }
+    }
+
+    function updateTreeDataMenu(key: string | undefined, body: any) {
         const newTreeData = []
 
         for (const elem of treeData) {
@@ -250,6 +300,8 @@ function Menu() {
 
         if (newUpdate.type == 'Update' && newUpdate.body) {
             updateTreeDataMenu(newUpdate.key, newUpdate.body)
+        } else if (newUpdate.type == 'Add' && newUpdate.body) {
+            addChildToTreeDataMenu(newUpdate.key, newUpdate.body)
         }
 
         setSelectedMenuControlsEnabled(true)
@@ -556,13 +608,54 @@ function Menu() {
                         ) : !treeData.length ? (
                             <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
                         ) : (
-                            <Tree
-                                selectable={false}
-                                showLine
-                                draggable
-                                onDrop={onDrop}
-                                treeData={treeData}
-                            />
+                            <>
+                                <Tree
+                                    selectable={false}
+                                    showLine
+                                    draggable
+                                    onDrop={onDrop}
+                                    treeData={treeData}
+                                />
+                                <Popover
+                                    content={
+                                        <TreeDataPopoverContent
+                                            form={addRootElemToTreeDataMenuForm}
+                                            action="Add"
+                                            initialValues={{
+                                                hidden: false
+                                            }}
+                                            onAction={(key: string | undefined, body: any) => {
+                                                setTreeDataUpdates([
+                                                    ...treeDataUpdates,
+                                                    {
+                                                        type: 'Add',
+                                                        key,
+                                                        body
+                                                    }
+                                                ])
+                                                setAddRootElemToTreeDataMenuPopoverVisible(false)
+                                            }}
+                                        />
+                                    }
+                                    visible={addRootElemToTreeDataMenuPopoverVisible}
+                                    onVisibleChange={(visible) => {
+                                        setAddRootElemToTreeDataMenuPopoverVisible(visible)
+                                        if (!visible) {
+                                            addRootElemToTreeDataMenuForm.resetFields()
+                                        }
+                                    }}
+                                    trigger="click"
+                                >
+                                    <PlusCircleOutlined
+                                        className="menu-tree-element-action"
+                                        style={{
+                                            fontSize: '20px',
+                                            margin: '0 5px',
+                                            transform: 'translateY(20%)'
+                                        }}
+                                    />
+                                </Popover>
+                            </>
                         )}
                     </div>
                     <Divider />
