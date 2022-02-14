@@ -61,6 +61,7 @@ function Menu() {
     const [menuDescriptionEditMode, setMenuDescriptionEditMode] = useState<boolean>(false)
     const [newMenuDescription, setNewMenuDescription] = useState<string>('')
     const [menuDescription, setMenuDescription] = useState<string>('')
+    const [isMenuDescriptionUpdated, setIsMenuDescriptionUpdated] = useState<boolean>(false)
 
     const [addRootElemToTreeDataMenuForm] = Form.useForm()
     const [addRootElemToTreeDataMenuPopoverVisible, setAddRootElemToTreeDataMenuPopoverVisible] =
@@ -355,6 +356,7 @@ function Menu() {
             const deconfiguredElem = {
                 title,
                 link: elem.link,
+                hidden: elem.hidden,
                 children: []
             } as IMenuElement
 
@@ -462,7 +464,29 @@ function Menu() {
             .catch((err: AxiosError) => errorNotification(err.message))
     }
 
-    function saveSelectedMenuChanges() {}
+    function saveSelectedMenuChanges() {
+        const data: any = {}
+        if (isMenuDescriptionUpdated) {
+            data.description = menuDescription
+        }
+        if (treeDataUpdates.length) {
+            data.menu = deconfigMenu()
+        }
+        axios(privateRoutes.MENU + '/' + selectedMenu?.id, {
+            method: 'PUT',
+            headers: {
+                Authorization: `Bearer ${token}`
+            },
+            data
+        })
+            .then((res: AxiosResponse) => {
+                setSelectedMenu(res.data.result)
+                setMenuDescription(res.data.result.description)
+                setTreeDataUpdates([])
+                successNotification('Selected menu seccussfully updated!')
+            })
+            .catch((err: AxiosError) => errorNotification(err.message))
+    }
 
     function resetSelectedMenuChanges() {
         const menu = configMenu()
@@ -472,6 +496,7 @@ function Menu() {
         }
 
         setMenuDescription(selectedMenu?.description || '')
+        setIsMenuDescriptionUpdated(false)
 
         setTreeData(menu)
         setTreeDataUpdates([])
@@ -567,7 +592,7 @@ function Menu() {
                                         onClick={() => {
                                             setMenuDescriptionEditMode(false)
                                             setMenuDescription(newMenuDescription)
-                                            // setMenuDescriptionUpdated(true)
+                                            setIsMenuDescriptionUpdated(true)
                                             setSelectedMenuControlsEnabled(true)
                                         }}
                                     />

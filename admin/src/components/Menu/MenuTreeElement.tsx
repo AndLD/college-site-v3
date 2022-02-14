@@ -24,7 +24,12 @@ export default function MenuTreeElement({
                 color: elem.hidden ? '#d4d4d4' : 'black'
             }}
         >
-            <Tooltip title={elem.link || 'No link'} mouseEnterDelay={0} mouseLeaveDelay={0}>
+            <Tooltip
+                placement="left"
+                title={elem.link || 'No link'}
+                mouseEnterDelay={0}
+                mouseLeaveDelay={0}
+            >
                 <span>{elem.title}</span>
             </Tooltip>
             <Popover

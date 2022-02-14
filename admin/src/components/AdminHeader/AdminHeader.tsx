@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import LogoutButton from './LogoutButton'
-import { Layout, Badge, Avatar, Dropdown, Popover, Card, Tooltip, Menu } from 'antd'
-import { MenuUnfoldOutlined, MenuFoldOutlined, BellOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons'
+import { Layout, Avatar, Dropdown, Menu } from 'antd'
+import {
+    MenuUnfoldOutlined,
+    MenuFoldOutlined,
+    UserOutlined,
+    LogoutOutlined
+} from '@ant-design/icons'
 import jwtDecode from 'jwt-decode'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
@@ -32,34 +37,6 @@ export default function AdminHeader() {
                 onClick: () => dispatch(setMenuCollapsed(!collapsed))
             })}
             <span style={{ width: '1000px', textAlign: 'right' }}>
-                <Popover
-                    content={
-                        <div>
-                            <Card size="small" style={{ margin: '5px 0' }}>
-                                <Tooltip placement="topLeft" title="Go to action...">
-                                    <Link to="#">New article</Link>
-                                </Tooltip>
-                                <div></div>
-                            </Card>
-                            <Card size="small" style={{ margin: '5px 0' }}>
-                                <Tooltip placement="topLeft" title="Go to action...">
-                                    <Link to="#">New news</Link>
-                                </Tooltip>
-                            </Card>
-                            <Card size="small" style={{ margin: '5px 0' }}>
-                                <Tooltip placement="topLeft" title="Go to action...">
-                                    <Link to="#">Article 'Адміністрація коледжу' updated</Link>
-                                </Tooltip>
-                            </Card>
-                        </div>
-                    }
-                    title="Notifications"
-                    trigger="click"
-                >
-                    <Badge count={1}>
-                        <BellOutlined className="notifications" />
-                    </Badge>
-                </Popover>
                 <Dropdown
                     overlay={
                         <Menu>
@@ -76,7 +53,7 @@ export default function AdminHeader() {
                     trigger={['click']}
                 >
                     <Avatar
-                        style={{ margin: '0 24px', cursor: 'pointer' }}
+                        style={{ cursor: 'pointer' }}
                         shape="square"
                         icon={
                             <>
