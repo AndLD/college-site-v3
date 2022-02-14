@@ -356,6 +356,7 @@ function Menu() {
             const deconfiguredElem = {
                 title,
                 link: elem.link,
+                hidden: elem.hidden,
                 children: []
             } as IMenuElement
 
@@ -479,8 +480,10 @@ function Menu() {
             data
         })
             .then((res: AxiosResponse) => {
-                setSelectedMenu(res.data.result.menu)
+                setSelectedMenu(res.data.result)
                 setMenuDescription(res.data.result.description)
+                setTreeDataUpdates([])
+                successNotification('Selected menu seccussfully updated!')
             })
             .catch((err: AxiosError) => errorNotification(err.message))
     }
