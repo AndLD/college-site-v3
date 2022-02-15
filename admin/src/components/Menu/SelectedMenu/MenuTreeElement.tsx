@@ -1,7 +1,7 @@
 import { DeleteOutlined, EditOutlined, PlusCircleOutlined } from '@ant-design/icons'
 import { Form, Popconfirm, Popover, Tooltip } from 'antd'
 import { SetStateAction, useEffect, useState } from 'react'
-import { IMenuElement, IMenuElementOfTree, IMenuBlockUpdate } from '../../utils/types'
+import { IMenuElement, IMenuElementOfTree, IMenuBlockUpdate } from '../../../utils/types'
 import { TreeDataPopoverContent } from './TreeDataPopoverContent'
 
 export default function MenuTreeElement({

@@ -1,5 +1,5 @@
 import { Button, Form, Input } from 'antd'
-import { errorNotification, warningNotification } from '../../utils/notifications'
+import { errorNotification, warningNotification } from '../../../utils/notifications'
 
 export function TreeDataPopoverContent({
     form,

@@ -5,12 +5,12 @@ import axios, { AxiosError, AxiosResponse } from 'axios'
 import { generateKey } from 'fast-key-generator'
 import { ChangeEvent, useContext, useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { MenuContext } from '../../context/menu-context'
+import { MenuContext } from '../../contexts'
 import { privateRoutes } from '../../utils/constants'
 import { errorNotification, successNotification } from '../../utils/notifications'
 import { IMenuBlockUpdate, IMenuElement, IMenuElementOfTree } from '../../utils/types'
-import MenuTreeElement from './MenuTreeElement'
-import { TreeDataPopoverContent } from './TreeDataPopoverContent'
+import MenuTreeElement from './SelectedMenu/MenuTreeElement'
+import { TreeDataPopoverContent } from './SelectedMenu/TreeDataPopoverContent'
 
 function SelectedMenu() {
     const token = useSelector((state: any) => state.app.token)
