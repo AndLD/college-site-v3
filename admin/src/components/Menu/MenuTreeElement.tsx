@@ -111,7 +111,13 @@ export default function MenuTreeElement({
             <Popconfirm
                 title="Are you sure to delete menu element?"
                 onConfirm={() => {
-                    // console.log()
+                    setTreeDataUpdates([
+                        ...treeDataUpdates,
+                        {
+                            type: 'Delete',
+                            key: elem.key
+                        }
+                    ])
                 }}
                 okText="Delete"
                 cancelText="Cancel"
