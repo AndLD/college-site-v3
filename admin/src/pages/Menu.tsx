@@ -247,6 +247,23 @@ function Menu() {
         }
     }
 
+    function deleteFromTreeDataMenu(key: string) {
+        let menu = [...treeData]
+
+        menu = menu.filter(deleteTreeDataElem)
+
+        setTreeData(menu)
+
+        function deleteTreeDataElem(elem: IMenuElementOfTree) {
+            if (elem.key == key) {
+                return false
+            } else {
+                elem.children = elem.children.filter(deleteTreeDataElem)
+                return true
+            }
+        }
+    }
+
     function updateTreeDataMenu(key: string | undefined, body: any) {
         const newTreeData = []
 
@@ -303,6 +320,8 @@ function Menu() {
             updateTreeDataMenu(newUpdate.key, newUpdate.body)
         } else if (newUpdate.type == 'Add' && newUpdate.body) {
             addChildToTreeDataMenu(newUpdate.key, newUpdate.body)
+        } else if (newUpdate.type == 'Delete' && newUpdate.key) {
+            deleteFromTreeDataMenu(newUpdate.key)
         }
 
         setSelectedMenuControlsEnabled(true)
