@@ -1,6 +1,6 @@
 import { Typography, Tabs } from 'antd'
 import axios, { AxiosError } from 'axios'
-import { useEffect, useState } from 'react'
+import { ChangeEvent, useEffect, useState } from 'react'
 import AdminLayout from '../components/AdminLayout'
 import { errorNotification, warningNotification } from '../utils/notifications'
 import { IMenuBlock } from '../utils/types'
@@ -61,7 +61,12 @@ function Menu() {
                     fetchSelectedMenu
                 }}
             >
-                <Tabs>
+                <Tabs
+                    onChange={(activeKey: string) =>
+                        localStorage.setItem('defaultActiveKey', activeKey)
+                    }
+                    defaultActiveKey={localStorage.getItem('defaultActiveKey') || undefined}
+                >
                     <TabPane tab="Selected menu" key={1}>
                         <SelectedMenu />
                     </TabPane>
