@@ -9,6 +9,7 @@ import { MenuContext } from '../../contexts'
 import { privateRoutes } from '../../utils/constants'
 import { errorNotification, successNotification } from '../../utils/notifications'
 import { IMenuBlockUpdate, IMenuElement, IMenuElementOfTree } from '../../utils/types'
+import MenuDescription from './SelectedMenu/MenuDescription'
 import MenuTree from './SelectedMenu/MenuTree'
 import MenuTreeElement from './SelectedMenu/MenuTreeElement'
 import SelectedMenuControls from './SelectedMenu/SelectedMenuControls'
@@ -18,8 +19,6 @@ function SelectedMenu() {
 
     const [selectedMenu, setSelectedMenu] = useContext(MenuContext).selectedMenuState
 
-    const [menuDescriptionEditMode, setMenuDescriptionEditMode] = useState<boolean>(false)
-    const [newMenuDescription, setNewMenuDescription] = useState<string>('')
     const [menuDescription, setMenuDescription] = useState<string>('')
     const [isMenuDescriptionUpdated, setIsMenuDescriptionUpdated] = useState<boolean>(false)
 
@@ -38,10 +37,6 @@ function SelectedMenu() {
             }
         }
     }, [selectedMenu])
-
-    useEffect(() => {
-        setNewMenuDescription(menuDescription)
-    }, [menuDescription])
 
     function configMenu() {
         const menu = JSON.parse(JSON.stringify(selectedMenu?.menu))
@@ -149,68 +144,11 @@ function SelectedMenu() {
                 resetSelectedMenuChanges={resetSelectedMenuChanges}
             />
             <div>
-                <Title
-                    level={4}
-                    className="menu-description"
-                    onClick={() => {
-                        if (!menuDescriptionEditMode) setMenuDescriptionEditMode(true)
-                    }}
-                >
-                    {menuDescriptionEditMode ? (
-                        <>
-                            <Input
-                                size="large"
-                                placeholder="New description"
-                                value={newMenuDescription}
-                                onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                                    setNewMenuDescription(event.target.value)
-                                }
-                                style={{
-                                    maxWidth: '400px',
-                                    marginRight: '10px'
-                                }}
-                            />
-                            <SaveOutlined
-                                style={{
-                                    fontSize: '20px',
-                                    margin: '0 5px'
-                                }}
-                                onClick={() => {
-                                    setMenuDescriptionEditMode(false)
-                                    setMenuDescription(newMenuDescription)
-                                    setIsMenuDescriptionUpdated(true)
-                                    setSelectedMenuControlsEnabled(true)
-                                }}
-                            />
-                            <CloseOutlined
-                                style={{
-                                    fontSize: '20px',
-                                    margin: '0 5px'
-                                }}
-                                onClick={() => {
-                                    setMenuDescriptionEditMode(false)
-                                    setNewMenuDescription(menuDescription)
-                                }}
-                            />
-                        </>
-                    ) : (
-                        <>
-                            {menuDescription ? (
-                                menuDescription
-                            ) : (
-                                <span style={{ color: '#d4d4d4' }}>No description</span>
-                            )}
-                            <EditOutlined
-                                className="menu-description-action"
-                                style={{
-                                    fontSize: '20px',
-                                    margin: '0 5px',
-                                    transform: 'translateY(20%)'
-                                }}
-                            />
-                        </>
-                    )}
-                </Title>
+                <MenuDescription
+                    menuDescriotionState={[menuDescription, setMenuDescription]}
+                    setIsMenuDescriptionUpdated={setIsMenuDescriptionUpdated}
+                    setSelectedMenuControlsEnabled={setSelectedMenuControlsEnabled}
+                />
                 <p>{selectedMenu?.id}</p>
                 {treeLoading ? (
                     <div style={{ textAlign: 'center' }}>
