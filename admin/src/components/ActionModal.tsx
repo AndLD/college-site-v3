@@ -1,40 +1,14 @@
+import { InboxOutlined } from '@ant-design/icons'
 import { Modal, Form, Input, notification, message, Tree } from 'antd'
+import TextArea from 'antd/lib/input/TextArea'
+import Dragger from 'antd/lib/upload/Dragger'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { setActionModalVisibility } from '../store/actions'
-import { warningNotification } from '../utils/notifications'
+import { errorNotification, warningNotification } from '../utils/notifications'
 import { IMenuElementOfTree } from '../utils/types'
 
-// const props = {
-//     // name: 'file',
-//     multiple: false,
-//     accept: '.json',
-//     // action: 'https://www.mocky.io/v2/5cc8019d300000980a055e76',
-//     // onChange(info: any) {
-//     //     const { status } = info.file
-//     //     if (status !== 'uploading') {
-//     //         console.log(info.file, info.fileList)
-//     //     }
-//     //     if (status === 'done') {
-//     //         message.success(`${info.file.name} file uploaded successfully.`)
-//     //     } else if (status === 'error') {
-//     //         message.error(`${info.file.name} file upload failed.`)
-//     //     }
-//     // },
-//     customRequest: () => true,
-//     onDrop(e: any) {
-//         console.log('Dropped files', e.dataTransfer.files)
-//         const reader = new FileReader()
-//         reader.addEventListener('load', (event: any) => {
-//             console.log('load result', event.target)
-//         })
-//         console.log(e.dataTransfer.files[0])
-//         reader.readAsText(e.dataTransfer.files[0])
-//     }
-//     // beforeUpload(file: any) {
-//     //     return false
-//     // }
-// }
+const allowedFileTypes = ['application/json']
 
 export default function ActionModal({ values }: any) {
     const dispatch = useDispatch()
@@ -44,9 +18,11 @@ export default function ActionModal({ values }: any) {
     // const onAction = useSelector((state: any) => state.onAction)
 
     const [form] = Form.useForm()
-    const [formItems, setFormItems] = useState([])
+
+    const [menuJson, setMenuJson] = useState<string>('')
 
     const [menuTreeData, setMenuTreeData] = useState<IMenuElementOfTree[]>([])
+
     const menuFormItems = [
         <Form.Item key={1} name="description" label="Description">
             <Input />
@@ -62,37 +38,56 @@ export default function ActionModal({ values }: any) {
                 }
             ]}
         >
-            <Tree
-                showLine
-                onSelect={(selectedKeys, info) => {
-                    console.log('selected', selectedKeys, info)
+            <Tree showLine treeData={menuTreeData} />
+            <Dragger
+                /*style={{ borderColor: 'red' }}*/
+                multiple={false}
+                accept={'.json'}
+                customRequest={(options: any) => {
+                    console.log(options)
                 }}
-                treeData={menuTreeData}
-            />
-            {/* <Dragger {...props}>
+                onDrop={(event: any) => {
+                    if (!allowedFileTypes.includes(event.dataTransfer.files[0].type)) {
+                        errorNotification('You should choose a *.json file!')
+                        return
+                    }
+                    const reader = new FileReader()
+                    reader.addEventListener('load', (event: any) => {
+                        setMenuJson(event.target.result)
+                    })
+                    reader.readAsText(event.dataTransfer.files[0])
+                }}
+            >
                 <p className="ant-upload-drag-icon">
                     <InboxOutlined />
                 </p>
                 <p className="ant-upload-text">Click or drag file to this area to upload</p>
                 <p className="ant-upload-hint">*.json</p>
-            </Dragger> */}
+            </Dragger>
+            <TextArea
+                // name="menu"
+                value={menuJson}
+                // defaultValue={menuJson}
+                onChange={(event: any) => {
+                    setMenuJson(event.target.value)
+                }}
+                rows={15}
+            />
         </Form.Item>
     ]
 
-    useEffect(() => {
-        let chousenFormItems: any = []
-
+    function getFormItems() {
         const currentPage = window.localStorage.getItem('currentPage')
 
         switch (currentPage) {
             case 'Menu':
-                chousenFormItems = menuFormItems
+                return menuFormItems
         }
+    }
 
-        setFormItems(chousenFormItems)
-
-        if (actionModalVisibility) form.resetFields()
-    }, [actionModalVisibility])
+    // useEffect(() => {
+    //     if (actionModalVisibility) form.resetFields()
+    // }, [actionModalVisibility])
 
     return (
         <Modal
@@ -131,7 +126,7 @@ export default function ActionModal({ values }: any) {
             }}
         >
             <Form form={form} layout="vertical" initialValues={values}>
-                {formItems}
+                {getFormItems()}
             </Form>
         </Modal>
     )
