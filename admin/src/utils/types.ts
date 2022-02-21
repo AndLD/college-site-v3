@@ -27,3 +27,14 @@ export interface IMenuBlockUpdate {
     key?: string
     body?: any
 }
+
+export interface IUser {
+    id?: string
+    name: string
+    email: string
+    status: 'admin' | 'moderator' | 'banned' | 'unconfirmed'
+    description?: string
+    tags?: string[]
+    timestamp: number
+    lastUpdateTimestamp?: number
+}
