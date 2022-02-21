@@ -5,7 +5,8 @@ import {
     SET_TOKEN,
     SET_MENU_COLLAPSED,
     SET_ACTION_MODAL_VISIBILITY,
-    SET_ACTION
+    SET_ACTION,
+    SET_TABLE_SELECTED_ROWS
 } from './types'
 
 const initialState = {
@@ -47,6 +48,8 @@ export const appReducer = (
             return { ...state, actionModalVisibility: action.payload }
         case SET_ACTION:
             return { ...state, action: action.payload }
+        case SET_TABLE_SELECTED_ROWS:
+            return { ...state, tableSelectedRows: action.payload }
 
         default:
             return state

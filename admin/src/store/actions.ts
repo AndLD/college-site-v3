@@ -5,7 +5,8 @@ import {
     HIDE_LOADER,
     SET_MENU_COLLAPSED,
     SET_ACTION_MODAL_VISIBILITY,
-    SET_ACTION
+    SET_ACTION,
+    SET_TABLE_SELECTED_ROWS
 } from './types'
 
 export const setAuth = (newAuth: boolean) => ({
@@ -39,4 +40,9 @@ export const setActionModalVisibility = (visible: boolean) => ({
 export const setAction = (action: string) => ({
     type: SET_ACTION,
     payload: action
+})
+
+export const setTableSelectedRows = (tableSelectedRows: any[]) => ({
+    type: SET_TABLE_SELECTED_ROWS,
+    payload: tableSelectedRows
 })

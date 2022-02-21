@@ -30,103 +30,111 @@ export default function MenuTreeElement({
                 mouseEnterDelay={0}
                 mouseLeaveDelay={0}
             >
-                <span>{elem.title}</span>
+                <span
+                    style={{
+                        overflowWrap: 'normal'
+                    }}
+                >
+                    {elem.title}
+                </span>
             </Tooltip>
-            <Popover
-                content={
-                    <TreeDataPopoverContent
-                        form={addForm}
-                        action="Add"
-                        treeDataKey={elem.key}
-                        initialValues={{
-                            hidden: false
-                        }}
-                        onAction={(key: string | undefined, body: any) => {
-                            setTreeDataUpdates([
-                                ...treeDataUpdates,
-                                {
-                                    type: 'Add',
-                                    key,
-                                    body
-                                }
-                            ])
-                            setAddPopoverVisible(false)
-                        }}
-                    />
-                }
-                visible={addPopoverVisible}
-                onVisibleChange={(visible) => {
-                    setAddPopoverVisible(visible)
-                    if (!visible) {
-                        addForm.resetFields()
+            <span>
+                <Popover
+                    content={
+                        <TreeDataPopoverContent
+                            form={addForm}
+                            action="Add"
+                            treeDataKey={elem.key}
+                            initialValues={{
+                                hidden: false
+                            }}
+                            onAction={(key: string | undefined, body: any) => {
+                                setTreeDataUpdates([
+                                    ...treeDataUpdates,
+                                    {
+                                        type: 'Add',
+                                        key,
+                                        body
+                                    }
+                                ])
+                                setAddPopoverVisible(false)
+                            }}
+                        />
                     }
-                }}
-                trigger="click"
-            >
-                <PlusCircleOutlined
-                    className="menu-tree-element-action"
-                    style={{ fontSize: '20px', margin: '0 5px', transform: 'translateY(20%)' }}
-                />
-            </Popover>
-
-            <Popover
-                content={
-                    <TreeDataPopoverContent
-                        form={updateForm}
-                        action="Update"
-                        initialValues={{
-                            title: elem.title,
-                            hidden: elem.hidden,
-                            link: elem.link
-                        }}
-                        treeDataKey={elem.key}
-                        onAction={(key: string | undefined, body: any) => {
-                            setTreeDataUpdates([
-                                ...treeDataUpdates,
-                                {
-                                    type: 'Update',
-                                    key,
-                                    body
-                                }
-                            ])
-                            setUpdatePopoverVisible(false)
-                        }}
-                    />
-                }
-                visible={updatePopoverVisible}
-                onVisibleChange={(visible) => {
-                    setUpdatePopoverVisible(visible)
-                    if (!visible) {
-                        updateForm.resetFields()
-                    }
-                }}
-                trigger="click"
-            >
-                <EditOutlined
-                    className="menu-tree-element-action"
-                    style={{ fontSize: '20px', margin: '0 5px', transform: 'translateY(20%)' }}
-                    onClick={() => setUpdatePopoverVisible(true)}
-                />
-            </Popover>
-            <Popconfirm
-                title="Are you sure to delete menu element?"
-                onConfirm={() => {
-                    setTreeDataUpdates([
-                        ...treeDataUpdates,
-                        {
-                            type: 'Delete',
-                            key: elem.key
+                    visible={addPopoverVisible}
+                    onVisibleChange={(visible) => {
+                        setAddPopoverVisible(visible)
+                        if (!visible) {
+                            addForm.resetFields()
                         }
-                    ])
-                }}
-                okText="Delete"
-                cancelText="Cancel"
-            >
-                <DeleteOutlined
-                    className="menu-tree-element-action"
-                    style={{ fontSize: '20px', margin: '0 5px', transform: 'translateY(20%)' }}
-                />
-            </Popconfirm>
+                    }}
+                    trigger="click"
+                >
+                    <PlusCircleOutlined
+                        className="menu-tree-element-action"
+                        style={{ fontSize: '20px', margin: '0 5px', transform: 'translateY(20%)' }}
+                    />
+                </Popover>
+
+                <Popover
+                    content={
+                        <TreeDataPopoverContent
+                            form={updateForm}
+                            action="Update"
+                            initialValues={{
+                                title: elem.title,
+                                hidden: elem.hidden,
+                                link: elem.link
+                            }}
+                            treeDataKey={elem.key}
+                            onAction={(key: string | undefined, body: any) => {
+                                setTreeDataUpdates([
+                                    ...treeDataUpdates,
+                                    {
+                                        type: 'Update',
+                                        key,
+                                        body
+                                    }
+                                ])
+                                setUpdatePopoverVisible(false)
+                            }}
+                        />
+                    }
+                    visible={updatePopoverVisible}
+                    onVisibleChange={(visible) => {
+                        setUpdatePopoverVisible(visible)
+                        if (!visible) {
+                            updateForm.resetFields()
+                        }
+                    }}
+                    trigger="click"
+                >
+                    <EditOutlined
+                        className="menu-tree-element-action"
+                        style={{ fontSize: '20px', margin: '0 5px', transform: 'translateY(20%)' }}
+                        onClick={() => setUpdatePopoverVisible(true)}
+                    />
+                </Popover>
+                <Popconfirm
+                    title="Are you sure to delete menu element?"
+                    onConfirm={() => {
+                        setTreeDataUpdates([
+                            ...treeDataUpdates,
+                            {
+                                type: 'Delete',
+                                key: elem.key
+                            }
+                        ])
+                    }}
+                    okText="Delete"
+                    cancelText="Cancel"
+                >
+                    <DeleteOutlined
+                        className="menu-tree-element-action"
+                        style={{ fontSize: '20px', margin: '0 5px', transform: 'translateY(20%)' }}
+                    />
+                </Popconfirm>
+            </span>
         </div>
     )
 }

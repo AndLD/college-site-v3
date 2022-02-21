@@ -1,13 +1,15 @@
 import { Badge, Button, Table } from 'antd'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import { useContext, useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { MenuContext } from '../../contexts'
+import { setTableSelectedRows } from '../../store/actions'
 import { privateRoutes } from '../../utils/constants'
 import { errorNotification, successNotification } from '../../utils/notifications'
 import MenuTableControls from './MenuTable/MenuTableControls'
 
 function MenuTable() {
+    const dispatch = useDispatch()
     const token = useSelector((state: any) => state.app.token)
 
     const [tableData, setTableData] = useState([])
@@ -152,10 +154,15 @@ function MenuTable() {
                 if (isSelectedMenuUpdateNeeds) fetchSelectedMenu()
                 // if (!isMounted) return
                 fetchMenu(pagination)
+                setSelectedRows([])
                 successNotification('Menu block was successfully deleted!')
             })
             .catch((err: AxiosError) => errorNotification(err.message))
     }
+
+    useEffect(() => {
+        dispatch(setTableSelectedRows(selectedRows))
+    }, [selectedRows])
 
     return (
         <>

@@ -32,6 +32,7 @@ function MenuDescription({
                         size="large"
                         placeholder="New description"
                         value={newMenuDescription}
+                        autoFocus={true}
                         onChange={(event: ChangeEvent<HTMLInputElement>) =>
                             setNewMenuDescription(event.target.value)
                         }

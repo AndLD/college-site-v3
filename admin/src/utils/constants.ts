@@ -1,6 +1,6 @@
 const HOST = 'http://localhost:8080'
-const privateRoute = `${HOST}/api/private`
-const publicRoute = `${HOST}/api/public`
+export const privateRoute = `${HOST}/api/private`
+export const publicRoute = `${HOST}/api/public`
 
 export const privateRoutes = {
     MENU: `${privateRoute}/menu`,

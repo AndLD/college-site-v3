@@ -3,7 +3,13 @@ import { useDispatch } from 'react-redux'
 import { setAction, setActionModalVisibility } from '../../../store/actions'
 import { Action } from '../../../utils/types'
 
-export default function MenuTableControls({ selectedRows, deleteMenu }: { selectedRows: any; deleteMenu: any }) {
+export default function MenuTableControls({
+    selectedRows,
+    deleteMenu
+}: {
+    selectedRows: any
+    deleteMenu: any
+}) {
     const dispatch = useDispatch()
 
     function showActionModal(newAction: Action) {
@@ -13,7 +19,12 @@ export default function MenuTableControls({ selectedRows, deleteMenu }: { select
 
     return (
         <div style={{ textAlign: 'right', margin: '0 0 16px 0' }}>
-            <Button style={{ margin: '0 5px' }} type="primary" onClick={() => showActionModal('Add')}>
+            <Button
+                disabled={selectedRows.length}
+                style={{ margin: '0 5px' }}
+                type="primary"
+                onClick={() => showActionModal('Add')}
+            >
                 Add
             </Button>
             <Button
@@ -31,7 +42,11 @@ export default function MenuTableControls({ selectedRows, deleteMenu }: { select
                 okText="Yes"
                 cancelText="No"
             >
-                <Button style={{ margin: '0 0 0 5px' }} type="primary" disabled={selectedRows.length === 0}>
+                <Button
+                    style={{ margin: '0 0 0 5px' }}
+                    type="primary"
+                    disabled={selectedRows.length === 0}
+                >
                     Delete
                 </Button>
             </Popconfirm>

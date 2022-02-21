@@ -14,8 +14,8 @@ function MenuTree({
 }: {
     treeDataState: [IMenuElementOfTree[], any]
     treeDataUpdatesState: [IMenuBlockUpdate[], any]
-    noUpdateCallback: (...params: any) => any
-    updateCallback: (...params: any) => any
+    noUpdateCallback?: (...params: any) => any
+    updateCallback?: (...params: any) => any
 }) {
     const [addRootElemToTreeDataMenuForm] = Form.useForm()
     const [addRootElemToTreeDataMenuPopoverVisible, setAddRootElemToTreeDataMenuPopoverVisible] =
@@ -25,7 +25,7 @@ function MenuTree({
         const newUpdate = treeDataUpdates[treeDataUpdates.length - 1]
 
         if (!newUpdate) {
-            noUpdateCallback()
+            noUpdateCallback && noUpdateCallback()
             return
         }
 
@@ -37,7 +37,7 @@ function MenuTree({
             deleteFromTreeDataMenu(newUpdate.key)
         }
 
-        updateCallback()
+        updateCallback && updateCallback()
     }, [treeDataUpdates])
 
     function onDrop(info: any) {
@@ -215,7 +215,14 @@ function MenuTree({
 
     return (
         <>
-            <Tree selectable={false} showLine draggable onDrop={onDrop} treeData={treeData} />
+            <Tree
+                style={{ width: 'max-content' }}
+                selectable={false}
+                showLine
+                draggable
+                onDrop={onDrop}
+                treeData={treeData}
+            />
             <Popover
                 content={
                     <TreeDataPopoverContent

@@ -7,6 +7,7 @@ import { ChangeEvent, useContext, useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { MenuContext } from '../../contexts'
 import { privateRoutes } from '../../utils/constants'
+import { configMenu, deconfigMenu } from '../../utils/menu'
 import { errorNotification, successNotification } from '../../utils/notifications'
 import { IMenuBlockUpdate, IMenuElement, IMenuElementOfTree } from '../../utils/types'
 import MenuDescription from './SelectedMenu/MenuDescription'
@@ -30,7 +31,7 @@ function SelectedMenu() {
 
     useEffect(() => {
         if (selectedMenu) {
-            const menu = configMenu()
+            const menu = configMenu(selectedMenu?.menu, [treeDataUpdates, setTreeDataUpdates])
             if (menu) {
                 setTreeData(menu)
                 setMenuDescription(selectedMenu.description)
@@ -38,73 +39,13 @@ function SelectedMenu() {
         }
     }, [selectedMenu])
 
-    function configMenu() {
-        const menu = JSON.parse(JSON.stringify(selectedMenu?.menu))
-
-        if (!menu) return
-
-        for (const elem of menu as IMenuElementOfTree[]) {
-            configElem(elem)
-        }
-
-        return menu as IMenuElementOfTree[]
-
-        function configElem(elem: IMenuElementOfTree) {
-            elem.key = generateKey({})
-            elem.title = (
-                <MenuTreeElement
-                    elem={{
-                        title: elem.title,
-                        hidden: elem.hidden || false,
-                        link: elem.link,
-                        key: elem.key
-                    }}
-                    treeDataUpdatesState={[treeDataUpdates, setTreeDataUpdates]}
-                />
-            )
-            for (const child of elem.children as IMenuElementOfTree[]) {
-                configElem(child)
-            }
-        }
-    }
-
-    function deconfigMenu() {
-        const menu = treeData
-
-        if (!menu) return
-
-        const deconfiguredMenu = []
-
-        for (const elem of menu as IMenuElement[]) {
-            deconfiguredMenu.push(deconfigElem(elem))
-        }
-
-        return deconfiguredMenu
-
-        function deconfigElem(elem: IMenuElement) {
-            const title = (elem.title as any).props.elem.title
-            const deconfiguredElem = {
-                title,
-                link: elem.link,
-                hidden: elem.hidden,
-                children: []
-            } as IMenuElement
-
-            for (const child of elem.children as IMenuElement[]) {
-                deconfiguredElem.children.push(deconfigElem(child))
-            }
-
-            return deconfiguredElem
-        }
-    }
-
     function saveSelectedMenuChanges() {
         const data: any = {}
         if (isMenuDescriptionUpdated) {
             data.description = menuDescription
         }
         if (treeDataUpdates.length) {
-            data.menu = deconfigMenu()
+            data.menu = deconfigMenu(treeData)
         }
         axios(privateRoutes.MENU + '/' + selectedMenu?.id, {
             method: 'PUT',
@@ -123,7 +64,7 @@ function SelectedMenu() {
     }
 
     function resetSelectedMenuChanges() {
-        const menu = configMenu()
+        const menu = configMenu(selectedMenu?.menu, [treeDataUpdates, setTreeDataUpdates])
         if (!menu) {
             errorNotification('Error reseting selected menu changes!')
             return
