@@ -12,14 +12,12 @@ function MenuTable() {
     const dispatch = useDispatch()
     const token = useSelector((state: any) => state.app.token)
 
-    const [tableData, setTableData] = useState([])
-    const [selectedRows, setSelectedRows] = useState([])
-    const [pagination, setPagination] = useState({
-        current: 1,
-        pageSize: 5
-    })
-    const [tableLoading, setTableLoading] = useState(false)
+    const [tableData, setTableData] = useContext(MenuContext).tableDataState
+    const [pagination, setPagination] = useContext(MenuContext).paginationState
+    const [tableLoading, setTableLoading] = useContext(MenuContext).tableLoadingState
     const [selectedMenu, setSelectedMenu] = useContext(MenuContext).selectedMenuState
+
+    const [selectedRows, setSelectedRows] = useState([])
 
     const columns = [
         {
@@ -62,36 +60,8 @@ function MenuTable() {
         }
     ]
 
-    useEffect(() => {
-        fetchMenu(pagination)
-    }, [])
-
     const { fetchSelectedMenu } = useContext(MenuContext)
-
-    function fetchMenu(pagination: any) {
-        setTableLoading(true)
-        axios(privateRoutes.MENU, {
-            params: {
-                page: pagination.current,
-                results: pagination.pageSize,
-                select: 'id,description,timestamp,lastUpdateTimestamp'
-            },
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        })
-            .then((res: AxiosResponse) => {
-                // if (!isMounted) return
-                if (!res.data.meta?.pagination) throw new Error('No pagination obtained')
-                setTableData(res.data.result)
-                setTableLoading(false)
-                setPagination({
-                    ...pagination,
-                    total: res.data.meta.pagination.total
-                })
-            })
-            .catch((err: AxiosError) => errorNotification(err.message))
-    }
+    const { fetchMenu } = useContext(MenuContext)
 
     function selectMenu(id: string) {
         axios(privateRoutes.APP_SETTINGS, {

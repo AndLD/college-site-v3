@@ -18,6 +18,9 @@ import SelectedMenuControls from './SelectedMenu/SelectedMenuControls'
 function SelectedMenu() {
     const token = useSelector((state: any) => state.app.token)
 
+    const fetchMenu = useContext(MenuContext).fetchMenu
+    const [tableData, setTableData] = useContext(MenuContext).tableDataState
+
     const [selectedMenu, setSelectedMenu] = useContext(MenuContext).selectedMenuState
 
     const [menuDescription, setMenuDescription] = useState<string>('')
@@ -55,9 +58,16 @@ function SelectedMenu() {
             data
         })
             .then((res: AxiosResponse) => {
+                for (const row of tableData) {
+                    if (row.id === selectedMenu.id) {
+                        fetchMenu()
+                        break
+                    }
+                }
                 setSelectedMenu(res.data.result)
                 setMenuDescription(res.data.result.description)
                 setTreeDataUpdates([])
+
                 successNotification('Selected menu seccussfully updated!')
             })
             .catch((err: AxiosError) => errorNotification(err.message))
