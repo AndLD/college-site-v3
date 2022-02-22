@@ -3,6 +3,7 @@ import { Button, Divider, Empty, Form, Input, Popconfirm, Popover, Spin, Tree } 
 import Title from 'antd/lib/typography/Title'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import { generateKey } from 'fast-key-generator'
+import _ from 'lodash'
 import { ChangeEvent, useContext, useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { MenuContext } from '../../contexts'
@@ -24,7 +25,6 @@ function SelectedMenu() {
     const [selectedMenu, setSelectedMenu] = useContext(MenuContext).selectedMenuState
 
     const [menuDescription, setMenuDescription] = useState<string>('')
-    const [isMenuDescriptionUpdated, setIsMenuDescriptionUpdated] = useState<boolean>(false)
 
     const [treeData, setTreeData] = useState<IMenuElementOfTree[]>([])
     const [treeDataUpdates, setTreeDataUpdates] = useState<IMenuBlockUpdate[]>([])
@@ -34,7 +34,7 @@ function SelectedMenu() {
 
     useEffect(() => {
         if (selectedMenu) {
-            const menu = configMenu(selectedMenu?.menu, [treeDataUpdates, setTreeDataUpdates])
+            const menu = configMenu(selectedMenu.menu, [treeDataUpdates, setTreeDataUpdates])
             if (menu) {
                 setTreeData(menu)
                 setMenuDescription(selectedMenu.description)
@@ -42,14 +42,25 @@ function SelectedMenu() {
         }
     }, [selectedMenu])
 
+    useEffect(() => {
+        if (selectedMenu) {
+            setSelectedMenuControlsEnabled(
+                (menuDescription && menuDescription !== selectedMenu.description) ||
+                    (treeData.length > 0 && !_.isEqual(deconfigMenu(treeData), selectedMenu.menu))
+            )
+        }
+    }, [treeData, menuDescription])
+
     function saveSelectedMenuChanges() {
         const data: any = {}
-        if (isMenuDescriptionUpdated) {
+
+        if (menuDescription && menuDescription !== selectedMenu.description) {
             data.description = menuDescription
         }
-        if (treeDataUpdates.length) {
+        if (treeData.length && !_.isEqual(deconfigMenu(treeData), selectedMenu.menu)) {
             data.menu = deconfigMenu(treeData)
         }
+
         axios(privateRoutes.MENU + '/' + selectedMenu?.id, {
             method: 'PUT',
             headers: {
@@ -81,7 +92,6 @@ function SelectedMenu() {
         }
 
         setMenuDescription(selectedMenu?.description || '')
-        setIsMenuDescriptionUpdated(false)
 
         setTreeData(menu)
         setTreeDataUpdates([])
@@ -105,15 +115,11 @@ function SelectedMenu() {
                     <>
                         <MenuDescription
                             menuDescriotionState={[menuDescription, setMenuDescription]}
-                            setIsMenuDescriptionUpdated={setIsMenuDescriptionUpdated}
-                            setSelectedMenuControlsEnabled={setSelectedMenuControlsEnabled}
                         />
                         <p>{selectedMenu?.id}</p>
                         <MenuTree
                             treeDataState={[treeData, setTreeData]}
                             treeDataUpdatesState={[treeDataUpdates, setTreeDataUpdates]}
-                            noUpdateCallback={() => setSelectedMenuControlsEnabled(false)}
-                            updateCallback={() => setSelectedMenuControlsEnabled(true)}
                         />
                     </>
                 )}

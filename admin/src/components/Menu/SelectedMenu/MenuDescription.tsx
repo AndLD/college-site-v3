@@ -4,13 +4,9 @@ import Title from 'antd/lib/typography/Title'
 import { ChangeEvent, SetStateAction, useEffect, useState } from 'react'
 
 function MenuDescription({
-    menuDescriotionState: [menuDescription, setMenuDescription],
-    setIsMenuDescriptionUpdated,
-    setSelectedMenuControlsEnabled
+    menuDescriotionState: [menuDescription, setMenuDescription]
 }: {
     menuDescriotionState: [string, any]
-    setIsMenuDescriptionUpdated: (param: boolean) => void
-    setSelectedMenuControlsEnabled: (param: boolean) => void
 }) {
     const [menuDescriptionEditMode, setMenuDescriptionEditMode] = useState<boolean>(false)
     const [newMenuDescription, setNewMenuDescription] = useState<string>('')
@@ -49,8 +45,6 @@ function MenuDescription({
                         onClick={() => {
                             setMenuDescriptionEditMode(false)
                             setMenuDescription(newMenuDescription)
-                            setIsMenuDescriptionUpdated(true)
-                            setSelectedMenuControlsEnabled(true)
                         }}
                     />
                     <CloseOutlined

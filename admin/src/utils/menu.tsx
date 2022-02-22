@@ -1,7 +1,7 @@
 import { generateKey } from 'fast-key-generator'
 import MenuTreeElement from '../components/Menu/SelectedMenu/MenuTreeElement'
-import { errorNotification } from './notifications'
 import { IMenuBlockUpdate, IMenuElement, IMenuElementOfTree } from './types'
+import _ from 'lodash'
 
 export function configMenu(
     specifiedMenu: IMenuElement[],
@@ -60,12 +60,14 @@ export function deconfigMenu(treeData: IMenuElementOfTree[]) {
 
     function deconfigElem(elem: IMenuElement) {
         const title = (elem.title as any).props.elem.title
-        const deconfiguredElem = {
+
+        const deconfiguredElem: any = {
             title,
-            link: elem.link,
-            hidden: elem.hidden,
             children: []
-        } as IMenuElement
+        }
+
+        if (elem.link) deconfiguredElem.link = elem.link
+        if (elem.hidden !== undefined) deconfiguredElem.hidden = elem.hidden
 
         for (const child of elem.children as IMenuElement[]) {
             deconfiguredElem.children.push(deconfigElem(child))

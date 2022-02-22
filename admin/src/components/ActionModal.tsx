@@ -64,23 +64,8 @@ export default function ActionModal() {
         <Form.Item key={1} name="description" label="Description">
             <Input placeholder="Enter menu block description" />
         </Form.Item>,
-        // Пустой компонент Form.Item, value которого задается программно из другого компонента
-        <Form.Item
-            style={{ display: 'none' }}
-            key={2}
-            name="menu"
-            // label="Menu"
-            // rules={[
-            //     {
-            //         required: true,
-            //         message: 'Please set the menu!'
-            //     }
-            // ]}
-        >
-            <div></div>
-        </Form.Item>,
         <Tabs
-            key={'2.1'}
+            key={2}
             onChange={(activeKey: string) => setTabsActiveKey(activeKey)}
             activeKey={tabsActiveKey}
             // defaultActiveKey={'1'}
@@ -136,7 +121,21 @@ export default function ActionModal() {
                     rows={15}
                 />
             </Tabs.TabPane>
-        </Tabs>
+        </Tabs>,
+        // Пустой компонент Form.Item, value которого задается программно из другого компонента
+        <Form.Item
+            // style={{ display: 'none' }}
+            key={3}
+            name="menu"
+            rules={[
+                {
+                    required: true,
+                    message: 'Please set the menu!'
+                }
+            ]}
+        >
+            <div></div>
+        </Form.Item>
     ]
 
     function getFormItems() {
@@ -171,7 +170,6 @@ export default function ActionModal() {
                         }!`
                     )
                     dispatch(setActionModalVisibility(false))
-                    // dispatch(setTableSelectedRows([]))
                     actionSuccessCallback()
                 })
                 .catch((err: AxiosError) => errorNotification(err.message))
@@ -207,7 +205,7 @@ export default function ActionModal() {
 
             setMenuJson('[]')
             setIsMenuJsonInvalid(false)
-            // setMenuTreeData([])
+
             setMenuTreeDataUpdates([])
             setTabsActiveKey('2')
             setIsActionButtonEnabled(false)
@@ -245,7 +243,7 @@ export default function ActionModal() {
                 if (configuredMenu) {
                     setMenuTreeData(configuredMenu)
 
-                    setIsMenuJsonInvalid(false)
+                    isMenuJsonInvalid && setIsMenuJsonInvalid(false)
                     setIsFormFieldsValueSetted(false)
                     setIsActionButtonEnabled(true)
                 } else {
