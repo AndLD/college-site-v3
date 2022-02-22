@@ -83,7 +83,6 @@ function MenuTable() {
             .then((res: AxiosResponse) => {
                 // if (!isMounted) return
                 if (!res.data.meta?.pagination) throw new Error('No pagination obtained')
-                console.log(res.data.result)
                 setTableData(res.data.result)
                 setTableLoading(false)
                 setPagination({

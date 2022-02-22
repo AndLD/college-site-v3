@@ -16,7 +16,6 @@ const AppRouter = () => {
     const [currentPage] = useState(window.localStorage.getItem('currentPage'))
 
     useEffect(() => {
-        console.log(user)
         if (auth === true && user && user.status !== 'admin' && user.status !== 'moderator') {
             setRoutes([
                 { path: '/forbidden', component: Forbidden, exact: true },

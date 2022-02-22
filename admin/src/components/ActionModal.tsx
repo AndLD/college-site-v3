@@ -223,18 +223,19 @@ export default function ActionModal() {
             )
 
             if (configuredMenu) {
-                if (!isFormFieldsValueSetted && menu.length) {
-                    setIsFormFieldsValueSetted(true)
-                    form.setFieldsValue({ menu })
-                    console.log('menuJson, setFieldsValue', { menu })
-                } else {
-                    setIsFormFieldsValueSetted(false)
-                }
+                // if (!isFormFieldsValueSetted && menu.length) {
+                //     setIsFormFieldsValueSetted(true)
+                //     form.setFieldsValue({ menu })
+                //     console.log('menuJson, setFieldsValue', { menu })
+                // } else {
+                //     setIsFormFieldsValueSetted(false)
+                // }
 
                 if (isMenuTreeDataAutoUpdateEnabled) {
                     setMenuTreeData(configuredMenu)
 
                     setIsMenuJsonInvalid(false)
+                    setIsFormFieldsValueSetted(false)
                     setIsActionButtonEnabled(true)
                 }
             }
@@ -245,17 +246,18 @@ export default function ActionModal() {
         const deconfiguredMenu = deconfigMenu(menuTreeData)
 
         if (deconfiguredMenu) {
-            if (!isFormFieldsValueSetted && deconfiguredMenu.length) {
-                setIsFormFieldsValueSetted(true)
-                form.setFieldsValue({ menu: deconfiguredMenu })
-                console.log('menuTreeData, setFieldsValue', { deconfiguredMenu })
-            } else {
-                setIsFormFieldsValueSetted(false)
-            }
+            // if (!isFormFieldsValueSetted && deconfiguredMenu.length) {
+            //     setIsFormFieldsValueSetted(true)
+            //     form.setFieldsValue({ menu: deconfiguredMenu })
+            //     console.log('menuTreeData, setFieldsValue', { deconfiguredMenu })
+            // } else {
+            //     setIsFormFieldsValueSetted(false)
+            // }
 
             if (isMenuJsonAutoUpdateEnabled) {
                 setMenuJson(JSON.stringify(deconfiguredMenu, null, '\t'))
 
+                setIsFormFieldsValueSetted(false)
                 setIsActionButtonEnabled(true)
             }
         } else {
@@ -264,16 +266,15 @@ export default function ActionModal() {
     }, [menuTreeData])
 
     useEffect(() => {
-        if (actionModalVisibility)
-            switch (tabsActiveKey) {
-                case '1':
-                    setIsMenuTreeDataAutoUpdateEnabled(false)
-                    setIsMenuJsonAutoUpdateEnabled(true)
-                    break
-                case '2' || '3':
-                    setIsMenuTreeDataAutoUpdateEnabled(true)
-                    setIsMenuJsonAutoUpdateEnabled(false)
+        if (actionModalVisibility) {
+            if (tabsActiveKey == '1') {
+                setIsMenuTreeDataAutoUpdateEnabled(false)
+                setIsMenuJsonAutoUpdateEnabled(true)
+            } else if (tabsActiveKey == '2' || tabsActiveKey == '3') {
+                setIsMenuTreeDataAutoUpdateEnabled(true)
+                setIsMenuJsonAutoUpdateEnabled(false)
             }
+        }
     }, [tabsActiveKey])
 
     useEffect(() => {
@@ -302,9 +303,27 @@ export default function ActionModal() {
                 disabled: !isActionButtonEnabled
             }}
             onOk={() => {
+                if (!isFormFieldsValueSetted) {
+                    try {
+                        var menu = JSON.parse(menuJson)
+                    } catch (e: any) {
+                        setIsMenuJsonInvalid(true)
+                        setIsActionButtonEnabled(false)
+                    }
+
+                    if (menu.length) {
+                        setIsFormFieldsValueSetted(true)
+                        form.setFieldsValue({ menu })
+                        console.log('menuJson, setFieldsValue', { menu })
+                    }
+                    // else {
+                    //     setIsFormFieldsValueSetted(false)
+                    // }
+                }
+
                 form.validateFields()
                     .then((values: any) => {
-                        console.log(values)
+                        console.log('values after validation', values)
                         const actionBody: any = {}
                         for (const key in values) {
                             if (form.isFieldTouched(key)) {
