@@ -30,7 +30,11 @@ export const model = async ({
 
     // Выполнение триггеров
     if (triggers) {
-        ;[triggersResult, error] = await callTriggers(triggers, { email, docId, obj } as ControllerTriggerArgs)
+        ;[triggersResult, error] = await callTriggers(triggers, {
+            email,
+            docId,
+            obj
+        } as ControllerTriggerArgs)
         if (error) return [null, error] as DefaultResult
     }
 
@@ -61,18 +65,28 @@ export const model = async ({
         // Making request
         const firebaseRes = await queryRef[action](obj)
 
-        ;[mainResult, error] = await processFirebaseRes(firebaseRes, collection, docId, action, mainResult)
+        ;[mainResult, error] = await processFirebaseRes(
+            firebaseRes,
+            collection,
+            docId,
+            action,
+            mainResult
+        )
 
         if (error) return [null, error] as DefaultResult
     }
 
-    let result: ModelResult = action == 'add' || action == 'update' ? { ...mainResult } : { mainResult }
+    let result: ModelResult =
+        action == 'add' || action == 'update' ? { ...mainResult } : { mainResult }
 
-    if (triggersResult && Object.keys(triggersResult as Any).length) result._triggersResult = triggersResult
+    if (triggersResult && Object.keys(triggersResult as Any).length)
+        result._triggersResult = triggersResult
 
     if (pagination)
-        result._meta = { ...result._meta, pagination: { ...pagination, total: await getCollectionLength(collection) } }
-
+        result._meta = {
+            ...result._meta,
+            pagination: { ...pagination, total: await getCollectionLength(collection) }
+        }
     return [result, null] as DefaultResult
 }
 
@@ -89,9 +103,19 @@ const callTriggers = async (triggers: ControllerTrigger[], args: ControllerTrigg
 }
 
 // ! Валидировать все аргументы функции
-const validateModelArgs = ({ where, docId, action }: { where?: Filter[]; docId?: string; action: ModelAction }) => {
-    if (['add', 'update', 'delete'].includes(action) && where) throw 'validateModelArgs: Incorrect mix: action & where'
-    if (action == 'update' && !docId) throw `validateModelArgs: Missing docId during "${action}" action`
+const validateModelArgs = ({
+    where,
+    docId,
+    action
+}: {
+    where?: Filter[]
+    docId?: string
+    action: ModelAction
+}) => {
+    if (['add', 'update', 'delete'].includes(action) && where)
+        throw 'validateModelArgs: Incorrect mix: action & where'
+    if (action == 'update' && !docId)
+        throw `validateModelArgs: Missing docId during "${action}" action`
 }
 
 const prepareQueryRef = ({
@@ -116,7 +140,11 @@ const prepareQueryRef = ({
     else if (docId) queryRef = queryRef.where(documentId, '==', docId)
 
     // GET
-    if (where && action == 'get') for (const whereArgs of where) queryRef = queryRef.where(...whereArgs)
+    if (where && action == 'get')
+        for (const whereArgs of where) {
+            console.log(whereArgs)
+            queryRef = queryRef.where(...whereArgs)
+        }
 
     if (action == 'get' && pagination)
         queryRef = queryRef /*.orderBy('timestamp')*/
@@ -148,7 +176,13 @@ const makeBatchedDeletes = ({
 
         return [batch.commit(), null]
     }
-    return [null, { msg: 'Incorrect action: "delete" is only available for makeBatchedDeletes function', code: 500 }]
+    return [
+        null,
+        {
+            msg: 'Incorrect action: "delete" is only available for makeBatchedDeletes function',
+            code: 500
+        }
+    ]
 }
 
 // Count documents of a collection
@@ -208,7 +242,8 @@ const isUserOwner = (doc: Any, email: string) => doc.user == email
 // TODO Изменить
 // "Есть ли у пользователя доступ": функция принимает первым аргументом документ / id документа, а вторым - email пользователя. Функция определяет есть ли у пользователя с email полномочия взаимодействовать с документом
 const isUserHasAccess = async (data: string | Any, email: string, entity?: string) => {
-    if (typeof data == 'string') data = await module.exports.model({ collection: entity, docId: data, action: 'get' })
+    if (typeof data == 'string')
+        data = await module.exports.model({ collection: entity, docId: data, action: 'get' })
     if (typeof data == 'object') {
         if (isUserOwner(data, email)) return [true, null]
         else {
