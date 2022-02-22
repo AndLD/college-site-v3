@@ -1,11 +1,11 @@
 import { Layout } from 'antd'
 import { useSelector } from 'react-redux'
 import { useEffect } from 'react'
-import logo from '../assets/images/logo.png'
+import logo from '../assets/images/Auth/logo.png'
 
-import '../styles/AdminPage.scss'
+import '../styles/AdminLayout.scss'
 
-import AdminHeader from './AdminHeader/AdminHeader'
+import AdminHeader from './AdminLayout/AdminHeader'
 import AdminMenu from './AdminMenu'
 import ActionModal from './ActionModal'
 

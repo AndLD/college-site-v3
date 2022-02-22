@@ -1,3 +1,4 @@
+import { IUser } from '../utils/types'
 import {
     SET_AUTH,
     SET_TOKEN,
@@ -7,7 +8,8 @@ import {
     SET_ACTION_MODAL_VISIBILITY,
     SET_ACTION,
     SET_TABLE_SELECTED_ROWS,
-    SET_ACTION_SUCCESS_CALLBACK
+    SET_ACTION_SUCCESS_CALLBACK,
+    SET_USER
 } from './types'
 
 export const setAuth = (newAuth: boolean) => ({
@@ -51,4 +53,9 @@ export const setTableSelectedRows = (tableSelectedRows: any[]) => ({
 export const setActionSuccessCallback = (actionSuccessCallback: () => void) => ({
     type: SET_ACTION_SUCCESS_CALLBACK,
     payload: actionSuccessCallback
+})
+
+export const setUser = (user: IUser) => ({
+    type: SET_USER,
+    payload: user
 })

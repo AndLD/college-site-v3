@@ -44,7 +44,7 @@
 
 /* Слой для отображения картинки на фоне */
 .background-image-layer {
-    background: url('../../images/authBackground.jpg') no-repeat;
+    background: url('../assets/images/Auth/authBackground.jpg') no-repeat;
     background-size: cover;
     /* backdrop-filter: blur(100px); */
     margin: 0;

@@ -1,6 +1,6 @@
 import logger from './utils/logger'
 import { app } from './pre-configs'
-import { isAuthorized } from './middlewares/auth'
+import { hasEnoughPermissions, isAuthorized } from './middlewares/auth'
 import { setReqEntity } from './middlewares/decorators'
 import menuPrivateRouter from './routers/private/menu'
 import menuPublicRouter from './routers/public/menu'
@@ -25,9 +25,14 @@ const privateRouter = Router()
 apiRouter.use('/private', isAuthorized, privateRouter)
 
 // Меню
-privateRouter.use('/menu', setReqEntity(entities.MENU), menuPrivateRouter)
+privateRouter.use('/menu', hasEnoughPermissions, setReqEntity(entities.MENU), menuPrivateRouter)
 // Настройки (app-settings)
-privateRouter.use('/settings', setReqEntity(entities.APP_SETTINGS), appSettingsPrivateRouter)
+privateRouter.use(
+    '/settings',
+    hasEnoughPermissions,
+    setReqEntity(entities.APP_SETTINGS),
+    appSettingsPrivateRouter
+)
 // Пользователи
 privateRouter.use('/user', setReqEntity(entities.USERS), usersPrivateRouter)
 

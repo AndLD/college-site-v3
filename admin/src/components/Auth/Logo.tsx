@@ -1,5 +1,5 @@
-import '../../assets/css/AuthPage/logo.css'
-import logo from '../../assets/images/logo.png'
+import '../../styles/Auth/logo.css'
+import logo from '../../assets/images/Auth/logo.png'
 
 function Logo() {
     return (

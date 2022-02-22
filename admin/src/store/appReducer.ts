@@ -7,7 +7,8 @@ import {
     SET_ACTION_MODAL_VISIBILITY,
     SET_ACTION,
     SET_TABLE_SELECTED_ROWS,
-    SET_ACTION_SUCCESS_CALLBACK
+    SET_ACTION_SUCCESS_CALLBACK,
+    SET_USER
 } from './types'
 
 const initialState = {
@@ -53,6 +54,9 @@ export const appReducer = (
             return { ...state, tableSelectedRows: action.payload }
         case SET_ACTION_SUCCESS_CALLBACK:
             return { ...state, actionSuccessCallback: action.payload }
+
+        case SET_USER:
+            return { ...state, user: action.payload }
 
         default:
             return state

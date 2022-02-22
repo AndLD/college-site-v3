@@ -2,7 +2,7 @@ import { getAuth, GoogleAuthProvider, signInWithPopup } from '@firebase/auth'
 import { useDispatch } from 'react-redux'
 import { setAuth } from '../../store/actions'
 import Logo from './Logo'
-import googleLogo from '../../assets/images/google.png'
+import googleLogo from '../../assets/images/Auth/google.png'
 
 const firebaseAuth = getAuth()
 

@@ -142,7 +142,6 @@ const prepareQueryRef = ({
     // GET
     if (where && action == 'get')
         for (const whereArgs of where) {
-            console.log(whereArgs)
             queryRef = queryRef.where(...whereArgs)
         }
 
