@@ -30,7 +30,6 @@ function App() {
 
     useEffect(() => {
         firebaseAuth.onAuthStateChanged((userCredentials: any) => {
-            console.log('onAuthStateChanged', userCredentials)
             if (userCredentials)
                 userCredentials.getIdToken().then((token: string) => {
                     dispatch(setAuth(true))

@@ -205,33 +205,25 @@ export default function ActionModal() {
     }, [actionModalVisibility])
 
     useEffect(() => {
-        try {
-            var menu = JSON.parse(menuJson)
-        } catch (e: any) {
-            setIsMenuJsonInvalid(true)
-            setIsActionButtonEnabled(false)
-        }
+        if (isMenuTreeDataAutoUpdateEnabled) {
+            try {
+                var menu = JSON.parse(menuJson)
+            } catch (e: any) {
+                setIsMenuJsonInvalid(true)
+                setIsActionButtonEnabled(false)
+            }
 
-        if (menu) {
-            const configuredMenu = configMenu(
-                menu,
-                [menuTreeDataUpdates, setMenuTreeDataUpdates],
-                () => {
-                    setIsMenuJsonInvalid(true)
-                    message.error('JSON input does not match the menu structure!\n', 1)
-                }
-            )
+            if (menu) {
+                const configuredMenu = configMenu(
+                    menu,
+                    [menuTreeDataUpdates, setMenuTreeDataUpdates],
+                    () => {
+                        setIsMenuJsonInvalid(true)
+                        message.error('JSON input does not match the menu structure!\n', 1)
+                    }
+                )
 
-            if (configuredMenu) {
-                // if (!isFormFieldsValueSetted && menu.length) {
-                //     setIsFormFieldsValueSetted(true)
-                //     form.setFieldsValue({ menu })
-                //     console.log('menuJson, setFieldsValue', { menu })
-                // } else {
-                //     setIsFormFieldsValueSetted(false)
-                // }
-
-                if (isMenuTreeDataAutoUpdateEnabled) {
+                if (configuredMenu) {
                     setMenuTreeData(configuredMenu)
 
                     setIsMenuJsonInvalid(false)
@@ -243,25 +235,17 @@ export default function ActionModal() {
     }, [menuJson])
 
     useEffect(() => {
-        const deconfiguredMenu = deconfigMenu(menuTreeData)
+        if (isMenuJsonAutoUpdateEnabled) {
+            const deconfiguredMenu = deconfigMenu(menuTreeData)
 
-        if (deconfiguredMenu) {
-            // if (!isFormFieldsValueSetted && deconfiguredMenu.length) {
-            //     setIsFormFieldsValueSetted(true)
-            //     form.setFieldsValue({ menu: deconfiguredMenu })
-            //     console.log('menuTreeData, setFieldsValue', { deconfiguredMenu })
-            // } else {
-            //     setIsFormFieldsValueSetted(false)
-            // }
-
-            if (isMenuJsonAutoUpdateEnabled) {
+            if (deconfiguredMenu) {
                 setMenuJson(JSON.stringify(deconfiguredMenu, null, '\t'))
 
                 setIsFormFieldsValueSetted(false)
                 setIsActionButtonEnabled(true)
+            } else {
+                setIsActionButtonEnabled(false)
             }
-        } else {
-            setIsActionButtonEnabled(false)
         }
     }, [menuTreeData])
 
@@ -294,8 +278,6 @@ export default function ActionModal() {
             cancelText="Cancel"
             onCancel={() => {
                 dispatch(setActionModalVisibility(false))
-                // setMenuJson('[]')
-                // setIsMenuJsonInvalid(false)
 
                 form.resetFields()
             }}
@@ -316,9 +298,6 @@ export default function ActionModal() {
                         form.setFieldsValue({ menu })
                         console.log('menuJson, setFieldsValue', { menu })
                     }
-                    // else {
-                    //     setIsFormFieldsValueSetted(false)
-                    // }
                 }
 
                 form.validateFields()
@@ -330,9 +309,7 @@ export default function ActionModal() {
                                 actionBody[key] = values[key]
                             }
                         }
-                        // const body = actionBody.birthday
-                        //     ? { ...actionBody, birthday: actionBody.birthday.format('DD.MM.YYYY') }
-                        //     : actionBody
+
                         if (Object.keys(actionBody).length) {
                             onAction(actionBody)
                         } else warningNotification('Unable to perform action!')
