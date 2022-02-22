@@ -4,7 +4,8 @@ export const publicRoute = `${HOST}/api/public`
 
 export const privateRoutes = {
     MENU: `${privateRoute}/menu`,
-    APP_SETTINGS: `${privateRoute}/settings`
+    APP_SETTINGS: `${privateRoute}/settings`,
+    USER: `${privateRoute}/user`
 }
 
 export const publicRoutes = {
