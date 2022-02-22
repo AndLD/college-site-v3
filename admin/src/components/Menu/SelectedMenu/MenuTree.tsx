@@ -54,13 +54,6 @@ function MenuTree({
             children: info.dragNode.children
         }
 
-        // console.log({
-        //     dropKey,
-        //     dragKey,
-        //     dropPosition,
-        //     dropToGap: info.dropToGap
-        // })
-
         let menu = treeData
 
         menu = menu.filter(filterForDragKey)

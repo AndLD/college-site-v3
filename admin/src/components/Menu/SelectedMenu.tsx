@@ -85,12 +85,6 @@ function SelectedMenu() {
                 resetSelectedMenuChanges={resetSelectedMenuChanges}
             />
             <div>
-                <MenuDescription
-                    menuDescriotionState={[menuDescription, setMenuDescription]}
-                    setIsMenuDescriptionUpdated={setIsMenuDescriptionUpdated}
-                    setSelectedMenuControlsEnabled={setSelectedMenuControlsEnabled}
-                />
-                <p>{selectedMenu?.id}</p>
                 {treeLoading ? (
                     <div style={{ textAlign: 'center' }}>
                         <Spin size="large" />
@@ -98,12 +92,20 @@ function SelectedMenu() {
                 ) : !treeData.length ? (
                     <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
                 ) : (
-                    <MenuTree
-                        treeDataState={[treeData, setTreeData]}
-                        treeDataUpdatesState={[treeDataUpdates, setTreeDataUpdates]}
-                        noUpdateCallback={() => setSelectedMenuControlsEnabled(false)}
-                        updateCallback={() => setSelectedMenuControlsEnabled(true)}
-                    />
+                    <>
+                        <MenuDescription
+                            menuDescriotionState={[menuDescription, setMenuDescription]}
+                            setIsMenuDescriptionUpdated={setIsMenuDescriptionUpdated}
+                            setSelectedMenuControlsEnabled={setSelectedMenuControlsEnabled}
+                        />
+                        <p>{selectedMenu?.id}</p>
+                        <MenuTree
+                            treeDataState={[treeData, setTreeData]}
+                            treeDataUpdatesState={[treeDataUpdates, setTreeDataUpdates]}
+                            noUpdateCallback={() => setSelectedMenuControlsEnabled(false)}
+                            updateCallback={() => setSelectedMenuControlsEnabled(true)}
+                        />
+                    </>
                 )}
             </div>
             <Divider />

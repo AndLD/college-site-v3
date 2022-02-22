@@ -1,20 +1,27 @@
 import { Button, Popconfirm } from 'antd'
 import { useDispatch } from 'react-redux'
-import { setAction, setActionModalVisibility } from '../../../store/actions'
+import {
+    setAction,
+    setActionModalVisibility,
+    setActionSuccessCallback
+} from '../../../store/actions'
 import { Action } from '../../../utils/types'
 
 export default function MenuTableControls({
     selectedRows,
-    deleteMenu
+    deleteMenu,
+    actionSuccessCallback
 }: {
     selectedRows: any
-    deleteMenu: any
+    deleteMenu: () => void
+    actionSuccessCallback: () => void
 }) {
     const dispatch = useDispatch()
 
     function showActionModal(newAction: Action) {
         dispatch(setAction(newAction))
         dispatch(setActionModalVisibility(true))
+        dispatch(setActionSuccessCallback(actionSuccessCallback))
     }
 
     return (

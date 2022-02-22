@@ -6,7 +6,8 @@ import {
     SET_MENU_COLLAPSED,
     SET_ACTION_MODAL_VISIBILITY,
     SET_ACTION,
-    SET_TABLE_SELECTED_ROWS
+    SET_TABLE_SELECTED_ROWS,
+    SET_ACTION_SUCCESS_CALLBACK
 } from './types'
 
 export const setAuth = (newAuth: boolean) => ({
@@ -45,4 +46,9 @@ export const setAction = (action: string) => ({
 export const setTableSelectedRows = (tableSelectedRows: any[]) => ({
     type: SET_TABLE_SELECTED_ROWS,
     payload: tableSelectedRows
+})
+
+export const setActionSuccessCallback = (actionSuccessCallback: () => void) => ({
+    type: SET_ACTION_SUCCESS_CALLBACK,
+    payload: actionSuccessCallback
 })

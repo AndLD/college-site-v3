@@ -83,6 +83,7 @@ function MenuTable() {
             .then((res: AxiosResponse) => {
                 // if (!isMounted) return
                 if (!res.data.meta?.pagination) throw new Error('No pagination obtained')
+                console.log(res.data.result)
                 setTableData(res.data.result)
                 setTableLoading(false)
                 setPagination({
@@ -153,7 +154,11 @@ function MenuTable() {
             .then(() => {
                 if (isSelectedMenuUpdateNeeds) fetchSelectedMenu()
                 // if (!isMounted) return
+
+                // TODO: Подумать над костылем (отсроченное выполнение запроса на получение блоков меню): после удаления блоков меню, если сразу сделать получение блоков по пагинации, то они могут остаться на своих местах, хотя по факту они уже удалены
+                // setTimeout(() => fetchMenu(pagination), 500)
                 fetchMenu(pagination)
+
                 setSelectedRows([])
                 successNotification('Menu block was successfully deleted!')
             })
@@ -166,7 +171,11 @@ function MenuTable() {
 
     return (
         <>
-            <MenuTableControls deleteMenu={deleteMenu} selectedRows={selectedRows} />
+            <MenuTableControls
+                deleteMenu={deleteMenu}
+                selectedRows={selectedRows}
+                actionSuccessCallback={() => fetchMenu(pagination)}
+            />
             <Table
                 rowSelection={{
                     type: 'checkbox',
