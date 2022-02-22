@@ -1,14 +1,13 @@
 import { InboxOutlined } from '@ant-design/icons'
 import { Modal, Form, Input, notification, message, Tree, Tabs } from 'antd'
 import TextArea from 'antd/lib/input/TextArea'
-import { UploadChangeParam } from 'antd/lib/upload'
 import Dragger from 'antd/lib/upload/Dragger'
 import { UploadFile } from 'antd/lib/upload/interface'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { setActionModalVisibility, setActionSuccessCallback } from '../store/actions'
-import { privateRoute, privateRoutes } from '../utils/constants'
+import { setActionModalVisibility } from '../store/actions'
+import { privateRoute } from '../utils/constants'
 import { configMenu, deconfigMenu } from '../utils/menu'
 import { errorNotification, successNotification, warningNotification } from '../utils/notifications'
 import { IMenuBlockUpdate, IMenuElementOfTree } from '../utils/types'
@@ -162,7 +161,7 @@ export default function ActionModal() {
     function onAction(body: any) {
         const currentPage = localStorage.getItem('currentPage')
 
-        currentPage &&
+        if (currentPage) {
             axios(
                 `${privateRoute}/${currentPage.toLowerCase()}${
                     tableSelectedRows.length ? `/${tableSelectedRows[0].id}` : ''
@@ -185,6 +184,7 @@ export default function ActionModal() {
                     actionSuccessCallback()
                 })
                 .catch((err: AxiosError) => errorNotification(err.message))
+        }
     }
 
     useEffect(() => {
