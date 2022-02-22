@@ -302,7 +302,6 @@ export default function ActionModal() {
 
                 form.validateFields()
                     .then((values: any) => {
-                        console.log('values after validation', values)
                         const actionBody: any = {}
                         for (const key in values) {
                             if (form.isFieldTouched(key)) {
