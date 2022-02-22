@@ -4,13 +4,14 @@ import TextArea from 'antd/lib/input/TextArea'
 import Dragger from 'antd/lib/upload/Dragger'
 import { UploadFile } from 'antd/lib/upload/interface'
 import axios, { AxiosError, AxiosResponse } from 'axios'
+import { stringify } from 'querystring'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { setActionModalVisibility } from '../store/actions'
-import { privateRoute } from '../utils/constants'
+import { setActionModalVisibility, setTableSelectedRows } from '../store/actions'
+import { privateRoute, privateRoutes } from '../utils/constants'
 import { configMenu, deconfigMenu } from '../utils/menu'
 import { errorNotification, successNotification, warningNotification } from '../utils/notifications'
-import { IMenuBlockUpdate, IMenuElementOfTree } from '../utils/types'
+import { IMenuBlock, IMenuBlockUpdate, IMenuElement, IMenuElementOfTree } from '../utils/types'
 import MenuTree from './Menu/SelectedMenu/MenuTree'
 
 const allowedFileTypes = ['application/json']
@@ -32,6 +33,8 @@ export default function ActionModal() {
 
     // Текущая открытая вкладка
     const [tabsActiveKey, setTabsActiveKey] = useState<string>('1')
+
+    const [fetchedMenu, setFetchedMenu] = useState<IMenuBlock>()
 
     // Текст json в textarea
     const [menuJson, setMenuJson] = useState<string>('[]')
@@ -111,19 +114,6 @@ export default function ActionModal() {
                             reader.readAsText(info.file.originFileObj)
                         }
                     }}
-                    // onDrop={(event: any) => {
-                    //     if (!allowedFileTypes.includes(event.dataTransfer.files[0].type)) {
-                    //         warningNotification('You should choose a *.json file!')
-                    //         return
-                    //     }
-                    //     const reader = new FileReader()
-                    //     reader.addEventListener('load', (event: any) => {
-                    //         setMenuJson(event.target.result)
-                    //         setTabsActiveKey('1')
-                    //     })
-                    //     console.log(event.dataTransfer.files[0])
-                    //     reader.readAsText(event.dataTransfer.files[0])
-                    // }}
                 >
                     <p className="ant-upload-drag-icon">
                         <InboxOutlined />
@@ -177,19 +167,44 @@ export default function ActionModal() {
                 .then((res: AxiosResponse) => {
                     successNotification(
                         `Entity was successfully ${
-                            'Add' ? 'added' : action === 'Update' ? 'updated' : ''
+                            action === 'Add' ? 'added' : action === 'Update' ? 'updated' : ''
                         }!`
                     )
                     dispatch(setActionModalVisibility(false))
+                    // dispatch(setTableSelectedRows([]))
                     actionSuccessCallback()
                 })
                 .catch((err: AxiosError) => errorNotification(err.message))
         }
     }
 
+    function fetchMenuById(id: string) {
+        axios(`${privateRoutes.MENU}/${id}`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+            .then((res: AxiosResponse) => {
+                const description = res.data.result.description
+                const menu = res.data.result.menu
+
+                form.setFieldsValue({
+                    description,
+                    menu
+                })
+
+                setFetchedMenu(res.data.result)
+                setMenuJson(JSON.stringify(menu, null, '\t'))
+            })
+            .catch((err: AxiosError) => errorNotification(err.message))
+    }
+
     useEffect(() => {
         if (actionModalVisibility) {
             form.resetFields()
+
+            setFetchedMenu(undefined)
+
             setMenuJson('[]')
             setIsMenuJsonInvalid(false)
             // setMenuTreeData([])
@@ -201,6 +216,10 @@ export default function ActionModal() {
 
             setIsMenuTreeDataAutoUpdateEnabled(true)
             setIsMenuJsonAutoUpdateEnabled(false)
+        }
+
+        if (actionModalVisibility && action === 'Update') {
+            tableSelectedRows[0]?.id && fetchMenuById(tableSelectedRows[0]?.id)
         }
     }, [actionModalVisibility])
 
@@ -229,6 +248,8 @@ export default function ActionModal() {
                     setIsMenuJsonInvalid(false)
                     setIsFormFieldsValueSetted(false)
                     setIsActionButtonEnabled(true)
+                } else {
+                    setIsActionButtonEnabled(false)
                 }
             }
         }
@@ -261,13 +282,13 @@ export default function ActionModal() {
         }
     }, [tabsActiveKey])
 
-    useEffect(() => {
-        console.log('menu tree auto update: ', isMenuTreeDataAutoUpdateEnabled)
-    }, [isMenuTreeDataAutoUpdateEnabled])
+    // useEffect(() => {
+    //     console.log('menu tree auto update: ', isMenuTreeDataAutoUpdateEnabled)
+    // }, [isMenuTreeDataAutoUpdateEnabled])
 
-    useEffect(() => {
-        console.log('menu json auto update: ', isMenuJsonAutoUpdateEnabled)
-    }, [isMenuJsonAutoUpdateEnabled])
+    // useEffect(() => {
+    //     console.log('menu json auto update: ', isMenuJsonAutoUpdateEnabled)
+    // }, [isMenuJsonAutoUpdateEnabled])
 
     return (
         <Modal
@@ -296,22 +317,42 @@ export default function ActionModal() {
                     if (menu.length) {
                         setIsFormFieldsValueSetted(true)
                         form.setFieldsValue({ menu })
-                        console.log('menuJson, setFieldsValue', { menu })
                     }
                 }
 
                 form.validateFields()
                     .then((values: any) => {
                         const actionBody: any = {}
-                        for (const key in values) {
-                            if (form.isFieldTouched(key)) {
-                                actionBody[key] = values[key]
+                        if (action === 'Add' || (action === 'Update' && fetchedMenu)) {
+                            for (const key in values) {
+                                if (
+                                    form.isFieldTouched(key) &&
+                                    (action === 'Add' ||
+                                        (action === 'Update' &&
+                                            fetchedMenu &&
+                                            (typeof fetchedMenu[key as keyof IMenuBlock] ===
+                                            'object'
+                                                ? JSON.stringify(
+                                                      fetchedMenu[key as keyof IMenuBlock]
+                                                  ) != JSON.stringify(values[key])
+                                                : fetchedMenu[key as keyof IMenuBlock] !=
+                                                  values[key])))
+                                ) {
+                                    actionBody[key] = values[key]
+                                }
                             }
                         }
 
                         if (Object.keys(actionBody).length) {
                             onAction(actionBody)
-                        } else warningNotification('Unable to perform action!')
+                        } else
+                            warningNotification(
+                                action === 'Add'
+                                    ? 'Fill the fields!'
+                                    : action === 'Update'
+                                    ? 'No updates detected'
+                                    : 'Unable to perform the action'
+                            )
                     })
                     .catch(() => {
                         notification.error({

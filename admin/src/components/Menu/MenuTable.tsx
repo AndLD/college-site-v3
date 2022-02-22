@@ -173,11 +173,15 @@ function MenuTable() {
             <MenuTableControls
                 deleteMenu={deleteMenu}
                 selectedRows={selectedRows}
-                actionSuccessCallback={() => fetchMenu(pagination)}
+                actionSuccessCallback={() => {
+                    fetchMenu(pagination)
+                    setSelectedRows([])
+                }}
             />
             <Table
                 rowSelection={{
                     type: 'checkbox',
+                    selectedRowKeys: selectedRows.map((row: any) => row.id),
                     onChange: (_: any, selectedRows: any) => {
                         setSelectedRows(selectedRows)
                     }

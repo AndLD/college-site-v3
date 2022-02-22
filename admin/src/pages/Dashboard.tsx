@@ -1,8 +1,9 @@
 import { Spin, Typography } from 'antd'
-import axios from 'axios'
+import axios, { AxiosError, AxiosResponse } from 'axios'
 import { useSelector } from 'react-redux'
 import { useEffect, useState } from 'react'
 import AdminLayout from '../components/AdminLayout'
+import { errorNotification } from '../utils/notifications'
 
 const { Title } = Typography
 
@@ -19,12 +20,12 @@ function Dashboard() {
                 Authorization: `Bearer ${token}`
             }
         })
-            .then((resp) => {
+            .then((res: AxiosResponse) => {
                 if (isMounted) {
-                    setStatistics(resp.data)
+                    setStatistics(res.data)
                 }
             })
-            .catch((e) => console.log(e))
+            .catch((err: AxiosError) => errorNotification(err.message))
         return () => {
             isMounted = false
         }

@@ -21,7 +21,11 @@ const AppRouter = () => {
                 { path: '/forbidden', component: Forbidden, exact: true },
                 ...publicRoutes.filter((route) => route.path !== '/auth')
             ])
-        } else if (auth === true) {
+        } else if (
+            auth === true &&
+            user &&
+            (user.status === 'admin' || user.status === 'moderator')
+        ) {
             setRoutes([...privateRoutes, ...publicRoutes.filter((route) => route.path !== '/auth')])
         } else {
             setRoutes(publicRoutes)
