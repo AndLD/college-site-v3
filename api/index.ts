@@ -43,12 +43,6 @@ privateRouter.get('/statistics', async (_: Request, res: Response) => {
         outcomes: 2000
     })
 })
-app.get('/statistics', async (_: Request, res: Response) => {
-    return res.json({
-        incomes: 5000,
-        outcomes: 2000
-    })
-})
 
 const port = process.env.PORT
 app.listen(port, () => {
