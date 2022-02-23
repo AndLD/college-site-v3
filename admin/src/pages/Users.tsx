@@ -1,4 +1,4 @@
-import { Select, Spin, Tag, Typography } from 'antd'
+import { Input, Select, Spin, Tag, Typography } from 'antd'
 import { useSelector } from 'react-redux'
 import { useEffect, useState } from 'react'
 import AdminLayout from '../components/AdminLayout'
@@ -9,6 +9,7 @@ import { Option } from 'antd/lib/mentions'
 import { errorNotification, successNotification } from '../utils/notifications'
 import { privateRoutes } from '../utils/constants'
 import axios, { AxiosError, AxiosResponse } from 'axios'
+import DescriptionCell from '../components/Users/DescriptionCell'
 
 const { Title } = Typography
 
@@ -21,28 +22,6 @@ function Users() {
         pageSize: 5
     })
     const [tableLoading, setTableLoading] = useState(false)
-
-    // const [selectedMenu, setSelectedMenu] = useContext(MenuContext).selectedMenuState
-    const dataUsers = [
-        {
-            id: '111',
-            name: 'Name1',
-            email: 'debovamail@gmail.com',
-            status: 'admin',
-            description: '',
-            tags: ['test1', 'test2'],
-            timestamp: 1645440593336
-        },
-        {
-            id: '112',
-            name: 'Name2',
-            email: 'bbea@com.ua',
-            status: 'banned',
-            description: '',
-            tags: ['test1', 'test2'],
-            timestamp: 1645440593336
-        }
-    ]
 
     const columnsUsers = [
         {
@@ -62,7 +41,7 @@ function Users() {
             dataIndex: 'status',
             render: (status: string) => {
                 return (
-                    <Select defaultValue={status} style={{ width: 120 }}>
+                    <Select defaultValue={status} style={{ width: 120 }} onChange={() => {}}>
                         <Select.Option value="admin">Admin</Select.Option>
                         <Select.Option value="moderator">Moderator</Select.Option>
                         <Select.Option value="banned">Banned</Select.Option>
@@ -73,7 +52,13 @@ function Users() {
         },
         {
             title: 'Description',
-            dataIndex: 'description'
+            dataIndex: 'description',
+            render: (description: string) => {
+                return <DescriptionCell description={description} />
+            },
+            onClick: () => {
+                console.log(1)
+            }
         },
         {
             title: 'Tags',
