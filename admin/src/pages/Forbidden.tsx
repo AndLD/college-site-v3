@@ -8,7 +8,7 @@ function Forbidden() {
         <>
             <div className="forbidden-background-image">
                 <div className="forbidden-container">
-                    <div className="title">403</div>
+                    <div className="title">waiting room</div>
                     <div className="message">
                         You are{' '}
                         <span style={{ color: 'red' }}>
@@ -16,9 +16,8 @@ function Forbidden() {
                                 ? user.status
                                 : 'undefined'}
                         </span>
-                        !
                     </div>
-                    <div className="message">Contact an admin to solve the problem.</div>
+                    <div className="message">Contact an admin to solve the problem</div>
                 </div>
             </div>
         </>
