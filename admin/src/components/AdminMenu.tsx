@@ -15,6 +15,7 @@ import { useEffect } from 'react'
 
 export default function AdminMenu({ currentPage }: { currentPage?: string }) {
     const collapsed = useSelector((state: any) => state.app.menu.collapsed)
+    const user = useSelector((state: any) => state.app.user)
 
     useEffect(() => {}, [])
 
@@ -28,52 +29,98 @@ export default function AdminMenu({ currentPage }: { currentPage?: string }) {
             <Menu.Item
                 key="Dashboard"
                 icon={
-                    <DashboardOutlined style={{ fontSize: '25px', transform: collapsed ? 'translateX(-25%)' : '' }} />
+                    <DashboardOutlined
+                        style={{ fontSize: '25px', transform: collapsed ? 'translateX(-25%)' : '' }}
+                    />
                 }
             >
                 <Link to={'/admin'}>Dashboard</Link>
             </Menu.Item>
-            <Menu.Item
-                key="Settings"
-                icon={<SettingOutlined style={{ fontSize: '25px', transform: collapsed ? 'translateX(-25%)' : '' }} />}
-            >
-                <Link to={'/admin/settings'}>Settings</Link>
-            </Menu.Item>
+
+            {user?.status === 'admin' ? (
+                <Menu.Item
+                    key="Settings"
+                    icon={
+                        <SettingOutlined
+                            style={{
+                                fontSize: '25px',
+                                transform: collapsed ? 'translateX(-25%)' : ''
+                            }}
+                        />
+                    }
+                >
+                    <Link to={'/admin/settings'}>Settings</Link>
+                </Menu.Item>
+            ) : (
+                ''
+            )}
+
             <Menu.Item
                 key="Menu"
-                icon={<ProfileOutlined style={{ fontSize: '25px', transform: collapsed ? 'translateX(-25%)' : '' }} />}
+                icon={
+                    <ProfileOutlined
+                        style={{ fontSize: '25px', transform: collapsed ? 'translateX(-25%)' : '' }}
+                    />
+                }
             >
                 <Link to={'/admin/menu'}>Menu</Link>
             </Menu.Item>
             <Menu.Item
                 key="Articles"
-                icon={<FileTextOutlined style={{ fontSize: '25px', transform: collapsed ? 'translateX(-25%)' : '' }} />}
+                icon={
+                    <FileTextOutlined
+                        style={{ fontSize: '25px', transform: collapsed ? 'translateX(-25%)' : '' }}
+                    />
+                }
             >
                 <Link to={'/admin/articles'}>Articles</Link>
             </Menu.Item>
             <Menu.Item
                 key="News"
                 icon={
-                    <FileImageOutlined style={{ fontSize: '25px', transform: collapsed ? 'translateX(-25%)' : '' }} />
+                    <FileImageOutlined
+                        style={{ fontSize: '25px', transform: collapsed ? 'translateX(-25%)' : '' }}
+                    />
                 }
             >
                 <Link to={'/admin/news'}>News</Link>
             </Menu.Item>
-            <Menu.Item
-                key="Users"
-                icon={<TeamOutlined style={{ fontSize: '25px', transform: collapsed ? 'translateX(-25%)' : '' }} />}
-            >
-                <Link to={'/admin/users'}>Users</Link>
-            </Menu.Item>
+
+            {user?.status === 'admin' ? (
+                <Menu.Item
+                    key="Users"
+                    icon={
+                        <TeamOutlined
+                            style={{
+                                fontSize: '25px',
+                                transform: collapsed ? 'translateX(-25%)' : ''
+                            }}
+                        />
+                    }
+                >
+                    <Link to={'/admin/users'}>Users</Link>
+                </Menu.Item>
+            ) : (
+                ''
+            )}
+
             <Menu.Item
                 key="Actions"
-                icon={<BranchesOutlined style={{ fontSize: '25px', transform: collapsed ? 'translateX(-25%)' : '' }} />}
+                icon={
+                    <BranchesOutlined
+                        style={{ fontSize: '25px', transform: collapsed ? 'translateX(-25%)' : '' }}
+                    />
+                }
             >
                 <Link to={'/admin/actions'}>Actions</Link>
             </Menu.Item>
             <Menu.Item
                 key="Guide"
-                icon={<RocketOutlined style={{ fontSize: '25px', transform: collapsed ? 'translateX(-25%)' : '' }} />}
+                icon={
+                    <RocketOutlined
+                        style={{ fontSize: '25px', transform: collapsed ? 'translateX(-25%)' : '' }}
+                    />
+                }
             >
                 <Link to={'/admin/guide'}>Guide</Link>
             </Menu.Item>

@@ -15,7 +15,7 @@
         "Google Auth",
         "Google Drive API"
     ],
-    "author": " <Andrey Larionov, andrey.larionov.me@gmail.com>",
+    "author": " <Andrii Larionov, andrey.larionov.me@gmail.com>",
     "license": "ISC",
     "devDependencies": {
         "@types/jest": "^27.0.1",

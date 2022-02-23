@@ -17,16 +17,15 @@ const AppRouter = () => {
 
     useEffect(() => {
         if (auth === true && user && user.status !== 'admin' && user.status !== 'moderator') {
+            setRoutes([{ path: '/forbidden', component: Forbidden, exact: true }])
+        } else if (auth === true && user && user.status === 'admin') {
+            setRoutes(privateRoutes)
+        } else if (auth === true && user && user.status === 'moderator') {
             setRoutes([
-                { path: '/forbidden', component: Forbidden, exact: true },
-                ...publicRoutes.filter((route) => route.path !== '/auth')
+                ...privateRoutes.filter(
+                    (route: any) => !['/admin/settings', '/admin/users'].includes(route.path)
+                )
             ])
-        } else if (
-            auth === true &&
-            user &&
-            (user.status === 'admin' || user.status === 'moderator')
-        ) {
-            setRoutes([...privateRoutes, ...publicRoutes.filter((route) => route.path !== '/auth')])
         } else {
             setRoutes(publicRoutes)
             dispatch(setToken(''))

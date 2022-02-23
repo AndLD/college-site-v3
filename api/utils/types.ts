@@ -92,3 +92,5 @@ export type AppSettings = {
     selectedMenuId?: string
     pinnedNewsIds?: string[]
 }
+
+export type UserStatus = 'admin' | 'moderator' | 'banned' | 'unconfirmed'

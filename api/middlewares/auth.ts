@@ -59,7 +59,7 @@ export async function isAuthorized(req: any, res: Response, next: NextFunction) 
     }
 }
 
-export function hasEnoughPermissions(req: any, res: Response, next: NextFunction) {
+export function hasModeratorStatus(req: any, res: Response, next: NextFunction) {
     const status = req.user?._doc?.status
 
     if (!status) {
@@ -71,4 +71,18 @@ export function hasEnoughPermissions(req: any, res: Response, next: NextFunction
     }
 
     return res.status(403).json({ user: req.user._doc })
+}
+
+export function hasAdminStatus(req: any, res: Response, next: NextFunction) {
+    const status = req.user?._doc?.status
+
+    if (!status) {
+        return res.sendStatus(500)
+    }
+
+    if (status === 'admin') {
+        return next()
+    }
+
+    return res.sendStatus(403)
 }

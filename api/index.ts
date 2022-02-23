@@ -1,6 +1,6 @@
 import logger from './utils/logger'
 import { app } from './pre-configs'
-import { hasEnoughPermissions, isAuthorized } from './middlewares/auth'
+import { hasAdminStatus, hasModeratorStatus, isAuthorized } from './middlewares/auth'
 import { setReqEntity } from './middlewares/decorators'
 import menuPrivateRouter from './routers/private/menu'
 import menuPublicRouter from './routers/public/menu'
@@ -25,11 +25,11 @@ const privateRouter = Router()
 apiRouter.use('/private', isAuthorized, privateRouter)
 
 // Меню
-privateRouter.use('/menu', hasEnoughPermissions, setReqEntity(entities.MENU), menuPrivateRouter)
+privateRouter.use('/menu', hasModeratorStatus, setReqEntity(entities.MENU), menuPrivateRouter)
 // Настройки (app-settings)
 privateRouter.use(
     '/settings',
-    hasEnoughPermissions,
+    hasAdminStatus,
     setReqEntity(entities.APP_SETTINGS),
     appSettingsPrivateRouter
 )
@@ -37,7 +37,7 @@ privateRouter.use(
 privateRouter.use('/user', setReqEntity(entities.USERS), usersPrivateRouter)
 
 // Статистика (тестовый роут)
-privateRouter.get('/statistics', async (_: Request, res: Response) => {
+privateRouter.get('/statistics', hasModeratorStatus, async (_: Request, res: Response) => {
     return res.json({
         incomes: 5000,
         outcomes: 2000
