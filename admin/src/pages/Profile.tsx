@@ -8,12 +8,11 @@ const { Title } = Typography
 
 function Profile() {
     const token = useSelector((state: any) => state.app.token)
-    const [profile, setProfile] = useState(null)
-
+    const user = useSelector((state: any) => state.app.user)
     useEffect(() => {
         let isMounted = true
         document.title = 'Admin Profile'
-
+        console.log(user)
         return () => {
             isMounted = false
         }
