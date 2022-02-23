@@ -95,7 +95,7 @@ function Menu() {
                     tableDataState: [tableData, setTableData],
                     paginationState: [pagination, setPagination],
                     tableLoadingState: [tableLoading, setTableLoading],
-                    fetchMenu: () => fetchMenu(pagination)
+                    fetchMenu
                 }}
             >
                 <Tabs

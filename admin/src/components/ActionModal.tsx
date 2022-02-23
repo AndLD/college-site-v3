@@ -17,6 +17,8 @@ import MenuTree from './Menu/SelectedMenu/MenuTree'
 const allowedFileTypes = ['application/json']
 
 export default function ActionModal() {
+    const currentPage = localStorage.getItem('currentPage')
+
     const dispatch = useDispatch()
     const token = useSelector((state: any) => state.app.token)
 
@@ -38,25 +40,19 @@ export default function ActionModal() {
 
     // Текст json в textarea
     const [menuJson, setMenuJson] = useState<string>('[]')
-    // Является ли json в textarea неправильным
-    const [isMenuJsonInvalid, setIsMenuJsonInvalid] = useState<boolean>(false)
+
+    const [menuJsonErrorMessage, setMenuJsonErrorMessage] = useState<string | undefined>()
 
     // Массив элементов меню в интерфесе
     const [menuTreeData, setMenuTreeData] = useState<IMenuElementOfTree[]>([])
     // Массив обновлений меню в интерфейсе
     const [menuTreeDataUpdates, setMenuTreeDataUpdates] = useState<IMenuBlockUpdate[]>([])
 
-    // Является ли основная кнопка модального окна активной
-    const [isActionButtonEnabled, setIsActionButtonEnabled] = useState<boolean>(false)
-
     // Является ли меню в интерфейсе автоматически обновляемым
     const [isMenuTreeDataAutoUpdateEnabled, setIsMenuTreeDataAutoUpdateEnabled] =
         useState<boolean>(true)
     // Является ли json в textarea автоматически обновляемым
     const [isMenuJsonAutoUpdateEnabled, setIsMenuJsonAutoUpdateEnabled] = useState<boolean>(false)
-
-    // Установлены ли поля формы
-    const [isFormFieldsValueSetted, setIsFormFieldsValueSetted] = useState<boolean>(false)
 
     const [draggerFileList, setDraggerFileList] = useState<UploadFile<any>[]>([])
 
@@ -110,7 +106,7 @@ export default function ActionModal() {
             <Tabs.TabPane tab="Json" key={3}>
                 <TextArea
                     style={{
-                        borderColor: isMenuJsonInvalid ? 'red' : ''
+                        borderColor: menuJsonErrorMessage ? 'red' : ''
                     }}
                     value={menuJson}
                     onChange={(event: any) => {
@@ -120,6 +116,9 @@ export default function ActionModal() {
                     }}
                     rows={15}
                 />
+                <div style={{ display: menuJsonErrorMessage ? 'block' : 'none', color: 'red' }}>
+                    {menuJsonErrorMessage}
+                </div>
             </Tabs.TabPane>
         </Tabs>,
         // Пустой компонент Form.Item, value которого задается программно из другого компонента
@@ -139,8 +138,6 @@ export default function ActionModal() {
     ]
 
     function getFormItems() {
-        const currentPage = localStorage.getItem('currentPage')
-
         switch (currentPage) {
             case 'Menu':
                 return menuFormItems
@@ -148,8 +145,6 @@ export default function ActionModal() {
     }
 
     function onAction(body: any) {
-        const currentPage = localStorage.getItem('currentPage')
-
         if (currentPage) {
             axios(
                 `${privateRoute}/${currentPage.toLowerCase()}${
@@ -204,11 +199,10 @@ export default function ActionModal() {
             setFetchedMenu(undefined)
 
             setMenuJson('[]')
-            setIsMenuJsonInvalid(false)
+            setMenuJsonErrorMessage(undefined)
 
             setMenuTreeDataUpdates([])
             setTabsActiveKey('2')
-            setIsActionButtonEnabled(false)
 
             setDraggerFileList([])
 
@@ -226,8 +220,7 @@ export default function ActionModal() {
             try {
                 var menu = JSON.parse(menuJson)
             } catch (e: any) {
-                setIsMenuJsonInvalid(true)
-                setIsActionButtonEnabled(false)
+                setMenuJsonErrorMessage('Invalid JSON.')
             }
 
             if (menu) {
@@ -235,19 +228,14 @@ export default function ActionModal() {
                     menu,
                     [menuTreeDataUpdates, setMenuTreeDataUpdates],
                     () => {
-                        setIsMenuJsonInvalid(true)
-                        message.error('JSON input does not match the menu structure!\n', 1)
+                        setMenuJsonErrorMessage('JSON input does not match the menu structure.')
                     }
                 )
 
                 if (configuredMenu) {
                     setMenuTreeData(configuredMenu)
 
-                    isMenuJsonInvalid && setIsMenuJsonInvalid(false)
-                    setIsFormFieldsValueSetted(false)
-                    setIsActionButtonEnabled(true)
-                } else {
-                    setIsActionButtonEnabled(false)
+                    setMenuJsonErrorMessage(undefined)
                 }
             }
         }
@@ -259,11 +247,6 @@ export default function ActionModal() {
 
             if (deconfiguredMenu) {
                 setMenuJson(JSON.stringify(deconfiguredMenu, null, '\t'))
-
-                setIsFormFieldsValueSetted(false)
-                setIsActionButtonEnabled(true)
-            } else {
-                setIsActionButtonEnabled(false)
             }
         }
     }, [menuTreeData])
@@ -280,14 +263,6 @@ export default function ActionModal() {
         }
     }, [tabsActiveKey])
 
-    // useEffect(() => {
-    //     console.log('menu tree auto update: ', isMenuTreeDataAutoUpdateEnabled)
-    // }, [isMenuTreeDataAutoUpdateEnabled])
-
-    // useEffect(() => {
-    //     console.log('menu json auto update: ', isMenuJsonAutoUpdateEnabled)
-    // }, [isMenuJsonAutoUpdateEnabled])
-
     return (
         <Modal
             centered
@@ -300,22 +275,15 @@ export default function ActionModal() {
 
                 form.resetFields()
             }}
-            okButtonProps={{
-                disabled: !isActionButtonEnabled
-            }}
             onOk={() => {
-                if (!isFormFieldsValueSetted) {
-                    try {
-                        var menu = JSON.parse(menuJson)
-                    } catch (e: any) {
-                        setIsMenuJsonInvalid(true)
-                        setIsActionButtonEnabled(false)
-                    }
+                try {
+                    var menu = JSON.parse(menuJson)
+                } catch (e: any) {
+                    setMenuJsonErrorMessage('Invalid JSON.')
+                }
 
-                    if (menu.length) {
-                        setIsFormFieldsValueSetted(true)
-                        form.setFieldsValue({ menu })
-                    }
+                if (menu.length) {
+                    form.setFieldsValue({ menu })
                 }
 
                 form.validateFields()
@@ -324,17 +292,15 @@ export default function ActionModal() {
                         if (action === 'Add' || (action === 'Update' && fetchedMenu)) {
                             for (const key in values) {
                                 if (
-                                    form.isFieldTouched(key) &&
-                                    (action === 'Add' ||
-                                        (action === 'Update' &&
-                                            fetchedMenu &&
-                                            (typeof fetchedMenu[key as keyof IMenuBlock] ===
-                                            'object'
-                                                ? JSON.stringify(
-                                                      fetchedMenu[key as keyof IMenuBlock]
-                                                  ) != JSON.stringify(values[key])
-                                                : fetchedMenu[key as keyof IMenuBlock] !=
-                                                  values[key])))
+                                    // form.isFieldTouched(key) &&
+                                    action === 'Add' ||
+                                    (action === 'Update' &&
+                                        fetchedMenu &&
+                                        (typeof fetchedMenu[key as keyof IMenuBlock] === 'object'
+                                            ? JSON.stringify(
+                                                  fetchedMenu[key as keyof IMenuBlock]
+                                              ) != JSON.stringify(values[key])
+                                            : fetchedMenu[key as keyof IMenuBlock] != values[key]))
                                 ) {
                                     actionBody[key] = values[key]
                                 }
@@ -360,12 +326,7 @@ export default function ActionModal() {
                     })
             }}
         >
-            <Form
-                form={form}
-                fields={[{ name: 'description' }, { name: 'menu' }]}
-                layout="vertical"
-                initialValues={{}}
-            >
+            <Form form={form} layout="vertical" initialValues={{}}>
                 {getFormItems()}
             </Form>
         </Modal>
