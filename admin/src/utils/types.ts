@@ -38,3 +38,5 @@ export interface IUser {
     timestamp: number
     lastUpdateTimestamp?: number
 }
+
+export type UserStatus = 'admin' | 'moderator' | 'banned' | 'unconfirmed'

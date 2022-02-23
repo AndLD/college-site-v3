@@ -8,6 +8,13 @@ import { privateRoutes } from '../utils/constants'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import DescriptionCell from '../components/Users/DescriptionCell'
 import { generateKey } from 'fast-key-generator'
+import { UserStatus } from '../utils/types'
+import {
+    QuestionOutlined,
+    SafetyCertificateOutlined,
+    StopOutlined,
+    UserOutlined
+} from '@ant-design/icons'
 
 const { Title } = Typography
 
@@ -21,7 +28,9 @@ function Users() {
     })
     const [tableLoading, setTableLoading] = useState(false)
 
-    const columnsUsers = [
+    const [focusedRow, setFocusedRow] = useState<any>()
+
+    const columns = [
         {
             title: 'ID',
             dataIndex: 'id'
@@ -37,13 +46,29 @@ function Users() {
         {
             title: 'Status',
             dataIndex: 'status',
-            render: (status: string) => {
+            render: (status: UserStatus) => {
                 return (
-                    <Select defaultValue={status} style={{ width: 120 }} onChange={() => {}}>
-                        <Select.Option value="admin">Admin</Select.Option>
-                        <Select.Option value="moderator">Moderator</Select.Option>
-                        <Select.Option value="banned">Banned</Select.Option>
-                        <Select.Option value="unconfirmed">Unconfirmed</Select.Option>
+                    <Select
+                        defaultValue={status}
+                        style={{ width: '100%' }}
+                        onChange={(status: UserStatus) => {
+                            if (focusedRow) {
+                                updateUser(focusedRow.id, { status })
+                            }
+                        }}
+                    >
+                        <Select.Option value="admin">
+                            <SafetyCertificateOutlined style={{ color: 'green' }} /> Admin
+                        </Select.Option>
+                        <Select.Option value="moderator">
+                            <UserOutlined style={{ color: 'blue' }} /> Moderator
+                        </Select.Option>
+                        <Select.Option value="banned">
+                            <StopOutlined style={{ color: 'red' }} /> Banned
+                        </Select.Option>
+                        <Select.Option value="unconfirmed">
+                            <QuestionOutlined /> Unconfirmed
+                        </Select.Option>
                     </Select>
                 )
             }
@@ -52,10 +77,16 @@ function Users() {
             title: 'Description',
             dataIndex: 'description',
             render: (description: string) => {
-                return <DescriptionCell description={description} />
-            },
-            onClick: () => {
-                console.log(1)
+                return (
+                    <DescriptionCell
+                        description={description}
+                        onSave={(description: string) => {
+                            if (focusedRow) {
+                                updateUser(focusedRow.id, { description })
+                            }
+                        }}
+                    />
+                )
             }
         },
         {
@@ -114,12 +145,34 @@ function Users() {
             .catch((err: AxiosError) => errorNotification(err.message))
     }
 
+    function updateUser(
+        id: string,
+        data: { status?: UserStatus; description?: string; tags?: string[] }
+    ) {
+        axios(`${privateRoutes.USER}/${id}`, {
+            method: 'PUT',
+            data,
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+            .then((res: AxiosResponse) => {
+                successNotification('User has been successfully updated!')
+            })
+            .catch((err: AxiosError) => errorNotification(err.message))
+    }
+
     return (
         <AdminLayout currentPage="Users">
             <Title level={1}>Users</Title>
             <Table
+                onRow={(row: any) => ({
+                    onClick: () => {
+                        setFocusedRow(row)
+                    }
+                })}
                 dataSource={tableData}
-                columns={columnsUsers}
+                columns={columns}
                 rowKey={(record: any) => record.id}
                 pagination={pagination}
                 loading={tableLoading}
