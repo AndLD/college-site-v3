@@ -2,20 +2,18 @@ import { Input, Select, Spin, Tag, Typography } from 'antd'
 import { useSelector } from 'react-redux'
 import { useEffect, useState } from 'react'
 import AdminLayout from '../components/AdminLayout'
-import { IUser } from '../utils/types'
 import { Table } from 'antd'
-import { ColumnsType } from 'antd/es/table'
-import { Option } from 'antd/lib/mentions'
 import { errorNotification, successNotification } from '../utils/notifications'
 import { privateRoutes } from '../utils/constants'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import DescriptionCell from '../components/Users/DescriptionCell'
+import { generateKey } from 'fast-key-generator'
 
 const { Title } = Typography
 
 function Users() {
     const token = useSelector((state: any) => state.app.token)
-    const [users, setUsers] = useState(null)
+
     const [tableData, setTableData] = useState([])
     const [pagination, setPagination] = useState({
         current: 1,
@@ -64,7 +62,7 @@ function Users() {
             title: 'Tags',
             dataIndex: 'tags',
             render: (tags: string[]) => {
-                return tags && tags.map((tag: string) => <Tag>{tag}</Tag>)
+                return tags && tags.map((tag: string) => <Tag key={generateKey({})}>{tag}</Tag>)
             }
         },
         {
@@ -80,12 +78,12 @@ function Users() {
     ]
 
     useEffect(() => {
-        let isMounted = true
+        // let isMounted = true
         document.title = 'Admin Users'
 
-        return () => {
-            isMounted = false
-        }
+        // return () => {
+        //     isMounted = false
+        // }
     }, [])
 
     useEffect(() => {
@@ -115,6 +113,7 @@ function Users() {
             })
             .catch((err: AxiosError) => errorNotification(err.message))
     }
+
     return (
         <AdminLayout currentPage="Users">
             <Title level={1}>Users</Title>
