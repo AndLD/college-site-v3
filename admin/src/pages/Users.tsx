@@ -1,13 +1,12 @@
-import { Input, Select, Spin, Tag, Typography } from 'antd'
+import { Image, Input, Select, Spin, Tag, Typography } from 'antd'
 import { useSelector } from 'react-redux'
 import { useEffect, useState } from 'react'
 import AdminLayout from '../components/AdminLayout'
 import { Table } from 'antd'
-import { errorNotification, successNotification } from '../utils/notifications'
+import { errorNotification, successNotification, warningNotification } from '../utils/notifications'
 import { privateRoutes } from '../utils/constants'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import DescriptionCell from '../components/Users/DescriptionCell'
-import { generateKey } from 'fast-key-generator'
 import { UserStatus } from '../utils/types'
 import {
     QuestionOutlined,
@@ -15,6 +14,8 @@ import {
     StopOutlined,
     UserOutlined
 } from '@ant-design/icons'
+import TagsCell from '../components/Users/TagsCell'
+import '../styles/Users.scss'
 
 const { Title } = Typography
 
@@ -27,8 +28,6 @@ function Users() {
         pageSize: 5
     })
     const [tableLoading, setTableLoading] = useState(false)
-
-    const [focusedRow, setFocusedRow] = useState<any>()
 
     const columns = [
         {
@@ -46,16 +45,12 @@ function Users() {
         {
             title: 'Status',
             dataIndex: 'status',
-            render: (status: UserStatus) => {
+            render: (status: UserStatus, row: any) => {
                 return (
                     <Select
                         defaultValue={status}
                         style={{ width: '100%' }}
-                        onChange={(status: UserStatus) => {
-                            if (focusedRow) {
-                                updateUser(focusedRow.id, { status })
-                            }
-                        }}
+                        onChange={(status: UserStatus) => updateUser(row.id, { status })}
                     >
                         <Select.Option value="admin">
                             <SafetyCertificateOutlined style={{ color: 'green' }} /> Admin
@@ -76,15 +71,11 @@ function Users() {
         {
             title: 'Description',
             dataIndex: 'description',
-            render: (description: string) => {
+            render: (description: string, row: any) => {
                 return (
                     <DescriptionCell
                         description={description}
-                        onSave={(description: string) => {
-                            if (focusedRow) {
-                                updateUser(focusedRow.id, { description })
-                            }
-                        }}
+                        onSave={(description: string) => updateUser(row.id, { description })}
                     />
                 )
             }
@@ -93,24 +84,14 @@ function Users() {
             title: 'Tags',
             dataIndex: 'tags',
             width: 200,
-            render: (tags: string[]) => {
-                if (tags)
-                    return (
-                        <>
-                            {tags.map((tag: string) => (
-                                <Tag
-                                    closable
-                                    onClose={(event) => {
-                                        event.preventDefault()
-                                    }}
-                                    key={generateKey({})}
-                                >
-                                    {tag}
-                                </Tag>
-                            ))}
-                            <div></div>
-                        </>
-                    )
+            render: (tags: string[], row: any) => {
+                tags = tags || []
+                return (
+                    <TagsCell
+                        tags={tags}
+                        onSave={(tags: string[]) => updateUser(row.id, { tags })}
+                    />
+                )
             }
         },
         {
@@ -183,11 +164,6 @@ function Users() {
         <AdminLayout currentPage="Users">
             <Title level={1}>Users</Title>
             <Table
-                onRow={(row: any) => ({
-                    onClick: () => {
-                        setFocusedRow(row)
-                    }
-                })}
                 dataSource={tableData}
                 columns={columns}
                 rowKey={(record: any) => record.id}

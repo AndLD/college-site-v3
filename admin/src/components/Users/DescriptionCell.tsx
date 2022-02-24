@@ -20,12 +20,12 @@ function DescriptionCell({
         >
             {editMode ? (
                 <Input
-                    autoFocus={true}
+                    autoFocus
                     value={newDescription}
-                    onChange={(event: any) => {
+                    onChange={(event) => {
                         setNewDescription(event.target.value)
                     }}
-                    onKeyDown={(event: any) => {
+                    onKeyDown={(event) => {
                         if (event.code === 'Enter') {
                             if (description !== newDescription) {
                                 onSave(newDescription)

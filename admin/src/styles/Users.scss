@@ -1,0 +1,11 @@
+.users-tags-cell {
+    .new-tags-btn {
+        display: none;
+    }
+
+    &:hover {
+        .new-tags-btn {
+            display: inline;
+        }
+    }
+}

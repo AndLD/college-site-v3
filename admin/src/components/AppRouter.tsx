@@ -46,14 +46,15 @@ const AppRouter = () => {
 
                 <Redirect
                     to={
-                        (auth && user && user.status !== 'admin' && user.status !== 'moderator') ||
-                        (auth && !user)
+                        auth && user && user.status !== 'admin' && user.status !== 'moderator'
                             ? '/forbidden'
-                            : auth
+                            : auth && user
                             ? `/admin/${
                                   currentPage === 'Dashboard' || !currentPage ? '' : currentPage
                               }`
-                            : '/auth'
+                            : !auth
+                            ? '/auth'
+                            : '/'
                     }
                 />
             </Switch>

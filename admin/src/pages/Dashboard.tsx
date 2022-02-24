@@ -15,17 +15,19 @@ function Dashboard() {
         let isMounted = true
         document.title = 'Admin Dashboard'
 
-        axios('http://localhost:8080/api/private/statistics', {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        })
-            .then((res: AxiosResponse) => {
-                if (isMounted) {
-                    setStatistics(res.data)
+        console.log('token', token)
+        token &&
+            axios('http://localhost:8080/api/private/statistics', {
+                headers: {
+                    Authorization: `Bearer ${token}`
                 }
             })
-            .catch((err: AxiosError) => errorNotification(err.message))
+                .then((res: AxiosResponse) => {
+                    if (isMounted) {
+                        setStatistics(res.data)
+                    }
+                })
+                .catch((err: AxiosError) => errorNotification(err.message))
         return () => {
             isMounted = false
         }

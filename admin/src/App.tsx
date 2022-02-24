@@ -32,10 +32,9 @@ function App() {
         firebaseAuth.onAuthStateChanged((userCredentials: any) => {
             if (userCredentials)
                 userCredentials.getIdToken().then((token: string) => {
-                    fetchUser(token).then(() => {
-                        dispatch(setAuth(true))
-                        dispatch(setToken(token))
-                    })
+                    fetchUser(token)
+                    dispatch(setAuth(true))
+                    dispatch(setToken(token))
                 })
             else {
                 dispatch(setAuth(false))

@@ -20,6 +20,16 @@
     }
 }
 
+.menu-description-action {
+    visibility: hidden;
+}
+
+.menu-description:hover {
+    .menu-description-action {
+        visibility: visible;
+    }
+}
+
 .menu-tree-element {
     .menu-tree-element-action {
         visibility: hidden;

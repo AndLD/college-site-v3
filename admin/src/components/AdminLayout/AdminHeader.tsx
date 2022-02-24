@@ -26,9 +26,16 @@ export default function AdminHeader() {
     const dispatch = useDispatch()
     const token = useSelector((state: any) => state.app.token)
     const [avatarLoaded, setAvatarLoaded] = useState(false)
-    useEffect(() => {}, [])
-
     const collapsed = useSelector((state: any) => state.app.menu.collapsed)
+
+    function getAvatarSrc() {
+        try {
+            const src = (jwtDecode(token) as ITokenData).picture
+            return src
+        } catch (e) {
+            console.log(e)
+        }
+    }
 
     return (
         <Header className="site-layout-background" style={{ padding: 0 }}>
@@ -58,7 +65,7 @@ export default function AdminHeader() {
                         icon={
                             <>
                                 <img
-                                    src={(jwtDecode(token) as ITokenData).picture}
+                                    src={getAvatarSrc()}
                                     onLoad={() => setAvatarLoaded(true)}
                                     alt="Avatar"
                                     style={{ display: avatarLoaded ? 'inline' : 'none' }}
