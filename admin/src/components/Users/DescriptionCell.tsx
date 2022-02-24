@@ -1,7 +1,5 @@
 import { Input } from 'antd'
 import { useState } from 'react'
-import { AnyIfEmpty } from 'react-redux'
-import { warningNotification } from '../../utils/notifications'
 
 function DescriptionCell({
     description: initialDescription,

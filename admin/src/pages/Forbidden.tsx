@@ -1,4 +1,5 @@
 import { useSelector } from 'react-redux'
+import LogoutButton from '../components/AdminLayout/LogoutButton'
 import '../styles/Forbidden.scss'
 
 function Forbidden() {
@@ -12,12 +13,15 @@ function Forbidden() {
                     <div className="message">
                         You are{' '}
                         <span style={{ color: 'red' }}>
-                            {['unconfirmed', 'banned'].includes(user.status)
+                            {user.status === 'unconfirmed' || user.status === 'banned'
                                 ? user.status
                                 : 'undefined'}
                         </span>
                     </div>
                     <div className="message">Contact an admin to solve the problem</div>
+                    <span style={{ marginTop: 30 }}>
+                        <LogoutButton />
+                    </span>
                 </div>
             </div>
         </>

@@ -27,7 +27,7 @@ export async function isAuthorized(req: any, res: Response, next: NextFunction) 
             })
         }
 
-        if (!result?.mainResult) {
+        if (!result?.mainResult?.length) {
             const newUser: IUser = {
                 email: req.user.email,
                 name: req.user.name,
@@ -46,7 +46,7 @@ export async function isAuthorized(req: any, res: Response, next: NextFunction) 
                 })
             }
 
-            req.user._doc = result
+            req.user._doc = result?.mainResult
         } else {
             req.user._doc = result.mainResult[0]
         }

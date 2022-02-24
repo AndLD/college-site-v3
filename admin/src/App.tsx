@@ -15,8 +15,8 @@ const firebaseAuth = getAuth()
 function App() {
     const dispatch = useDispatch()
 
-    function fetchUser(token: string) {
-        axios(privateRoutes.AUTHORIZED_USER, {
+    async function fetchUser(token: string) {
+        await axios(privateRoutes.AUTHORIZED_USER, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
@@ -32,9 +32,10 @@ function App() {
         firebaseAuth.onAuthStateChanged((userCredentials: any) => {
             if (userCredentials)
                 userCredentials.getIdToken().then((token: string) => {
-                    dispatch(setAuth(true))
-                    dispatch(setToken(token))
-                    fetchUser(token)
+                    fetchUser(token).then(() => {
+                        dispatch(setAuth(true))
+                        dispatch(setToken(token))
+                    })
                 })
             else {
                 dispatch(setAuth(false))

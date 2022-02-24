@@ -2,7 +2,7 @@ import { Button } from 'antd'
 import { getAuth } from 'firebase/auth'
 import { MouseEventHandler } from 'react'
 import { useDispatch } from 'react-redux'
-import { setAuth } from '../../store/actions'
+import { setAuth, setToken } from '../../store/actions'
 
 function LogoutButton() {
     const dispatch = useDispatch()
@@ -12,6 +12,8 @@ function LogoutButton() {
         getAuth()
             .signOut()
             .then(() => {
+                localStorage.removeItem('currentPage')
+                // dispatch(setToken(''))
                 dispatch(setAuth(false))
             })
     }

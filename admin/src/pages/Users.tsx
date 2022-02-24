@@ -92,8 +92,25 @@ function Users() {
         {
             title: 'Tags',
             dataIndex: 'tags',
+            width: 200,
             render: (tags: string[]) => {
-                return tags && tags.map((tag: string) => <Tag key={generateKey({})}>{tag}</Tag>)
+                if (tags)
+                    return (
+                        <>
+                            {tags.map((tag: string) => (
+                                <Tag
+                                    closable
+                                    onClose={(event) => {
+                                        event.preventDefault()
+                                    }}
+                                    key={generateKey({})}
+                                >
+                                    {tag}
+                                </Tag>
+                            ))}
+                            <div></div>
+                        </>
+                    )
             }
         },
         {
