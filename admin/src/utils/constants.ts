@@ -1,4 +1,4 @@
-const HOST = 'http://localhost:8080'
+const HOST = 'http://127.0.0.1:8080'
 export const privateRoute = `${HOST}/api/private`
 export const publicRoute = `${HOST}/api/public`
 

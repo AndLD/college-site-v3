@@ -47,13 +47,14 @@ function Menu() {
     })
     const [tableLoading, setTableLoading] = useState(false)
 
-    function fetchMenu(pagination: any) {
+    function fetchMenu(pagination: any, order?: string) {
         setTableLoading(true)
         axios(privateRoutes.MENU, {
             params: {
                 page: pagination.current,
                 results: pagination.pageSize,
-                select: 'id,description,timestamp,lastUpdateTimestamp'
+                select: 'id,description,timestamp,lastUpdateTimestamp',
+                order
             },
             headers: {
                 Authorization: `Bearer ${token}`

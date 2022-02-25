@@ -1,5 +1,3 @@
-import { UserStatus } from '../../types'
-
 export interface IUser {
     id?: string
     email: string
@@ -7,6 +5,7 @@ export interface IUser {
     status: 'admin' | 'moderator' | 'banned' | 'unconfirmed'
     description?: string
     tags?: string[]
+    keywords: string[]
     timestamp: number
     lastUpdateTimestamp?: number
 }

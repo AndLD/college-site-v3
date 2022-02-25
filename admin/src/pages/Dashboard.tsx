@@ -15,7 +15,6 @@ function Dashboard() {
         let isMounted = true
         document.title = 'Admin Dashboard'
 
-        console.log('token', token)
         token &&
             axios('http://localhost:8080/api/private/statistics', {
                 headers: {

@@ -15,7 +15,9 @@ export type Controller = (req: Request, res: Response, next?: NextFunction) => a
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
 export type LogicOperator = '<' | '<=' | '==' | '>=' | '>'
 export type UpdateOperator = '+' | '-'
-export type Filter = [string, LogicOperator, number | boolean | string]
+// TODO: Убрать 'in' из типа Filter
+export type Filter = [string, LogicOperator | 'array-contains', number | boolean | string]
+export type SubstringInStringFilter = [string, 'array-contains', string]
 export type UpdateSchema = [string, UpdateOperator, string | number][]
 
 export type ControllerTriggerArgs = {
@@ -47,6 +49,7 @@ export type ModelArgs = {
     docIds?: string[]
     pagination?: Pagination
     select?: string[]
+    order?: [string, string]
     action: ModelAction
     obj?: Any
     triggers?: ControllerTrigger[]

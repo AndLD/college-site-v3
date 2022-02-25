@@ -14,6 +14,7 @@ function DescriptionCell({
 
     return (
         <div
+            style={{ height: 30 }}
             onClick={() => {
                 setEditMode(true)
             }}

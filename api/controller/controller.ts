@@ -15,7 +15,8 @@ import {
     ControllerCallbackCaller,
     Error,
     CallControllerCallbacksResults,
-    Pagination
+    Pagination,
+    SubstringInStringFilter
 } from '../utils/types'
 
 export const controller = tryCatch(async function (req: Request, res: Response) {
@@ -33,6 +34,7 @@ export const controller = tryCatch(async function (req: Request, res: Response) 
         ids,
         pagination,
         select,
+        order,
         obj,
         entity,
         email,
@@ -46,6 +48,7 @@ export const controller = tryCatch(async function (req: Request, res: Response) 
         ids: string[]
         pagination?: Pagination
         select?: string[]
+        order?: [string, string]
         obj: Any
         entity: string
         email: string
@@ -68,6 +71,7 @@ export const controller = tryCatch(async function (req: Request, res: Response) 
         ids,
         pagination,
         select,
+        order,
         obj,
         entity,
         email,
@@ -109,6 +113,7 @@ const controllerMethods = {
         id,
         pagination,
         select,
+        order,
         entity,
         where,
         controllerTriggers
@@ -117,6 +122,7 @@ const controllerMethods = {
         id?: string
         pagination?: Pagination
         select?: string[]
+        order?: [string, string]
         entity: string
         where?: Filter[]
         controllerTriggers?: ControllerTrigger[]
@@ -128,6 +134,7 @@ const controllerMethods = {
             docId: id,
             pagination,
             select,
+            order,
             action: 'get',
             triggers: controllerTriggers
         }),
@@ -241,6 +248,11 @@ const parseReq = (req: any) => {
     if (method === 'GET' && req.query.select) {
         select = req.query.select.split(',')
     }
+    // Сортировка
+    let order
+    if (method === 'GET' && req.query.order) {
+        order = req.query.order.split(',')
+    }
     // Тело запроса
     const obj: Any = req.body
     // Получение "сущности", которая является названием коллекции в БД (entity)
@@ -265,6 +277,7 @@ const parseReq = (req: any) => {
             ids,
             pagination,
             select,
+            order,
             obj,
             entity,
             email,
@@ -291,14 +304,13 @@ function parseFilters({
     if (!queryParams.filters) return [[], null]
 
     try {
-        const filters: Filter[] = decodeURI(queryParams.filters as string)
+        const filters: Filter[] | SubstringInStringFilter[] = decodeURI(
+            queryParams.filters as string
+        )
             .split(':')
             .map((filter: string) => {
-                const [key, operator, value]: [string, LogicOperator, string] = filter.split(',') as [
-                    string,
-                    LogicOperator,
-                    string
-                ]
+                const [key, operator, value]: [string, LogicOperator | 'contains', string] =
+                    filter.split(',') as [string, LogicOperator | 'contains', string]
 
                 let convertedValue: number | boolean | string = value
 
@@ -309,7 +321,13 @@ function parseFilters({
                     else if (value == 'false') convertedValue = false
                 } else convertedValue = floatValue
 
-                return [key, operator, convertedValue]
+                if (operator === 'contains' && typeof convertedValue !== 'string') {
+                    throw '"contains" operator is possible to use with strings only'
+                }
+
+                return operator === 'contains'
+                    ? [key, 'array-contains', convertedValue as string]
+                    : [key, operator, convertedValue]
             })
 
         return [filters, null]
@@ -320,7 +338,10 @@ function parseFilters({
 
 /* Обработка "влекущих действий" (controllerCallbacks) - действий, которые должны произойти после основного запроса
     Например, при проведении операции должна быть добавлена операция, а потом изменено состояния баланса учавствующих в ней кошельков */
-const callCallbacks = async (callbacks: ControllerCallbackCaller[] | undefined, modelResult: ModelResult) => {
+const callCallbacks = async (
+    callbacks: ControllerCallbackCaller[] | undefined,
+    modelResult: ModelResult
+) => {
     if (!callbacks) return [null, null] as CallControllerCallbacksResults
 
     const results: Any[] = []

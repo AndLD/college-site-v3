@@ -21,6 +21,7 @@ export const model = async ({
     docIds,
     pagination,
     select,
+    order,
     action,
     obj,
     triggers /*, noRecursion*/
@@ -60,7 +61,15 @@ export const model = async ({
 
         if (error) return [null, error] as DefaultResult
     } else {
-        const queryRef = prepareQueryRef({ collection, where, docId, pagination, select, action })
+        const queryRef = prepareQueryRef({
+            collection,
+            where,
+            docId,
+            pagination,
+            select,
+            order,
+            action
+        })
 
         // Making request
         const firebaseRes = await queryRef[action](obj)
@@ -85,6 +94,7 @@ export const model = async ({
     if (pagination)
         result._meta = {
             ...result._meta,
+            // TODO: в pagination.total нужно задавать количество не всех документов коллекции, а тех, которые соответствуют фильтрам и сортировке
             pagination: { ...pagination, total: await getCollectionLength(collection) }
         }
     return [result, null] as DefaultResult
@@ -124,6 +134,7 @@ const prepareQueryRef = ({
     docId,
     pagination,
     select,
+    order,
     action
 }: {
     collection: string
@@ -131,6 +142,7 @@ const prepareQueryRef = ({
     docId?: string
     pagination?: Pagination
     select?: string[]
+    order?: [string, string]
     action: ModelAction
 }) => {
     let queryRef: any = db.collection(collection)
@@ -145,10 +157,18 @@ const prepareQueryRef = ({
             queryRef = queryRef.where(...whereArgs)
         }
 
-    if (action == 'get' && pagination)
-        queryRef = queryRef /*.orderBy('timestamp')*/
+    if (action == 'get' && pagination) {
+        // TODO: Уязвимость: первым элементом массива order может быть любая строка, необходимо валидировать на соответствие полям получаемой сущности
+        if (order && (order[1] === 'desc' || order[1] === 'asc')) {
+            queryRef = queryRef.orderBy(...order)
+        } else {
+            queryRef = queryRef.orderBy('timestamp')
+        }
+
+        queryRef = queryRef
             .offset((pagination.page - 1) * pagination.results)
             .limit(pagination.results)
+    }
 
     if (action == 'get' && select) queryRef = queryRef.select(...select)
 

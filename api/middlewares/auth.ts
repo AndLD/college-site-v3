@@ -3,6 +3,7 @@ import firebase from '../configs/firebase-config'
 import { NextFunction, Response } from 'express'
 import { model } from '../model/model'
 import { IUser } from '../utils/interfaces/users/users'
+import { getAllCompatibleInputForString } from '../utils/functions'
 
 export async function isAuthorized(req: any, res: Response, next: NextFunction) {
     if (!req.headers.authorization) return res.sendStatus(401)
@@ -11,7 +12,6 @@ export async function isAuthorized(req: any, res: Response, next: NextFunction) 
 
     try {
         const decodeValue: Any = await firebase.admin.auth().verifyIdToken(token)
-
         if (!decodeValue) return res.sendStatus(401)
 
         req.user = decodeValue
@@ -32,6 +32,7 @@ export async function isAuthorized(req: any, res: Response, next: NextFunction) 
                 email: req.user.email,
                 name: req.user.name,
                 status: 'unconfirmed',
+                keywords: getAllCompatibleInputForString(req.user.name),
                 timestamp: Date.now()
             }
 

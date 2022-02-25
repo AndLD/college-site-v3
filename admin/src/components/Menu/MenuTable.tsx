@@ -19,47 +19,6 @@ function MenuTable() {
 
     const [selectedRows, setSelectedRows] = useState([])
 
-    const columns = [
-        {
-            title: 'ID',
-            dataIndex: 'id'
-        },
-        {
-            title: 'Description',
-            dataIndex: 'description'
-        },
-        {
-            title: 'Timestamp',
-            dataIndex: 'timestamp',
-            render: (value: number) => value && new Date(value).toLocaleString()
-        },
-        {
-            title: 'Last Update Timestamp',
-            dataIndex: 'lastUpdateTimestamp',
-            render: (value: number) => value && new Date(value).toLocaleString()
-        },
-        {
-            title: 'Status',
-            dataIndex: 'status',
-            render: (value: string, row: any, index: any) => (
-                <div className="menu-table-status-cell">
-                    <div className="menu-table-status-cell-hide-on-parent-hover">
-                        <Badge status={value === 'Selected' ? 'success' : 'error'} /> {value}
-                    </div>
-                    <Button
-                        className="menu-table-status-cell-show-on-parent-hover"
-                        type="default"
-                        danger={value === 'Selected' ? true : false}
-                        size="small"
-                        onClick={value === 'Selected' ? deselectMenu : () => selectMenu(row.id)}
-                    >
-                        {value === 'Selected' ? 'deselect' : 'select'}
-                    </Button>
-                </div>
-            )
-        }
-    ]
-
     const { fetchSelectedMenu } = useContext(MenuContext)
     const { fetchMenu } = useContext(MenuContext)
 
@@ -156,7 +115,56 @@ function MenuTable() {
                         setSelectedRows(selectedRows)
                     }
                 }}
-                columns={columns}
+                columns={[
+                    {
+                        title: 'ID',
+                        dataIndex: 'id'
+                    },
+                    {
+                        title: 'Description',
+                        dataIndex: 'description'
+                    },
+                    {
+                        title: 'Timestamp',
+                        dataIndex: 'timestamp',
+                        render: (value: number) => value && new Date(value).toLocaleString(),
+                        sorter: (row1: any, row2: any) => row1.timestamp - row2.timestamp,
+                        sortDirections: ['descend']
+                    },
+                    {
+                        title: 'Last Update Timestamp',
+                        dataIndex: 'lastUpdateTimestamp',
+                        render: (value: number) => value && new Date(value).toLocaleString(),
+                        sorter: (row1: any, row2: any) =>
+                            row1.lastUpdateTimestamp - row2.lastUpdateTimestamp,
+                        sortDirections: ['ascend', 'descend']
+                    },
+                    {
+                        title: 'Status',
+                        dataIndex: 'status',
+                        render: (value: string, row: any, index: any) => (
+                            <div className="menu-table-status-cell">
+                                <div className="menu-table-status-cell-hide-on-parent-hover">
+                                    <Badge status={value === 'Selected' ? 'success' : 'error'} />{' '}
+                                    {value}
+                                </div>
+                                <Button
+                                    className="menu-table-status-cell-show-on-parent-hover"
+                                    type="default"
+                                    danger={value === 'Selected' ? true : false}
+                                    size="small"
+                                    onClick={
+                                        value === 'Selected'
+                                            ? deselectMenu
+                                            : () => selectMenu(row.id)
+                                    }
+                                >
+                                    {value === 'Selected' ? 'deselect' : 'select'}
+                                </Button>
+                            </div>
+                        )
+                    }
+                ]}
                 rowKey={(record: any) => record.id}
                 dataSource={
                     tableData &&
@@ -168,7 +176,17 @@ function MenuTable() {
                 }
                 pagination={pagination}
                 loading={tableLoading}
-                onChange={(pagination: any) => fetchMenu(pagination)}
+                onChange={(pagination: any, filters: any, sorter: any) => {
+                    console.log(sorter)
+                    const sorterOrder =
+                        sorter.order === 'ascend'
+                            ? 'asc'
+                            : sorter.order === 'descend'
+                            ? 'desc'
+                            : undefined
+                    const order = sorterOrder && `${sorter.field},${sorterOrder}`
+                    fetchMenu(pagination, order)
+                }}
             />
         </>
     )
