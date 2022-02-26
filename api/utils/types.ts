@@ -15,8 +15,11 @@ export type Controller = (req: Request, res: Response, next?: NextFunction) => a
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
 export type LogicOperator = '<' | '<=' | '==' | '>=' | '>'
 export type UpdateOperator = '+' | '-'
-// TODO: Убрать 'in' из типа Filter
-export type Filter = [string, LogicOperator | 'array-contains', number | boolean | string]
+// TODO: Убрать 'in', 'array-contains' из типа Filter ?
+export type Filter =
+    | [string, LogicOperator, number | boolean | string]
+    | [string, 'array-contains', string]
+    | [string, 'in', string[]]
 export type SubstringInStringFilter = [string, 'array-contains', string]
 export type UpdateSchema = [string, UpdateOperator, string | number][]
 

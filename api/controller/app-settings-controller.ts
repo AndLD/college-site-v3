@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { tryCatch } from '../utils/decorators'
-import { getAppSettings, setAppSettings } from '../services/appSettingsManager'
+import { getAppSettings, setAppSettings } from '../services/appSettings'
 import { Any, DefaultResult, HttpMethod } from '../utils/types'
 
 export const appSettingsController = tryCatch(async function (req: Request, res: Response) {

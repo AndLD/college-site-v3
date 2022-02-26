@@ -30,6 +30,12 @@ function Users() {
     })
     const [tableLoading, setTableLoading] = useState(false)
 
+    const [searchValue, setSearchValue] = useState<string>()
+    const [filteredValue, setFilteredValue] = useState<any>()
+    useEffect(() => {
+        console.log(filteredValue)
+    }, [filteredValue])
+
     useEffect(() => {
         // let isMounted = true
         document.title = 'Admin Users'
@@ -65,6 +71,7 @@ function Users() {
                     ...pagination,
                     total: res.data.meta.pagination.total
                 })
+                console.log('total users', res.data.meta.pagination.total)
             })
             .catch((err: AxiosError) => errorNotification(err.message))
     }
@@ -93,8 +100,11 @@ function Users() {
                 style={{ marginBottom: 20 }}
                 placeholder="Type name"
                 loading={tableLoading}
+                value={searchValue}
                 onChange={(event) => {
                     const text = event.target.value
+                    setSearchValue(text)
+                    setFilteredValue(null)
                     fetchUsers(
                         pagination,
                         text ? `keywords,contains,${text.toLowerCase()}` : undefined
@@ -144,7 +154,43 @@ function Users() {
                                     </Select.Option>
                                 </Select>
                             )
-                        }
+                        },
+                        filters: [
+                            {
+                                text: (
+                                    <>
+                                        <SafetyCertificateOutlined style={{ color: 'green' }} />{' '}
+                                        Admin
+                                    </>
+                                ),
+                                value: 'admin'
+                            },
+                            {
+                                text: (
+                                    <>
+                                        <UserOutlined style={{ color: 'blue' }} /> Moderator
+                                    </>
+                                ),
+                                value: 'moderator'
+                            },
+                            {
+                                text: (
+                                    <>
+                                        <StopOutlined style={{ color: 'red' }} /> Banned
+                                    </>
+                                ),
+                                value: 'banned'
+                            },
+                            {
+                                text: (
+                                    <>
+                                        <QuestionOutlined /> Unconfirmed
+                                    </>
+                                ),
+                                value: 'unconfirmed'
+                            }
+                        ],
+                        filteredValue: filteredValue ? filteredValue[0].status : null
                     },
                     {
                         title: 'Description',
@@ -194,7 +240,9 @@ function Users() {
                 pagination={pagination}
                 loading={tableLoading}
                 onChange={(pagination: any, filters: any, sorter: any) => {
-                    console.log(sorter)
+                    setFilteredValue([filters])
+                    const f = filters?.status && `status,in,${filters.status.join('.')}`
+
                     const sorterOrder =
                         sorter.order === 'ascend'
                             ? 'asc'
@@ -202,7 +250,9 @@ function Users() {
                             ? 'desc'
                             : undefined
                     const order = sorterOrder && `${sorter.field},${sorterOrder}`
-                    fetchUsers(pagination, undefined, order)
+
+                    setSearchValue('')
+                    fetchUsers(pagination, f, order)
                 }}
             />
         </AdminLayout>

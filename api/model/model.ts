@@ -28,6 +28,7 @@ export const model = async ({
 }: ModelArgs) => {
     validateModelArgs({ where, docId, action })
     let mainResult, triggersResult, error
+    let total = 0
 
     // Выполнение триггеров
     if (triggers) {
@@ -61,7 +62,7 @@ export const model = async ({
 
         if (error) return [null, error] as DefaultResult
     } else {
-        const queryRef = prepareQueryRef({
+        const { queryRef, metaQuertRef } = prepareQueryRef({
             collection,
             where,
             docId,
@@ -83,6 +84,16 @@ export const model = async ({
         )
 
         if (error) return [null, error] as DefaultResult
+
+        if (metaQuertRef) {
+            try {
+                const metaResult = await metaQuertRef.get()
+
+                metaResult.forEach(() => total++)
+            } catch (e) {
+                throw 'Error getting total docs count!'
+            }
+        }
     }
 
     let result: ModelResult =
@@ -95,7 +106,7 @@ export const model = async ({
         result._meta = {
             ...result._meta,
             // TODO: в pagination.total нужно задавать количество не всех документов коллекции, а тех, которые соответствуют фильтрам и сортировке
-            pagination: { ...pagination, total: await getCollectionLength(collection) }
+            pagination: { ...pagination, total: total || (await getCollectionLength(collection)) }
         }
     return [result, null] as DefaultResult
 }
@@ -146,6 +157,7 @@ const prepareQueryRef = ({
     action: ModelAction
 }) => {
     let queryRef: any = db.collection(collection)
+    let metaQuertRef: any
 
     // PUT & DELETE
     if (action == 'update' || action == 'delete') queryRef = queryRef.doc(docId)
@@ -164,6 +176,7 @@ const prepareQueryRef = ({
         } else {
             queryRef = queryRef.orderBy('timestamp')
         }
+        metaQuertRef = queryRef.select()
 
         queryRef = queryRef
             .offset((pagination.page - 1) * pagination.results)
@@ -172,7 +185,10 @@ const prepareQueryRef = ({
 
     if (action == 'get' && select) queryRef = queryRef.select(...select)
 
-    return queryRef
+    return {
+        queryRef,
+        metaQuertRef
+    }
 }
 
 //TODO REFACTOR
@@ -186,28 +202,28 @@ const makeBatchedDeletes = ({
     docIds: string[]
     action: ModelAction
 }) => {
-    if (action === 'delete') {
-        const batch = db.batch()
-
-        for (const id of docIds) {
-            batch[action](db.collection(collection).doc(id))
-        }
-
-        return [batch.commit(), null]
+    if (action !== 'delete') {
+        return [
+            null,
+            {
+                msg: 'Incorrect action: "delete" is only available for makeBatchedDeletes function',
+                code: 500
+            }
+        ]
     }
-    return [
-        null,
-        {
-            msg: 'Incorrect action: "delete" is only available for makeBatchedDeletes function',
-            code: 500
-        }
-    ]
+
+    const batch = db.batch()
+
+    for (const id of docIds) {
+        batch[action](db.collection(collection).doc(id))
+    }
+
+    return [batch.commit(), null]
 }
 
 // Count documents of a collection
 const getCollectionLength = async (collection: string) => {
-    const list = await db.collection(collection).listDocuments()
-    return (list as any)?.length
+    return (await db.collection(collection).listDocuments())?.length
 }
 
 // Processing firebase response for different types of actions

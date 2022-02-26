@@ -69,6 +69,7 @@ function Menu() {
                     ...pagination,
                     total: res.data.meta.pagination.total
                 })
+                console.log('total menu blocks', res.data.meta.pagination.total)
             })
             .catch((err: AxiosError) => errorNotification(err.message))
     }

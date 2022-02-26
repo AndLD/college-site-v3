@@ -48,7 +48,7 @@ const AppRouter = () => {
                     to={
                         auth && user && user.status !== 'admin' && user.status !== 'moderator'
                             ? '/forbidden'
-                            : auth && user
+                            : auth //&& user
                             ? `/admin/${
                                   currentPage === 'Dashboard' || !currentPage ? '' : currentPage
                               }`

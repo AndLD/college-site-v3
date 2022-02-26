@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { model } from '../model/model'
-import { getAppSettings } from '../services/appSettingsManager'
+import { getAppSettings } from '../services/appSettings'
 import { errors } from '../utils/constants'
 import { tryCatch } from '../utils/decorators'
 import {
@@ -304,30 +304,33 @@ function parseFilters({
     if (!queryParams.filters) return [[], null]
 
     try {
-        const filters: Filter[] | SubstringInStringFilter[] = decodeURI(
-            queryParams.filters as string
-        )
+        /* Фильтр - это массив из трех элементов: 
+        1 - ключ в базе данных (строка)
+        2 - оператор (строка: логические операторы, 'contains', 'in')
+        3 - значение (число / булевое / строка / массив строк)
+        */
+        const filters: Filter[] | SubstringInStringFilter[] = decodeURI(queryParams.filters)
             .split(':')
             .map((filter: string) => {
-                const [key, operator, value]: [string, LogicOperator | 'contains', string] =
-                    filter.split(',') as [string, LogicOperator | 'contains', string]
+                const [key, operator, value]: [string, LogicOperator | 'contains' | 'in', string] =
+                    filter.split(',') as [string, LogicOperator | 'contains' | 'in', string]
 
                 let convertedValue: number | boolean | string = value
 
-                const floatValue = parseFloat(value)
+                if (!['contains', 'in'].includes(operator)) {
+                    const floatValue = parseFloat(value as string)
 
-                if (isNaN(floatValue)) {
-                    if (value == 'true') convertedValue = true
-                    else if (value == 'false') convertedValue = false
-                } else convertedValue = floatValue
-
-                if (operator === 'contains' && typeof convertedValue !== 'string') {
-                    throw '"contains" operator is possible to use with strings only'
+                    if (floatValue) {
+                        convertedValue = floatValue
+                    } else if (value === 'true') convertedValue = true
+                    else if (value === 'false') convertedValue = false
                 }
 
-                return operator === 'contains'
-                    ? [key, 'array-contains', convertedValue as string]
-                    : [key, operator, convertedValue]
+                if (operator === 'contains') {
+                    return [key, 'array-contains', convertedValue as string]
+                } else if (operator === 'in') {
+                    return [key, operator, (convertedValue as string).split('.')]
+                } else return [key, operator, convertedValue]
             })
 
         return [filters, null]
