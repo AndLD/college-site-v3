@@ -40,3 +40,11 @@ export interface IUser {
 }
 
 export type UserStatus = 'admin' | 'moderator' | 'banned' | 'unconfirmed'
+
+export interface ITokenData {
+    name: string
+    picture: string
+    user_id: string
+    email: string
+    auth_time: number
+}

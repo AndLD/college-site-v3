@@ -1,41 +1,23 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import LogoutButton from './LogoutButton'
-import { Layout, Avatar, Dropdown, Menu } from 'antd'
+import { Layout, Dropdown, Menu } from 'antd'
 import {
     MenuUnfoldOutlined,
     MenuFoldOutlined,
     UserOutlined,
     LogoutOutlined
 } from '@ant-design/icons'
-import jwtDecode from 'jwt-decode'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { setMenuCollapsed } from '../../store/actions'
+import UserAvatar from './AdminHeader/UserAvatar'
 
 const { Header } = Layout
 
-interface ITokenData {
-    name: string
-    picture: string
-    user_id: string
-    email: string
-    auth_time: number
-}
-
 export default function AdminHeader() {
     const dispatch = useDispatch()
-    const token = useSelector((state: any) => state.app.token)
-    const [avatarLoaded, setAvatarLoaded] = useState(false)
-    const collapsed = useSelector((state: any) => state.app.menu.collapsed)
 
-    function getAvatarSrc() {
-        try {
-            const src = (jwtDecode(token) as ITokenData).picture
-            return src
-        } catch (e) {
-            console.log(e)
-        }
-    }
+    const collapsed = useSelector((state: any) => state.app.menu.collapsed)
 
     return (
         <Header className="site-layout-background" style={{ padding: 0 }}>
@@ -59,21 +41,9 @@ export default function AdminHeader() {
                     arrow
                     trigger={['click']}
                 >
-                    <Avatar
-                        style={{ cursor: 'pointer' }}
-                        shape="square"
-                        icon={
-                            <>
-                                <img
-                                    src={getAvatarSrc()}
-                                    onLoad={() => setAvatarLoaded(true)}
-                                    alt="Avatar"
-                                    style={{ display: avatarLoaded ? 'inline' : 'none' }}
-                                />
-                                {!avatarLoaded && <UserOutlined />}
-                            </>
-                        }
-                    />
+                    <span>
+                        <UserAvatar />
+                    </span>
                 </Dropdown>
             </span>
         </Header>

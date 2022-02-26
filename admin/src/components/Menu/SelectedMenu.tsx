@@ -1,19 +1,15 @@
-import { CloseOutlined, EditOutlined, PlusCircleOutlined, SaveOutlined } from '@ant-design/icons'
-import { Button, Divider, Empty, Form, Input, Popconfirm, Popover, Spin, Tree } from 'antd'
-import Title from 'antd/lib/typography/Title'
+import { Divider, Empty, Spin } from 'antd'
 import axios, { AxiosError, AxiosResponse } from 'axios'
-import { generateKey } from 'fast-key-generator'
 import _ from 'lodash'
-import { ChangeEvent, useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { MenuContext } from '../../contexts'
 import { privateRoutes } from '../../utils/constants'
 import { configMenu, deconfigMenu } from '../../utils/menu'
 import { errorNotification, successNotification } from '../../utils/notifications'
-import { IMenuBlockUpdate, IMenuElement, IMenuElementOfTree } from '../../utils/types'
+import { IMenuBlockUpdate, IMenuElementOfTree } from '../../utils/types'
 import MenuDescription from './SelectedMenu/MenuDescription'
 import MenuTree from './SelectedMenu/MenuTree'
-import MenuTreeElement from './SelectedMenu/MenuTreeElement'
 import SelectedMenuControls from './SelectedMenu/SelectedMenuControls'
 
 function SelectedMenu() {
@@ -31,6 +27,8 @@ function SelectedMenu() {
     const [treeLoading, setTreeLoading] = useContext(MenuContext).treeLoadingState
 
     const [selectedMenuControlsEnabled, setSelectedMenuControlsEnabled] = useState<boolean>(false)
+
+    const [pagination, setPagination] = useContext(MenuContext).paginationState
 
     useEffect(() => {
         if (selectedMenu) {
@@ -71,7 +69,7 @@ function SelectedMenu() {
             .then((res: AxiosResponse) => {
                 for (const row of tableData) {
                     if (row.id === selectedMenu.id) {
-                        fetchMenu()
+                        fetchMenu(pagination)
                         break
                     }
                 }

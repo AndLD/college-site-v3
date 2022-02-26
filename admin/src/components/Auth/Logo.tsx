@@ -4,7 +4,7 @@ import logo from '../../assets/images/Auth/logo.png'
 function Logo() {
     return (
         <a href="/">
-            <img id="logo" alt="Health Samurai logo" src={logo} />
+            <img id="logo" alt="College logo" src={logo} />
         </a>
     )
 }

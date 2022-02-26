@@ -1,47 +1,49 @@
 import { CloseOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons'
 import { Input } from 'antd'
 import Title from 'antd/lib/typography/Title'
-import { ChangeEvent, SetStateAction, useEffect, useState } from 'react'
+import { ChangeEvent, useEffect, useState } from 'react'
 
-function MenuDescription({
-    menuDescriotionState: [menuDescription, setMenuDescription]
+function UserDescription({
+    userDescriotionState: [userDescription, setUserDescription],
+    onSave
 }: {
-    menuDescriotionState: [string, any]
+    userDescriotionState: [string, any]
+    onSave: (data: { description?: string; tags?: string[] }) => void
 }) {
-    const [menuDescriptionEditMode, setMenuDescriptionEditMode] = useState<boolean>(false)
-    const [newMenuDescription, setNewMenuDescription] = useState<string>('')
+    const [editMode, setEditMode] = useState<boolean>(false)
+    const [newUserDescription, setNewUserDescription] = useState<string>('')
 
     function onSaveEvent() {
-        setMenuDescriptionEditMode(false)
-        setMenuDescription(newMenuDescription)
+        setEditMode(false)
+        setUserDescription(newUserDescription)
+        onSave({ description: userDescription })
     }
 
     function onCloseEvent() {
-        setMenuDescriptionEditMode(false)
-        setNewMenuDescription(menuDescription)
+        setEditMode(false)
+        setNewUserDescription(userDescription)
     }
 
     useEffect(() => {
-        setNewMenuDescription(menuDescription)
-    }, [menuDescription])
-
+        setNewUserDescription(userDescription)
+    }, [userDescription])
     return (
         <Title
             level={4}
-            className="menu-description"
+            className="user-description"
             onClick={() => {
-                if (!menuDescriptionEditMode) setMenuDescriptionEditMode(true)
+                if (!editMode) setEditMode(true)
             }}
         >
-            {menuDescriptionEditMode ? (
+            {editMode ? (
                 <>
                     <Input
                         size="large"
                         placeholder="New description"
-                        value={newMenuDescription}
+                        value={newUserDescription}
                         autoFocus
                         onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                            setNewMenuDescription(event.target.value)
+                            setNewUserDescription(event.target.value)
                         }
                         style={{
                             maxWidth: '400px',
@@ -72,13 +74,13 @@ function MenuDescription({
                 </>
             ) : (
                 <>
-                    {menuDescription ? (
-                        menuDescription
+                    {userDescription ? (
+                        userDescription
                     ) : (
                         <span style={{ color: '#d4d4d4' }}>No description</span>
                     )}
                     <EditOutlined
-                        className="menu-description-action"
+                        className="user-description-action"
                         style={{
                             fontSize: '20px',
                             margin: '0 5px',
@@ -91,4 +93,4 @@ function MenuDescription({
     )
 }
 
-export default MenuDescription
+export default UserDescription

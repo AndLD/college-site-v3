@@ -1,4 +1,4 @@
-import { Image, Input, Select, Spin, Tag, Typography } from 'antd'
+import { Select, Typography } from 'antd'
 import { useSelector } from 'react-redux'
 import { useEffect, useState } from 'react'
 import AdminLayout from '../components/AdminLayout'
@@ -14,7 +14,7 @@ import {
     StopOutlined,
     UserOutlined
 } from '@ant-design/icons'
-import TagsCell from '../components/Users/TagsCell'
+import Tags from '../components/Users/Tags'
 import '../styles/Users.scss'
 import Search from 'antd/lib/input/Search'
 
@@ -202,7 +202,7 @@ function Users() {
                         render: (tags: string[], row: any) => {
                             tags = tags || []
                             return (
-                                <TagsCell
+                                <Tags
                                     tags={tags}
                                     onSave={(tags: string[]) => updateUser(row.id, { tags })}
                                 />

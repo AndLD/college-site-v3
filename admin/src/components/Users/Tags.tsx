@@ -3,7 +3,7 @@ import { Input, Tag } from 'antd'
 import { generateKey } from 'fast-key-generator'
 import { useState } from 'react'
 
-function TagsCell({
+function Tags({
     tags: initialTags,
     onSave
 }: {
@@ -63,4 +63,4 @@ function TagsCell({
     )
 }
 
-export default TagsCell
+export default Tags
