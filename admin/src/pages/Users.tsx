@@ -190,7 +190,7 @@ function Users() {
                                 value: 'unconfirmed'
                             }
                         ],
-                        filteredValue: filteredValue ? filteredValue[0].status : null
+                        filteredValue: filteredValue ? filteredValue.status : null
                     },
                     {
                         title: 'Description',
@@ -240,7 +240,7 @@ function Users() {
                 pagination={pagination}
                 loading={tableLoading}
                 onChange={(pagination: any, filters: any, sorter: any) => {
-                    setFilteredValue([filters])
+                    setFilteredValue(filters)
                     const f = filters?.status && `status,in,${filters.status.join('.')}`
 
                     const sorterOrder =
