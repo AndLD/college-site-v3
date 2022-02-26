@@ -234,6 +234,7 @@ function MenuTree({
                                 }
                             ])
                             setAddRootElemToTreeDataMenuPopoverVisible(false)
+                            addRootElemToTreeDataMenuForm.resetFields()
                         }}
                     />
                 }

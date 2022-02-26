@@ -9,6 +9,8 @@ import Tags from '../components/Users/Tags'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import { privateRoutes } from '../utils/constants'
 import { errorNotification, successNotification } from '../utils/notifications'
+import { SafetyCertificateOutlined, UserOutlined } from '@ant-design/icons'
+import Paragraph from 'antd/lib/typography/Paragraph'
 
 const { Title } = Typography
 
@@ -39,18 +41,43 @@ function Profile() {
     return (
         <AdminLayout currentPage="Profile">
             <Title level={1}>Profile</Title>
-            <Title level={3}>{user.name}</Title>
-            <Text code style={{ fontSize: 20 }}>
-                {user.email}
-            </Text>
-            <UserDescription
-                userDescriotionState={[userDescription, setUserDescription]}
-                onSave={(data) => updateAuthorizedUser(data)}
-            />
-            <Tags
-                tags={user.tags}
-                onSave={(newTags: string[]) => updateAuthorizedUser({ tags: newTags })}
-            />
+            <div style={{ textAlign: 'center' }}>
+                <Text style={{ fontSize: 30 }}>
+                    {user?.status === 'admin' ? (
+                        <>
+                            <SafetyCertificateOutlined style={{ color: 'green', fontSize: 25 }} />{' '}
+                            Admin
+                        </>
+                    ) : user?.status === 'moderator' ? (
+                        <>
+                            <UserOutlined style={{ color: 'blue' }} /> Moderator
+                        </>
+                    ) : (
+                        ''
+                    )}
+                </Text>
+                <Title level={3}>{user.name}</Title>
+
+                <Paragraph code style={{ margin: '20px 0px', fontSize: 18 }}>
+                    {user.email}
+                </Paragraph>
+                <div style={{ margin: '20px auto', width: '50%' }}>
+                    <UserDescription
+                        userDescriotionState={[userDescription, setUserDescription]}
+                        onSave={(data) => updateAuthorizedUser(data)}
+                    />
+                </div>
+                <div style={{ margin: 'auto', width: '20%' }}>
+                    {user?.tags ? (
+                        <Tags
+                            tags={user?.tags}
+                            onSave={(newTags: string[]) => updateAuthorizedUser({ tags: newTags })}
+                        />
+                    ) : (
+                        ''
+                    )}
+                </div>
+            </div>
         </AdminLayout>
     )
 }

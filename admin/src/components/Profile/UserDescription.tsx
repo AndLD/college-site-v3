@@ -16,7 +16,7 @@ function UserDescription({
     function onSaveEvent() {
         setEditMode(false)
         setUserDescription(newUserDescription)
-        onSave({ description: userDescription })
+        onSave({ description: newUserDescription })
     }
 
     function onCloseEvent() {

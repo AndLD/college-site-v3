@@ -26,7 +26,7 @@ function Users() {
     const [tableData, setTableData] = useState([])
     const [pagination, setPagination] = useState({
         current: 1,
-        pageSize: 5
+        pageSize: 2
     })
     const [tableLoading, setTableLoading] = useState(false)
 
