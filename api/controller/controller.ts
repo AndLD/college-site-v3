@@ -253,8 +253,17 @@ const parseReq = (req: any) => {
     if (method === 'GET' && req.query.order) {
         order = req.query.order.split(',')
     }
+
+    // TODO: Получить req.headers['content-type'] для сравнения в 260 строке этого файла
     // Тело запроса
-    const obj: Any = req.body
+    const obj: Any = req.headers['content-type']?.includes('multipart/form-data')
+        ? JSON.parse(req.body.json)
+        : req.body
+    // TODO: ОСТАНОВКА ЗДЕСЬ: передавать переменную files в return, определять последовательность действий с googleDrive и передавать файлы в сервис googleDrive, после чего послать запрос на добавление документа в Firestore
+    const files: File[] = req.headers['content-type']?.includes('multipart/form-data')
+        ? req.files
+        : undefined
+
     // Получение "сущности", которая является названием коллекции в БД (entity)
     const entity: string = req.entity
     // Получение почты авторизованного пользователя

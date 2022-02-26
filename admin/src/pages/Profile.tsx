@@ -5,7 +5,7 @@ import AdminLayout from '../components/AdminLayout'
 import Text from 'antd/lib/typography/Text'
 import UserDescription from '../components/Profile/UserDescription'
 import '../styles/Profile.scss'
-import Tags from '../components/Users/Tags'
+import EditableTags from '../components/Users/EditableTags'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import { privateRoutes } from '../utils/constants'
 import { errorNotification, successNotification } from '../utils/notifications'
@@ -69,7 +69,7 @@ function Profile() {
                 </div>
                 <div style={{ margin: 'auto', width: '20%' }}>
                     {user?.tags ? (
-                        <Tags
+                        <EditableTags
                             tags={user?.tags}
                             onSave={(newTags: string[]) => updateAuthorizedUser({ tags: newTags })}
                         />

@@ -5,10 +5,11 @@ import { setReqEntity } from './middlewares/decorators'
 import menuPrivateRouter from './routers/private/menu'
 import menuPublicRouter from './routers/public/menu'
 import usersPrivateRouter from './routers/private/users'
-import { Any } from './utils/types'
 import { entities } from './utils/constants'
 import { Request, Response, Router } from 'express'
 import appSettingsPrivateRouter from './routers/private/app-settings'
+import articlesPublicRouter from './routers/public/articles'
+import articlesPrivateRouter from './routers/private/articles'
 
 const apiRouter = Router()
 app.use('/api', apiRouter)
@@ -19,6 +20,8 @@ apiRouter.use('/public', publicRouter)
 
 // Меню
 publicRouter.use('/menu', setReqEntity(entities.MENU), menuPublicRouter)
+// Статьи
+publicRouter.use('/article', setReqEntity(entities.ARTICLES), articlesPublicRouter)
 
 // Роутер защищенных маршрутов
 const privateRouter = Router()
@@ -35,6 +38,8 @@ privateRouter.use(
 )
 // Пользователи
 privateRouter.use('/user', setReqEntity(entities.USERS), usersPrivateRouter)
+// Статьи
+privateRouter.use('/article', setReqEntity(entities.ARTICLES), articlesPrivateRouter)
 
 // Статистика (тестовый роут)
 privateRouter.get('/statistics', hasModeratorStatus, async (_: Request, res: Response) => {

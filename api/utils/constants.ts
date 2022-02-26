@@ -16,7 +16,7 @@ export const entities: {
     [key: string]: string
 } = {
     NEWS: 'news',
-    ARTICLE: 'articles',
+    ARTICLES: 'articles',
     MENU: 'menu',
     USERS: 'users',
     // SLIDERIMG: 'sliderImgs',

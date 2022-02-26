@@ -14,7 +14,7 @@ import {
     StopOutlined,
     UserOutlined
 } from '@ant-design/icons'
-import Tags from '../components/Users/Tags'
+import EditableTags from '../components/Users/EditableTags'
 import '../styles/Users.scss'
 import Search from 'antd/lib/input/Search'
 
@@ -26,7 +26,7 @@ function Users() {
     const [tableData, setTableData] = useState([])
     const [pagination, setPagination] = useState({
         current: 1,
-        pageSize: 2
+        pageSize: 5
     })
     const [tableLoading, setTableLoading] = useState(false)
 
@@ -202,7 +202,7 @@ function Users() {
                         render: (tags: string[], row: any) => {
                             tags = tags || []
                             return (
-                                <Tags
+                                <EditableTags
                                     tags={tags}
                                     onSave={(tags: string[]) => updateUser(row.id, { tags })}
                                 />
