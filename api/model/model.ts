@@ -174,6 +174,7 @@ const prepareQueryRef = ({
         if (order && (order[1] === 'desc' || order[1] === 'asc')) {
             queryRef = queryRef.orderBy(...order)
         } else {
+            // TODO: При использовании оператора фильтра 'like' необходимо выполнять сортировку только по ключу, к которому относится 'like'
             queryRef = queryRef.orderBy('timestamp')
         }
         metaQuertRef = queryRef.select()

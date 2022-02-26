@@ -81,7 +81,6 @@ function MenuTable() {
         })
             .then(() => {
                 if (isSelectedMenuUpdateNeeds) fetchSelectedMenu()
-                // if (!isMounted) return
 
                 // TODO: Подумать над костылем (отсроченное выполнение запроса на получение блоков меню): после удаления блоков меню, если сразу сделать получение блоков по пагинации, то они могут остаться на своих местах, хотя по факту они уже удалены
                 // setTimeout(() => fetchMenu(pagination), 500)
@@ -177,7 +176,6 @@ function MenuTable() {
                 pagination={pagination}
                 loading={tableLoading}
                 onChange={(pagination: any, filters: any, sorter: any) => {
-                    console.log(sorter)
                     const sorterOrder =
                         sorter.order === 'ascend'
                             ? 'asc'

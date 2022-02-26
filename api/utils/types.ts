@@ -20,7 +20,8 @@ export type Filter =
     | [string, LogicOperator, number | boolean | string]
     | [string, 'array-contains', string]
     | [string, 'in', string[]]
-export type SubstringInStringFilter = [string, 'array-contains', string]
+// | [string, 'like', string]
+export type ArrayContainsFilter = [string, 'array-contains', string]
 export type UpdateSchema = [string, UpdateOperator, string | number][]
 
 export type ControllerTriggerArgs = {

@@ -63,8 +63,6 @@ export function getAllCompatibleInputForString(str: string) {
 
     const result = Array.from(new Set([...keywords, ...phrases].flat()))
 
-    console.log(result)
-
     return result
 
     function generateKeywords(word: string) {

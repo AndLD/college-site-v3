@@ -42,6 +42,7 @@ function TagsCell({
                             const newTags = [...tags, newTag]
                             setTags(newTags)
                             onSave(newTags)
+                            setNewTag('')
                             setEditMode(false)
                         } else if (event.code === 'Escape') {
                             setNewTag('')

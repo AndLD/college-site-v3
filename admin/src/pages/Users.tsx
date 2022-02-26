@@ -32,20 +32,10 @@ function Users() {
 
     const [searchValue, setSearchValue] = useState<string>()
     const [filteredValue, setFilteredValue] = useState<any>()
-    useEffect(() => {
-        console.log(filteredValue)
-    }, [filteredValue])
 
     useEffect(() => {
-        // let isMounted = true
         document.title = 'Admin Users'
 
-        // return () => {
-        //     isMounted = false
-        // }
-    }, [])
-
-    useEffect(() => {
         fetchUsers(pagination)
     }, [])
 
@@ -71,7 +61,6 @@ function Users() {
                     ...pagination,
                     total: res.data.meta.pagination.total
                 })
-                console.log('total users', res.data.meta.pagination.total)
             })
             .catch((err: AxiosError) => errorNotification(err.message))
     }

@@ -61,7 +61,6 @@ function Menu() {
             }
         })
             .then((res: AxiosResponse) => {
-                // if (!isMounted) return
                 if (!res.data.meta?.pagination) throw new Error('No pagination obtained')
                 setTableData(res.data.result)
                 setTableLoading(false)
@@ -69,7 +68,6 @@ function Menu() {
                     ...pagination,
                     total: res.data.meta.pagination.total
                 })
-                console.log('total menu blocks', res.data.meta.pagination.total)
             })
             .catch((err: AxiosError) => errorNotification(err.message))
     }

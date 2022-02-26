@@ -50,7 +50,9 @@ const AppRouter = () => {
                             ? '/forbidden'
                             : auth //&& user
                             ? `/admin/${
-                                  currentPage === 'Dashboard' || !currentPage ? '' : currentPage
+                                  currentPage === 'Dashboard' || !currentPage
+                                      ? ''
+                                      : currentPage.toLowerCase()
                               }`
                             : !auth
                             ? '/auth'

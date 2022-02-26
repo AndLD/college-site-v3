@@ -16,7 +16,7 @@ import {
     Error,
     CallControllerCallbacksResults,
     Pagination,
-    SubstringInStringFilter
+    ArrayContainsFilter
 } from '../utils/types'
 
 export const controller = tryCatch(async function (req: Request, res: Response) {
@@ -292,32 +292,29 @@ const parseReq = (req: any) => {
 // Функция парсит фильтры из query-параметров запроса
 function parseFilters({
     queryParams
-}: // method,
-// id
-{
+}: {
     queryParams: { filters: string | undefined }
-    // method: HttpMethod
-    // id: string | undefined
 }): DefaultResult {
-    // if ((method == 'DELETE' && id) || (method == 'GET' && !id && queryParams.filters)) return [[], null]
-
     if (!queryParams.filters) return [[], null]
 
     try {
         /* Фильтр - это массив из трех элементов: 
         1 - ключ в базе данных (строка)
-        2 - оператор (строка: логические операторы, 'contains', 'in')
+        2 - оператор (строка: логические операторы, 'contains', 'in', 'like')
         3 - значение (число / булевое / строка / массив строк)
         */
-        const filters: Filter[] | SubstringInStringFilter[] = decodeURI(queryParams.filters)
+        const filters: Filter[] | ArrayContainsFilter[] = decodeURI(queryParams.filters)
             .split(':')
             .map((filter: string) => {
-                const [key, operator, value]: [string, LogicOperator | 'contains' | 'in', string] =
-                    filter.split(',') as [string, LogicOperator | 'contains' | 'in', string]
+                const [key, operator, value] = filter.split(',') as [
+                    string,
+                    LogicOperator | 'contains' | 'in' /* | 'like'*/,
+                    string
+                ]
 
                 let convertedValue: number | boolean | string = value
 
-                if (!['contains', 'in'].includes(operator)) {
+                if (!['contains', 'in' /*, 'like'*/].includes(operator)) {
                     const floatValue = parseFloat(value as string)
 
                     if (floatValue) {
@@ -329,9 +326,32 @@ function parseFilters({
                 if (operator === 'contains') {
                     return [key, 'array-contains', convertedValue as string]
                 } else if (operator === 'in') {
-                    return [key, operator, (convertedValue as string).split('.')]
-                } else return [key, operator, convertedValue]
+                    return [key, 'in', (convertedValue as string).split('.')]
+                }
+                //  else if (operator === 'like') {
+                //     return [key, 'like', convertedValue as string]
+                // }
+                else return [key, operator, convertedValue]
             })
+
+        // let key: string = ''
+        // let convertedValue: string = ''
+
+        // const index = filters.findIndex((filter: Filter) => {
+        //     if (filter[1] === 'like') {
+        //         key = filter[0]
+        //         convertedValue = filter[2]
+        //         return true
+        //     }
+        // })
+
+        // if (key && index > -1 && convertedValue)
+        //     filters.splice(
+        //         index,
+        //         1,
+        //         [key, '>=', convertedValue],
+        //         [key, '<=', convertedValue + '\uf8ff']
+        //     )
 
         return [filters, null]
     } catch (e) {
