@@ -5,10 +5,12 @@ import { useState } from 'react'
 
 function EditableTags({
     tags: initialTags,
-    onSave
+    onSave,
+    isNewTagBtnVisible
 }: {
     tags: string[]
     onSave: (newTags: string[]) => void
+    isNewTagBtnVisible?: boolean
 }) {
     const [tags, setTags] = useState<string[]>(initialTags)
     const [newTag, setNewTag] = useState<string>('')
@@ -52,7 +54,7 @@ function EditableTags({
                 />
             ) : (
                 <Tag
-                    className="new-tags-btn"
+                    className={isNewTagBtnVisible ? '' : 'new-tags-btn'}
                     style={{ border: '1px dashed', background: '#fff', cursor: 'pointer' }}
                     onClick={() => setEditMode(true)}
                 >

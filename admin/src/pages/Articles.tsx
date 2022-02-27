@@ -11,6 +11,7 @@ import { generateKey } from 'fast-key-generator'
 import Tags from '../components/Users/Tags'
 import ArticlesTableControls from '../components/Articles/ArticlesTableControls'
 import { setTableSelectedRows } from '../store/actions'
+import ArticlesActionModal from '../components/Articles/ArticlesActionModal'
 
 const { Title } = Typography
 
@@ -47,46 +48,6 @@ function Articles() {
         },
         {
             // id: generateKey({}),
-            oldId: 1526,
-            title: 'Нормативно-правова база навчально-виробничого відділу',
-            description: 'Test description of very long article',
-            tags: ['library', 'ksm', 'pod_ta_pz'],
-            data: {
-                html: true
-            },
-            publicTimestamp: 1645904921981,
-            timestamp: 1645904921981,
-            lastUpdateTimestamp: 1645904921981
-        },
-
-        {
-            id: generateKey({}),
-            oldId: 1524,
-            title: 'Напрямки діяльності центру сприяння працевлаштування курсантів (студентів) і випускників',
-            description: 'Test description of very long article',
-            tags: ['library', 'ksm', 'pod_ta_pz'],
-            data: {
-                html: true
-            },
-            publicTimestamp: 1645904921981,
-            timestamp: 1645904921981,
-            lastUpdateTimestamp: 1645904921981
-        },
-        {
-            id: generateKey({}),
-            oldId: 1525,
-            title: 'Атестація',
-            description: 'Test description of very long article',
-            tags: ['library', 'ksm', 'pod_ta_pz'],
-            data: {
-                html: true
-            },
-            publicTimestamp: 1645904921981,
-            timestamp: 1645904921981,
-            lastUpdateTimestamp: 1645904921981
-        },
-        {
-            id: generateKey({}),
             oldId: 1526,
             title: 'Нормативно-правова база навчально-виробничого відділу',
             description: 'Test description of very long article',
@@ -182,31 +143,36 @@ function Articles() {
 
     return (
         <AdminLayout currentPage="Articles">
+            <ArticlesActionModal />
             <Title level={1}>Articles</Title>
-            <Search
-                style={{ marginBottom: 20 }}
-                placeholder="Type title"
-                loading={tableLoading}
-                value={searchValue}
-                onChange={(event) => {
-                    const text = event.target.value
-                    setSearchValue(text)
-                    setFilteredValue(null)
-                    fetchArticles(
-                        pagination,
-                        text ? `keywords,contains,${text.toLowerCase()}` : undefined
-                    )
-                }}
-                enterButton
-            />
-            <ArticlesTableControls
-                selectedRows={selectedRows}
-                deleteArticles={deleteArticles}
-                actionSuccessCallback={() => {
-                    fetchArticles(pagination)
-                    setSelectedRows([])
-                }}
-            />
+            <div style={{ display: 'flex' }}>
+                <div style={{ flex: 1 }}>
+                    <Search
+                        style={{ marginBottom: 20 }}
+                        placeholder="Search by title"
+                        loading={tableLoading}
+                        value={searchValue}
+                        onChange={(event) => {
+                            const text = event.target.value
+                            setSearchValue(text)
+                            setFilteredValue(null)
+                            fetchArticles(
+                                pagination,
+                                text ? `keywords,contains,${text.toLowerCase()}` : undefined
+                            )
+                        }}
+                        enterButton
+                    />
+                </div>
+                <ArticlesTableControls
+                    selectedRows={selectedRows}
+                    deleteArticles={deleteArticles}
+                    actionSuccessCallback={() => {
+                        fetchArticles(pagination)
+                        setSelectedRows([])
+                    }}
+                />
+            </div>
             <Table
                 dataSource={tableData}
                 columns={[

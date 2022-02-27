@@ -7,7 +7,6 @@ import '../styles/AdminLayout.scss'
 
 import AdminHeader from './AdminLayout/AdminHeader'
 import AdminMenu from './AdminMenu'
-import ActionModal from './ActionModal'
 
 const { Sider, Content } = Layout
 
@@ -44,7 +43,6 @@ function AdminLayout({ children, currentPage }: any) {
                 <AdminMenu currentPage={currentPage || 'Dashboard'} />
             </Sider>
             <Layout className="site-layout">
-                <ActionModal />
                 <AdminHeader />
                 <Content
                     className="site-layout-background"

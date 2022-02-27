@@ -1,8 +1,8 @@
 import loggerMiddleware from './middlewares/logger'
 import dotenv from 'dotenv'
 dotenv.config()
-const express = require('express')
-const cors = require('cors')
+import express from 'express'
+import cors from 'cors'
 
 const server = express()
 
@@ -20,7 +20,7 @@ const corsOptions = {
     credentials: true
 }
 
-server.use(cors(corsOptions))
+server.use(cors(corsOptions as any))
 server.use(loggerMiddleware)
 
 export const app = server

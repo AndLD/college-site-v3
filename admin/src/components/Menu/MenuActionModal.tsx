@@ -6,16 +6,20 @@ import { UploadFile } from 'antd/lib/upload/interface'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { setActionModalVisibility } from '../store/actions'
-import { privateRoute, privateRoutes } from '../utils/constants'
-import { configMenu, deconfigMenu } from '../utils/menu'
-import { errorNotification, successNotification, warningNotification } from '../utils/notifications'
-import { IMenuBlock, IMenuBlockUpdate, IMenuElementOfTree } from '../utils/types'
-import MenuTree from './Menu/SelectedMenu/MenuTree'
+import { setActionModalVisibility } from '../../store/actions'
+import { privateRoute, privateRoutes } from '../../utils/constants'
+import { configMenu, deconfigMenu } from '../../utils/menu'
+import {
+    errorNotification,
+    successNotification,
+    warningNotification
+} from '../../utils/notifications'
+import { IMenuBlock, IMenuBlockUpdate, IMenuElementOfTree } from '../../utils/types'
+import MenuTree from './SelectedMenu/MenuTree'
 
 const allowedFileTypes = ['application/json']
 
-export default function ActionModal() {
+function MenuActionModal() {
     const currentPage = localStorage.getItem('currentPage')
 
     const dispatch = useDispatch()
@@ -135,13 +139,6 @@ export default function ActionModal() {
             <div></div>
         </Form.Item>
     ]
-
-    function getFormItems() {
-        switch (currentPage) {
-            case 'Menu':
-                return menuFormItems
-        }
-    }
 
     function onAction(body: any) {
         if (currentPage) {
@@ -326,8 +323,10 @@ export default function ActionModal() {
             }}
         >
             <Form form={form} layout="vertical" initialValues={{}}>
-                {getFormItems()}
+                {menuFormItems}
             </Form>
         </Modal>
     )
 }
+
+export default MenuActionModal

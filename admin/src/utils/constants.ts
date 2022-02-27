@@ -11,5 +11,6 @@ export const privateRoutes = {
 }
 
 export const publicRoutes = {
-    MENU: `${publicRoute}/menu`
+    MENU: `${publicRoute}/menu`,
+    ARTICLE: `${publicRoute}/article`
 }

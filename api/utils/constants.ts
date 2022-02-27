@@ -23,3 +23,10 @@ export const entities: {
     APP_SETTINGS: 'app-settings',
     ACTIONS: 'actions'
 }
+
+export const googleDrive = {
+    rootFolderId: process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID,
+    articlesFolderId: process.env.GOOGLE_DRIVE_ARTICLES_FOLDER_ID,
+    newsFolderId: process.env.GOOGLE_DRIVE_NEWS_FOLDER_ID,
+    testFolderId: process.env.GOOGLE_DRIVE_TEST_FOLDER_ID
+}

@@ -10,6 +10,7 @@ import MenuTable from '../components/Menu/MenuTable'
 import { privateRoutes, publicRoutes } from '../utils/constants'
 import '../styles/Menu.scss'
 import { useSelector } from 'react-redux'
+import MenuActionModal from '../components/Menu/MenuActionModal'
 
 const { Title } = Typography
 
@@ -86,6 +87,7 @@ function Menu() {
 
     return (
         <AdminLayout currentPage="Menu">
+            <MenuActionModal />
             <Title level={1}>Menu</Title>
             <MenuContext.Provider
                 value={{

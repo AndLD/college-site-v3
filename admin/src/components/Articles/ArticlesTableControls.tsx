@@ -21,7 +21,7 @@ export default function ArticlesTableControls({
     }
 
     return (
-        <div style={{ textAlign: 'right', margin: '0 0 16px 0' }}>
+        <div style={{ textAlign: 'right' }}>
             <Button
                 disabled={selectedRows.length}
                 style={{ margin: '0 5px' }}

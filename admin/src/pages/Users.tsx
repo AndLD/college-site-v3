@@ -87,7 +87,7 @@ function Users() {
             <Title level={1}>Users</Title>
             <Search
                 style={{ marginBottom: 20 }}
-                placeholder="Type name"
+                placeholder="Search by name"
                 loading={tableLoading}
                 value={searchValue}
                 onChange={(event) => {

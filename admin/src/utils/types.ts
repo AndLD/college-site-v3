@@ -62,16 +62,14 @@ export type ArticleData = {
 export interface IArticlePost {
     oldId?: number
     title: string
-    data: ArticleData
     description?: string
     tags?: string[]
-    publicTimestamp: number
+    publicTimestamp?: number
 }
 
 export interface IArticlePut {
     oldId?: number
     title?: string
-    data?: ArticleData
     description?: string
     tags?: string[]
     publicTimestamp?: number
