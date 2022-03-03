@@ -16,7 +16,8 @@ import {
     Error,
     CallControllerCallbacksResults,
     Pagination,
-    ArrayContainsFilter
+    ArrayContainsFilter,
+    MyFile
 } from '../utils/types'
 
 export const controller = tryCatch(async function (req: Request, res: Response) {
@@ -36,6 +37,7 @@ export const controller = tryCatch(async function (req: Request, res: Response) 
         select,
         order,
         obj,
+        // files,
         entity,
         email,
         where,
@@ -50,6 +52,7 @@ export const controller = tryCatch(async function (req: Request, res: Response) 
         select?: string[]
         order?: [string, string]
         obj: Any
+        // files: MyFile[]
         entity: string
         email: string
         where: Filter[]
@@ -254,15 +257,21 @@ const parseReq = (req: any) => {
         order = req.query.order.split(',')
     }
 
-    // TODO: Получить req.headers['content-type'] для сравнения в 260 строке этого файла
-    // Тело запроса
-    const obj: Any = req.headers['content-type']?.includes('multipart/form-data')
-        ? JSON.parse(req.body.json)
-        : req.body
-    // TODO: ОСТАНОВКА ЗДЕСЬ: передавать переменную files в return, определять последовательность действий с googleDrive и передавать файлы в сервис googleDrive, после чего послать запрос на добавление документа в Firestore
-    const files: File[] = req.headers['content-type']?.includes('multipart/form-data')
-        ? req.files
-        : undefined
+    const obj: Any = req.body
+
+    // // TODO: Получить req.headers['content-type'] для сравнения в 260 строке этого файла
+    // // Тело запроса
+    // const obj: Any = req.headers['content-type']?.includes('multipart/form-data')
+    //     ? JSON.parse(req.body.json)
+    //     : req.body
+    // // TODO: ОСТАНОВКА ЗДЕСЬ: передавать переменную files в return, определять последовательность действий с googleDrive и передавать файлы в сервис googleDrive, после чего послать запрос на добавление документа в Firestore
+    // const files: MyFile[] = req.headers['content-type']?.includes('multipart/form-data')
+    //     ? req.files.map((file: MyFile) => ({
+    //           mimetype: file.mimetype,
+    //           body: file.buffer,
+    //           size: file.size
+    //       }))
+    //     : undefined
 
     // Получение "сущности", которая является названием коллекции в БД (entity)
     const entity: string = req.entity
@@ -288,6 +297,7 @@ const parseReq = (req: any) => {
             select,
             order,
             obj,
+            // files,
             entity,
             email,
             where,

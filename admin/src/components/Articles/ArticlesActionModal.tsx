@@ -31,15 +31,14 @@ function ArticlesActionModal() {
     // 'Add' | 'Update'
     const action = useSelector((state: any) => state.app.action)
     const actionModalVisibility = useSelector((state: any) => state.app.actionModalVisibility)
-    const actionSuccessCallback = useSelector((state: any) => state.app.actionSuccessCallback)
 
     // Выбранные строки таблицы
     const tableSelectedRows = useSelector((state: any) => state.app.tableSelectedRows)
 
+    const [fetchedArticle, setFetchedArticle] = useState()
+
     // Инстанс формы Ant Design
     const [form] = Form.useForm()
-
-    const [fetchedArticle, setFetchedArticle] = useState()
 
     const [title, setTitle] = useState<string>('')
     const [tags, setTags] = useState<string[]>([])
@@ -119,7 +118,7 @@ function ArticlesActionModal() {
 
             const reader = new FileReader()
             reader.addEventListener('load', (event: any) => {
-                formData.append('files', new Blob([event.target.result]), file.name)
+                formData.append('file', new Blob([event.target.result]), file.name)
                 makeRequest()
             })
             reader.readAsArrayBuffer(file.originFileObj)
@@ -141,8 +140,6 @@ function ArticlesActionModal() {
                     setTitle('')
                     setTags([])
                     setFileList([])
-
-                    actionSuccessCallback && actionSuccessCallback()
                 })
                 .catch((err: AxiosError) => errorNotification(err.message))
         }

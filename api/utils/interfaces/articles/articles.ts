@@ -5,10 +5,11 @@ export interface IArticle {
     data: ArticleData
     description?: string
     tags?: string[]
-    keywords?: string[]
+    keywords: string[]
     publicTimestamp: number
     timestamp: number
     lastUpdateTimestamp?: number
+    user: string
 }
 
 export type ArticleData = {

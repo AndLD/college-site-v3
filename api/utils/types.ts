@@ -1,5 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
+import { IArticle } from './interfaces/articles/articles'
 import { IMenuBlock } from './interfaces/menu/menu'
+import { IUser } from './interfaces/users/users'
 
 export type Any = { [key: string]: any }
 
@@ -59,7 +61,7 @@ export type ModelArgs = {
     triggers?: ControllerTrigger[]
     noRecursion?: boolean
 }
-export type Entity = IMenuBlock
+export type Entity = IMenuBlock | IArticle | IUser
 export type EntityName = 'menu' | 'articles' | 'news' | 'users' | 'actions' | 'app-settings'
 export type ModelResult = {
     mainResult: { [key in keyof Entity]: any } | null
@@ -101,3 +103,5 @@ export type AppSettings = {
 }
 
 export type UserStatus = 'admin' | 'moderator' | 'banned' | 'unconfirmed'
+
+export type MyFile = { mimetype: string; buffer: Buffer; size: number }
