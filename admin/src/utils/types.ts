@@ -84,3 +84,5 @@ export interface ITokenData {
     email: string
     auth_time: number
 }
+
+export type AllowedFileExtension = 'docx' | 'html' | 'pdf' | 'json'

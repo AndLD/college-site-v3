@@ -5,15 +5,15 @@ import { setReqParamsProp } from '../../middlewares/decorators'
 import { validateBody } from '../../middlewares/validation'
 
 export default Router()
-    // Получение пользователей
+    // Users getting
     .get('/', hasAdminStatus, controller)
-    // Получение авторизованного пользователя
+    // Authorized user getting
     .get('/authorized', (req: any, res: Response) => {
         const user = req.user._doc
 
         return res.json({ result: user })
     })
-    // Изменение авторизованного пользователя
+    // Authorized user editing
     .put(
         '/authorized',
         hasModeratorStatus,
@@ -22,5 +22,5 @@ export default Router()
             setReqParamsProp('id', req.user._doc.id)(req, res, next),
         controller
     )
-    // Изменение пользователя
+    // User editing
     .put('/:id', hasAdminStatus, validateBody, controller)

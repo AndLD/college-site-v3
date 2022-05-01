@@ -1,28 +1,33 @@
 import fs from 'fs'
 import path from 'path'
+import logger from '../utils/logger'
 
 const appSettingsPath = path.join(__dirname, '..', 'app-settings.json')
 
-export function getAppSettings() {
+function get() {
     try {
         const settings = fs.readFileSync(appSettingsPath)
         return JSON.parse(settings.toString())
     } catch (e) {
-        console.log(e)
+        logger.error('Failed to get appSettings with error:', e)
     }
 }
 
-export function setAppSettings(newSettings: any) {
+function set(newSettings: any) {
     try {
-        const settings = module.exports.getAppSettings()
+        const settings = get()
         for (const key in newSettings) {
             settings[key] = newSettings[key]
         }
         fs.writeFileSync(appSettingsPath, JSON.stringify(settings))
-    } catch (e) {
-        console.log(e)
-        return false
-    }
 
-    return true
+        return true
+    } catch (e) {
+        logger.error('Failed to set appSettings with error:', e)
+    }
+}
+
+export const appSettingsService = {
+    get,
+    set
 }

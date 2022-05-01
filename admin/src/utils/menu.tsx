@@ -1,7 +1,6 @@
 import { generateKey } from 'fast-key-generator'
 import MenuTreeElement from '../components/Menu/SelectedMenu/MenuTreeElement'
 import { IMenuBlockUpdate, IMenuElement, IMenuElementOfTree } from './types'
-import _ from 'lodash'
 
 export function configMenu(
     specifiedMenu: IMenuElement[],

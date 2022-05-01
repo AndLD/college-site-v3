@@ -6,7 +6,7 @@ import logo from '../assets/images/Auth/logo.png'
 import '../styles/AdminLayout.scss'
 
 import AdminHeader from './AdminLayout/AdminHeader'
-import AdminMenu from './AdminMenu'
+import AdminMenu from './AdminLayout/AdminMenu'
 
 const { Sider, Content } = Layout
 

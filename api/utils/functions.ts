@@ -1,5 +1,7 @@
 import { parse as parseHtml, HTMLElement, NodeType } from 'node-html-parser'
 import { ElementChild } from './types'
+import mammoth from 'mammoth'
+import logger from './logger'
 
 // Получить значение строки между указанными строками begin и end
 export function parse(str: string, begin: string, end: string) {
@@ -85,5 +87,14 @@ export function getAllCompatibleInputForString(str: string) {
             newKeyword.push(prevWord + ' ' + currentKeyword[i])
         }
         return newKeyword
+    }
+}
+
+export async function convertDocxToHtml(docxBuffer: Buffer) {
+    try {
+        const html = await mammoth.convertToHtml({ buffer: docxBuffer })
+        return html
+    } catch (e) {
+        logger.error('Failed to convert DOCX to HTML with error:', e)
     }
 }

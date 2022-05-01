@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { model } from '../model/model'
-import { getAppSettings } from '../services/appSettings'
+import { appSettingsService } from '../services/appSettings'
 import { errors } from '../utils/constants'
 import { tryCatch } from '../utils/decorators'
 import {
@@ -62,8 +62,8 @@ export const controller = tryCatch(async function (req: Request, res: Response) 
 
     // const whereUserIsOwner: Filter = ['user', '==', email]
     // const findByUserEmail: boolean = (method == 'GET' || method == 'PUT' || method == 'DELETE') && !id
-
     // if (findByUserEmail) where.push(whereUserIsOwner)
+
     if (method == 'GET' && !id && singleResult)
         return res.json({
             result: null
@@ -220,7 +220,7 @@ const parseReq = (req: any) => {
     const settingsQuery: [string, string, string] | undefined = req.query.settings?.split(',')
     let idFromSettings: string | number | undefined
     if (settingsQuery && settingsQuery[0] === 'id' && settingsQuery[1] === '==') {
-        const settings = getAppSettings()
+        const settings = appSettingsService.get()
         idFromSettings = settings[settingsQuery[2]]
     }
 

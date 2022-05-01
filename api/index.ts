@@ -54,4 +54,4 @@ app.listen(port, () => {
     logger.info(`Server has been started on ${port}`)
 })
 
-module.exports = app
+export default app

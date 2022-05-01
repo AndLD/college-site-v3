@@ -3,13 +3,13 @@ import { controller } from '../../controller/controller'
 import { validateBody } from '../../middlewares/validation'
 
 export default Router()
-    // Получение всех блоков меню
+    // All menu blocks getting
     .get('/', controller)
-    // Получение блока меню по id
+    // Menu block getting by id
     .get('/:id', controller)
-    // Добавление блока меню
+    // Menu block adding
     .post('/', validateBody, controller)
-    // Изменение блока меню по id
+    // Menu block editing by id
     .put('/:id', validateBody, controller)
-    // Удаление блоков меню по массиву id
+    // Menu blocks deleting by array of ids
     .delete('/', controller)

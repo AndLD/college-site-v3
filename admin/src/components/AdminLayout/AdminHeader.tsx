@@ -39,7 +39,7 @@ export default function AdminHeader() {
                         </Menu.Item>
                     </Menu>
                 }
-                placement="bottomCenter"
+                placement="bottom"
                 arrow
                 trigger={['click']}
             >

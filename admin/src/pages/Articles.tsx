@@ -6,7 +6,7 @@ import AdminLayout from '../components/AdminLayout'
 import Search from 'antd/lib/input/Search'
 import { privateRoutes } from '../utils/constants'
 import { errorNotification, successNotification } from '../utils/notifications'
-import { ArticleData, IArticle, IArticlePut } from '../utils/types'
+import { AllowedFileExtension, ArticleData, IArticle, IArticlePut } from '../utils/types'
 import { generateKey } from 'fast-key-generator'
 import Tags from '../components/Users/Tags'
 import ArticlesTableControls from '../components/Articles/ArticlesTableControls'
@@ -19,59 +19,61 @@ function Articles() {
     const dispatch = useDispatch()
     const token = useSelector((state: any) => state.app.token)
 
-    const testTableData = [
-        {
-            // id: generateKey({}),
-            oldId: 1524,
-            title: 'Напрямки діяльності центру сприяння працевлаштування курсантів (студентів) і випускників',
-            description: 'Test description of very long article',
-            tags: ['library', 'ksm', 'pod_ta_pz'],
-            data: {
-                html: true
-            },
-            publicTimestamp: 1645904921981,
-            timestamp: 1645904921981,
-            lastUpdateTimestamp: 1645904921981
-        },
-        {
-            // id: generateKey({}),
-            oldId: 1525,
-            title: 'Атестація',
-            description: 'Test description of very long article',
-            tags: ['library', 'ksm', 'pod_ta_pz'],
-            data: {
-                html: true
-            },
-            publicTimestamp: 1645904921981,
-            timestamp: 1645904921981,
-            lastUpdateTimestamp: 1645904921981
-        },
-        {
-            // id: generateKey({}),
-            oldId: 1526,
-            title: 'Нормативно-правова база навчально-виробничого відділу',
-            description: 'Test description of very long article',
-            tags: ['library', 'ksm', 'pod_ta_pz'],
-            data: {
-                html: true
-            },
-            publicTimestamp: 1645904921981,
-            timestamp: 1645904921981,
-            lastUpdateTimestamp: 1645904921981
-        }
-    ]
+    // const testTableData = [
+    //     {
+    //         // id: generateKey({}),
+    //         oldId: 1524,
+    //         title: 'Напрямки діяльності центру сприяння працевлаштування курсантів (студентів) і випускників',
+    //         description: 'Test description of very long article',
+    //         tags: ['library', 'ksm', 'pod_ta_pz'],
+    //         data: {
+    //             html: true
+    //         },
+    //         publicTimestamp: 1645904921981,
+    //         timestamp: 1645904921981,
+    //         lastUpdateTimestamp: 1645904921981
+    //     },
+    //     {
+    //         // id: generateKey({}),
+    //         oldId: 1525,
+    //         title: 'Атестація',
+    //         description: 'Test description of very long article',
+    //         tags: ['library', 'ksm', 'pod_ta_pz'],
+    //         data: {
+    //             html: true
+    //         },
+    //         publicTimestamp: 1645904921981,
+    //         timestamp: 1645904921981,
+    //         lastUpdateTimestamp: 1645904921981
+    //     },
+    //     {
+    //         // id: generateKey({}),
+    //         oldId: 1526,
+    //         title: 'Нормативно-правова база навчально-виробничого відділу',
+    //         description: 'Test description of very long article',
+    //         tags: ['library', 'ksm', 'pod_ta_pz'],
+    //         data: {
+    //             html: true
+    //         },
+    //         publicTimestamp: 1645904921981,
+    //         timestamp: 1645904921981,
+    //         lastUpdateTimestamp: 1645904921981
+    //     }
+    // ]
 
     const [tableData, setTableData] = useState<IArticle[]>([])
     const [pagination, setPagination] = useState({
         current: 1,
-        pageSize: 5
+        pageSize: 20
     })
-    const [tableLoading, setTableLoading] = useState(false)
+    const [tableLoading, setTableLoading] = useState<boolean>(false)
 
     const [searchValue, setSearchValue] = useState<string>()
     const [filteredValue, setFilteredValue] = useState<any>()
 
     const [selectedRows, setSelectedRows] = useState([])
+
+    const [isDeleteBtnLoading, setIsDeleteBtnLoading] = useState<boolean>(false)
 
     useEffect(() => {
         document.title = 'Admin Articles'
@@ -94,6 +96,7 @@ function Articles() {
         })
             .then((res: AxiosResponse) => {
                 if (!res.data.meta?.pagination) throw new Error('No pagination obtained')
+
                 setTableData(res.data.result)
                 setTableLoading(false)
                 setPagination({
@@ -112,13 +115,14 @@ function Articles() {
                 Authorization: `Bearer ${token}`
             }
         })
-            .then((res: AxiosResponse) => {
+            .then(() => {
                 successNotification('Article has been successfully updated!')
             })
             .catch((err: AxiosError) => errorNotification(err.message))
     }
 
     function deleteArticles() {
+        setIsDeleteBtnLoading(true)
         axios(privateRoutes.ARTICLE, {
             method: 'DELETE',
             params: {
@@ -129,10 +133,55 @@ function Articles() {
             }
         })
             .then(() => {
+                setIsDeleteBtnLoading(false)
                 fetchArticles(pagination)
 
+                successNotification(`Articles (${selectedRows.length}) were successfully deleted!`)
                 setSelectedRows([])
-                successNotification('Menu block was successfully deleted!')
+            })
+            .catch((err: AxiosError) => errorNotification(err.message))
+    }
+
+    function downloadArticles() {
+        const options: {
+            [key: string]: [
+                AllowedFileExtension,
+                AllowedFileExtension?,
+                AllowedFileExtension?,
+                AllowedFileExtension?
+            ]
+        } = {}
+        const ids = selectedRows
+            .map((elem: any) => {
+                if (elem.data.docx === true) {
+                    options[elem.id] = ['docx']
+                }
+                return elem.id
+            })
+            .toString()
+
+        axios(`${privateRoutes.ARTICLE}/download`, {
+            params: {
+                ids
+            },
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'download-options': JSON.stringify(options)
+            },
+            responseType: 'blob'
+        })
+            .then((res: AxiosResponse) => {
+                const url = window.URL.createObjectURL(new Blob([res.data]))
+                const link = document.createElement('a')
+                link.href = url
+                link.setAttribute(
+                    'download',
+                    res.headers['content-disposition'].split('filename=')[1].replaceAll('"', '')
+                )
+                document.body.appendChild(link)
+                link.click()
+
+                setSelectedRows([])
             })
             .catch((err: AxiosError) => errorNotification(err.message))
     }
@@ -167,10 +216,12 @@ function Articles() {
                 <ArticlesTableControls
                     selectedRows={selectedRows}
                     deleteArticles={deleteArticles}
+                    isDeleteBtnLoading={isDeleteBtnLoading}
                     actionSuccessCallback={() => {
                         fetchArticles(pagination)
                         setSelectedRows([])
                     }}
+                    downloadArticles={downloadArticles}
                 />
             </div>
             <Table
@@ -206,7 +257,7 @@ function Articles() {
                     {
                         title: 'ID',
                         dataIndex: 'id',
-                        width: 180
+                        width: 200
                     },
                     {
                         title: 'Old ID',

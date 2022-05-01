@@ -61,7 +61,7 @@ export type ModelArgs = {
     triggers?: ControllerTrigger[]
     noRecursion?: boolean
 }
-export type Entity = IMenuBlock | IArticle | IUser
+export type Entity = IMenuBlock & IArticle & IUser
 export type EntityName = 'menu' | 'articles' | 'news' | 'users' | 'actions' | 'app-settings'
 export type ModelResult = {
     mainResult: { [key in keyof Entity]: any } | null
@@ -105,3 +105,5 @@ export type AppSettings = {
 export type UserStatus = 'admin' | 'moderator' | 'banned' | 'unconfirmed'
 
 export type MyFile = { mimetype: string; buffer: Buffer; size: number }
+
+export type AllowedFileExtension = 'docx' | 'html' | 'pdf' | 'json'
