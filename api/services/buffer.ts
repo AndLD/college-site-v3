@@ -1,6 +1,8 @@
 import fs from 'fs'
 import path from 'path'
-import logger from '../utils/logger'
+import { getLogger } from '../utils/logger'
+
+const logger = getLogger('services/buffer')
 
 export const bufferFolderPath = path.join(__dirname, '..', 'buffer')
 
@@ -115,7 +117,7 @@ function _clearBuffer() {
 
     // TODO: Check for sum size of files in the buffer, sort by timestamp and delete some count of last records according to it's sum size
 
-    logger.info(`Buffer cleared. Deleted ${deleted.length} records: ${deleted.join(', ')}`)
+    logger.info(`Buffer cleared. Deleted ${deleted.length} records [${deleted.join(', ')}]`)
 }
 
 function getBufferMetadata(filename: string) {

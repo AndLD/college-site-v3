@@ -1,15 +1,16 @@
 import { Router } from 'express'
 import { controller } from '../../controller/controller'
+import { hasAdminStatus, hasModeratorStatus } from '../../middlewares/auth'
 import { validateBody } from '../../middlewares/validation'
 
 export default Router()
     // All menu blocks getting
-    .get('/', controller)
+    .get('/', hasModeratorStatus, controller)
     // Menu block getting by id
-    .get('/:id', controller)
+    .get('/:id', hasModeratorStatus, controller)
     // Menu block adding
-    .post('/', validateBody, controller)
+    .post('/', hasAdminStatus, validateBody, controller)
     // Menu block editing by id
-    .put('/:id', validateBody, controller)
+    .put('/:id', hasAdminStatus, validateBody, controller)
     // Menu blocks deleting by array of ids
-    .delete('/', controller)
+    .delete('/', hasAdminStatus, controller)

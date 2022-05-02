@@ -126,8 +126,12 @@ function ArticlesActionModal() {
                     'Content-Type': 'multipart/form-data'
                 }
             })
-                .then(() => {
-                    successNotification(`Article '${articleTitle}' was successfully added`)
+                .then((res: AxiosResponse) => {
+                    const actionId = res.data.result?.actionId
+                    const msg = actionId
+                        ? `Request ['${actionId}'] to add article '${articleTitle}' was successfully sent`
+                        : `Article '${articleTitle}' was successfully added`
+                    successNotification(msg)
                 })
                 .catch((err: AxiosError) =>
                     errorNotification(

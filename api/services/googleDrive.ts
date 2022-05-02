@@ -1,11 +1,13 @@
 import { google } from 'googleapis'
-import logger from '../utils/logger'
+import { getLogger } from '../utils/logger'
 import key from '../configs/service-account.json'
 import { googleDrive } from '../utils/constants'
 import { Readable } from 'stream'
 import { bufferFolderPath, bufferService } from './buffer'
 import { appSettingsService } from './appSettings'
 import { AllowedFileExtension } from '../utils/types'
+
+const logger = getLogger('services/googleDrive')
 
 const drive = google.drive('v3')
 
@@ -31,7 +33,8 @@ async function _getFilesMetadataByDocIds(
             AllowedFileExtension?,
             AllowedFileExtension?
         ]
-    }
+    },
+    folderId?: string
 ) {
     const nameCondition = docIds
         .map((docId) =>
@@ -43,7 +46,9 @@ async function _getFilesMetadataByDocIds(
 
     const response = await drive.files.list({
         auth: jwtToken,
-        q: `'${googleDrive.testFolderId}' in parents and trashed=false and (${nameCondition})`,
+        q: `'${
+            folderId || googleDrive.testFolderId
+        }' in parents and trashed=false and (${nameCondition})`,
         fields: 'files(id, name, fileExtension, size)'
     })
     const filesMetadata = response.data.files
@@ -134,13 +139,13 @@ async function _downloadFile(fileMetadata: {
 }
 
 async function uploadFile(
-    docId: string,
+    filename: string,
     file: { ext: string; mimetype: string; body: Buffer; size: number }
 ) {
     const response = await drive.files.create({
         auth: jwtToken,
         resource: {
-            name: `${docId}.${file.ext}`,
+            name: `${filename}.${file.ext}`,
             parents: [googleDrive.testFolderId]
         },
         media: {
@@ -164,12 +169,35 @@ async function updateFile(
     return uploadingResult
 }
 
+async function updateFilename(
+    filename: string,
+    newFilename: string,
+    options?: {
+        [key: string]: [
+            AllowedFileExtension,
+            AllowedFileExtension?,
+            AllowedFileExtension?,
+            AllowedFileExtension?
+        ]
+    }
+) {
+    const fileMetadatas = await _getFilesMetadataByDocIds([filename], options)
+
+    for (const fileMetadata of fileMetadatas) {
+        await drive.files.update({
+            auth: jwtToken,
+            fileId: fileMetadata.id,
+            requestBody: { name: newFilename }
+        })
+    }
+}
+
 async function deleteFiles(docIds: string[]) {
     const responses = []
 
-    const filesMetadata = await _getFilesMetadataByDocIds(docIds)
+    const fileMetadatas = await _getFilesMetadataByDocIds(docIds)
 
-    for (const fileMetadata of filesMetadata) {
+    for (const fileMetadata of fileMetadatas) {
         const response = await drive.files.delete({
             auth: jwtToken,
             fileId: fileMetadata.id
@@ -191,5 +219,6 @@ export const googleDriveService = {
     downloadFiles,
     uploadFile,
     updateFile,
-    deleteFiles
+    deleteFiles,
+    updateFilename
 }

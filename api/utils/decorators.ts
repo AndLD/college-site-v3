@@ -1,5 +1,7 @@
 import { Any, Controller } from './types'
-import logger from './logger'
+import { getLogger } from './logger'
+
+const logger = getLogger('utils/decorators')
 
 // Оборачивает контроллер проверкой try catch
 export const tryCatch = (controller: Controller) =>

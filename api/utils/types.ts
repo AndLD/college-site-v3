@@ -64,7 +64,7 @@ export type ModelArgs = {
 export type Entity = IMenuBlock & IArticle & IUser
 export type EntityName = 'menu' | 'articles' | 'news' | 'users' | 'actions' | 'app-settings'
 export type ModelResult = {
-    mainResult: { [key in keyof Entity]: any } | null
+    mainResult: { [key: string]: any } | null
     _triggersResult?: any
     _meta?: {
         pagination?: { [key in keyof Pagination | 'total']: any }
@@ -107,3 +107,33 @@ export type UserStatus = 'admin' | 'moderator' | 'banned' | 'unconfirmed'
 export type MyFile = { mimetype: string; buffer: Buffer; size: number }
 
 export type AllowedFileExtension = 'docx' | 'html' | 'pdf' | 'json'
+
+export interface IAction {
+    id?: string
+    parentId?: string
+    entity: 'menu' | 'articles' | 'news'
+    action: 'add' | 'update' | 'delete'
+    payload: {
+        [key: string]: any
+    }
+    status: ActionStatus
+    user: string
+    keywords?: string[]
+    timestamp: number
+    lastUpdateTimestamp?: number
+}
+
+export type ActionStatus = 'pending' | 'approved' | 'declined'
+
+export type AllowedFileType =
+    | 'text/html'
+    | 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    | 'application/pdf'
+    | 'application/json'
+
+export type FileData = {
+    ext: string
+    mimetype: AllowedFileType
+    body: Buffer
+    size: number
+}

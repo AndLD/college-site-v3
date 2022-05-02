@@ -1,4 +1,4 @@
-import { Badge, Spin, Table, Typography } from 'antd'
+import { Badge, Table, Typography } from 'antd'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import { useDispatch, useSelector } from 'react-redux'
 import { useEffect, useState } from 'react'
@@ -7,7 +7,6 @@ import Search from 'antd/lib/input/Search'
 import { privateRoutes } from '../utils/constants'
 import { errorNotification, successNotification } from '../utils/notifications'
 import { AllowedFileExtension, ArticleData, IArticle, IArticlePut } from '../utils/types'
-import { generateKey } from 'fast-key-generator'
 import Tags from '../components/Users/Tags'
 import ArticlesTableControls from '../components/Articles/ArticlesTableControls'
 import { setTableSelectedRows } from '../store/actions'
@@ -268,6 +267,7 @@ function Articles() {
                         title: 'Public timestamp',
                         dataIndex: 'publicTimestamp',
                         width: 110,
+                        align: 'center',
                         render: (value: number) => value && new Date(value).toLocaleString(),
                         sorter: (row1: any, row2: any) =>
                             row1.publicTimestamp - row2.publicTimestamp,
@@ -277,6 +277,7 @@ function Articles() {
                         title: 'Timestamp',
                         dataIndex: 'timestamp',
                         width: 110,
+                        align: 'center',
                         render: (value: number) => value && new Date(value).toLocaleString(),
                         sorter: (row1: any, row2: any) => row1.timestamp - row2.timestamp,
                         sortDirections: ['descend']
@@ -285,6 +286,7 @@ function Articles() {
                         title: 'Last update timestamp',
                         dataIndex: 'lastUpdateTimestamp',
                         width: 110,
+                        align: 'center',
                         render: (value: number) => value && new Date(value).toLocaleString(),
                         sorter: (row1: any, row2: any) =>
                             row1.lastUpdateTimestamp - row2.lastUpdateTimestamp,

@@ -1,9 +1,11 @@
 import dotenv from 'dotenv'
 import supertest from 'supertest'
-import logger from '../../utils/logger'
+import { getLogger } from '../../utils/logger'
 import { Any, HttpMethod, SetStateFunction } from '../../utils/types'
 
 dotenv.config()
+
+const logger = getLogger('tests/test-utils/makeRequest')
 
 const token = process.env.GOOGLE_AUTH_TOKEN
 const port = process.env.PORT

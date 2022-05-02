@@ -7,7 +7,8 @@ export const privateRoutes = {
     APP_SETTINGS: `${privateRoute}/settings`,
     USER: `${privateRoute}/user`,
     AUTHORIZED_USER: `${privateRoute}/user/authorized`,
-    ARTICLE: `${privateRoute}/article`
+    ARTICLE: `${privateRoute}/article`,
+    ACTION: `${privateRoute}/action`
 }
 
 export const publicRoutes = {

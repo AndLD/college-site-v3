@@ -14,6 +14,7 @@ import SelectedMenuControls from './SelectedMenu/SelectedMenuControls'
 
 function SelectedMenu() {
     const token = useSelector((state: any) => state.app.token)
+    const userStatus = useSelector((state: any) => state.app.user.status)
 
     const fetchMenu = useContext(MenuContext).fetchMenu
     const [tableData, setTableData] = useContext(MenuContext).tableDataState
@@ -97,11 +98,13 @@ function SelectedMenu() {
 
     return (
         <>
-            <SelectedMenuControls
-                selectedMenuControlsEnabled={selectedMenuControlsEnabled}
-                saveSelectedMenuChanges={saveSelectedMenuChanges}
-                resetSelectedMenuChanges={resetSelectedMenuChanges}
-            />
+            {userStatus === 'admin' ? (
+                <SelectedMenuControls
+                    selectedMenuControlsEnabled={selectedMenuControlsEnabled}
+                    saveSelectedMenuChanges={saveSelectedMenuChanges}
+                    resetSelectedMenuChanges={resetSelectedMenuChanges}
+                />
+            ) : null}
             <div>
                 {treeLoading ? (
                     <div style={{ textAlign: 'center' }}>

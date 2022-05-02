@@ -1,4 +1,4 @@
-import logger from './utils/logger'
+import { getLogger } from './utils/logger'
 import { app } from './pre-configs'
 import { hasAdminStatus, hasModeratorStatus, isAuthorized } from './middlewares/auth'
 import { setReqEntity } from './middlewares/decorators'
@@ -10,38 +10,48 @@ import { Request, Response, Router } from 'express'
 import appSettingsPrivateRouter from './routers/private/app-settings'
 import articlesPublicRouter from './routers/public/articles'
 import articlesPrivateRouter from './routers/private/articles'
+import actionsPrivateRouter from './routers/private/actions'
+
+const logger = getLogger('index')
 
 const apiRouter = Router()
 app.use('/api', apiRouter)
 
-// Роутер незащищенных маршрутов
+// Unauthorized router
 const publicRouter = Router()
 apiRouter.use('/public', publicRouter)
 
-// Меню
+// Menu
 publicRouter.use('/menu', setReqEntity(entities.MENU), menuPublicRouter)
-// Статьи
+// Articles
 publicRouter.use('/article', setReqEntity(entities.ARTICLES), articlesPublicRouter)
 
-// Роутер защищенных маршрутов
+// Authorized router
 const privateRouter = Router()
 apiRouter.use('/private', isAuthorized, privateRouter)
 
-// Меню
-privateRouter.use('/menu', hasModeratorStatus, setReqEntity(entities.MENU), menuPrivateRouter)
-// Настройки (app-settings)
+// Menu
+privateRouter.use('/menu', setReqEntity(entities.MENU), menuPrivateRouter)
+// Settings (app-settings)
 privateRouter.use(
     '/settings',
     hasAdminStatus,
     setReqEntity(entities.APP_SETTINGS),
     appSettingsPrivateRouter
 )
-// Пользователи
+// Users
 privateRouter.use('/user', setReqEntity(entities.USERS), usersPrivateRouter)
-// Статьи
-privateRouter.use('/article', setReqEntity(entities.ARTICLES), articlesPrivateRouter)
+// Articles
+privateRouter.use(
+    '/article',
+    hasModeratorStatus,
+    setReqEntity(entities.ARTICLES),
+    articlesPrivateRouter
+)
+// Actions
+privateRouter.use('/action', setReqEntity(entities.ACTIONS), actionsPrivateRouter)
 
-// Статистика (тестовый роут)
+// Statistics (test route)
 privateRouter.get('/statistics', hasModeratorStatus, async (_: Request, res: Response) => {
     return res.json({
         incomes: 5000,
