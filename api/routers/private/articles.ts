@@ -4,14 +4,24 @@ import multer from 'multer'
 import { googleDriveService } from '../../services/googleDrive'
 import { model } from '../../model/model'
 import { IArticle } from '../../utils/interfaces/articles/articles'
-import { AllowedFileExtension, Error, ModelResult } from '../../utils/types'
-import { getAllCompatibleInputForString, convertDocxToHtml } from '../../utils/functions'
+import {
+    AllowedFileExtension,
+    AllowedFileType,
+    Error,
+    FileData,
+    IAction,
+    ModelResult
+} from '../../utils/types'
 import JSZip from 'jszip'
 import fs from 'fs'
 import { bufferFolderPath, bufferService } from '../../services/buffer'
 import { v4 as uuidv4 } from 'uuid'
-import logger from '../../utils/logger'
+import { getLogger } from '../../utils/logger'
 import { articlesService } from '../../services/articles'
+import { actionsService } from '../../services/actions'
+import { allowedFileTypes } from '../../utils/constants'
+
+const logger = getLogger('routes/private/articles')
 
 const upload = multer()
 
@@ -23,20 +33,13 @@ interface IArticlePost {
     publicTimestamp?: number
 }
 
-const allowedFileTypes = {
-    html: 'text/html',
-    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    pdf: 'application/pdf',
-    json: 'application/json'
-}
-
 interface IRequestFile {
     originalname: string
     buffer: Buffer
     size: number
 }
 
-function processFile(file: IRequestFile) {
+function processFile(file: IRequestFile): FileData {
     const nameSplittedByDot = file.originalname.split('.')
     const ext = nameSplittedByDot[nameSplittedByDot.length - 1]
 
@@ -46,7 +49,7 @@ function processFile(file: IRequestFile) {
 
     return {
         ext,
-        mimetype: allowedFileTypes[ext as AllowedFileExtension],
+        mimetype: allowedFileTypes[ext as AllowedFileExtension] as AllowedFileType,
         body: file.buffer,
         size: file.size
     }
@@ -108,7 +111,10 @@ export default Router()
 
     // Article adding
     .post('/', upload.single('file'), async (req: any, res: Response) => {
-        const email = req.user.email
+        const user = {
+            email: req.user.email,
+            status: req.user._doc.status
+        }
 
         const body: IArticlePost = JSON.parse(req.body.json)
         const file = processFile(req.file)
@@ -116,22 +122,40 @@ export default Router()
 
         const data: any = {}
         data[file.ext] = true
-        if (file.mimetype === allowedFileTypes.docx) data.html = true
+        if (file.mimetype === allowedFileTypes.docx) {
+            data.html = true
+        }
 
         const articleMetadata: IArticle = {
             ...body,
             timestamp,
             publicTimestamp: body.publicTimestamp || timestamp,
             data,
-            keywords: getAllCompatibleInputForString(`${body.title}.${body.description}`),
-            user: email
+            user: user.email
         }
 
-        try {
-            var modelResult: ModelResult = await articlesService.addMetadataToDB(articleMetadata)
-            var docId: string = modelResult.mainResult?.id
+        const actionMetadata: IAction = {
+            entity: 'articles',
+            action: 'add',
+            status: user.status === 'admin' ? 'approved' : 'pending',
+            payload: articleMetadata,
+            user: user.email,
+            timestamp
+        }
 
-            await articlesService.addFileToGoogleDrive(docId, file)
+        // TODO: Remove it after debug
+        actionMetadata.status = 'pending'
+
+        try {
+            const actionId = await actionsService.addAction(actionMetadata, file)
+
+            if (actionMetadata.status === 'pending') {
+                return res.json({
+                    result: { actionId }
+                })
+            }
+
+            var result = await articlesService.add(articleMetadata, file)
         } catch (e: any) {
             logger.error(e)
             return res.status(500).json({
@@ -139,54 +163,13 @@ export default Router()
             })
         }
 
-        // If we try to add DOCX then we should also convert this to HTML and add to Google Drive
-        if (file.mimetype === allowedFileTypes.docx) {
-            try {
-                var html = (await convertDocxToHtml(file.body))?.value
-                if (!html) throw 'Result of convertion DOCX to HTML is empty'
-            } catch (e) {
-                // If DOCX was not converted to HTML we should delete DOCX from Google Drive and it's document from database
-                const baseErrorMsg = `Article file [${docId}.html] was not stored to Google Drive!`
-
-                await googleDriveService.deleteFiles([docId])
-
-                await articlesService.deleteMetadataFromDB(
-                    docId,
-                    `${baseErrorMsg} Unable to remove article metadata from database!`
-                )
-
-                logger.error(baseErrorMsg)
-                return res.status(500).json({
-                    error: baseErrorMsg
-                })
-            }
-
-            const htmlBuffer = Buffer.from(html)
-            const htmlFile = {
-                body: htmlBuffer,
-                size: htmlBuffer.length,
-                ext: 'html',
-                mimetype: allowedFileTypes.html
-            }
-
-            try {
-                // Upload html file to Google Drive
-                await articlesService.addFileToGoogleDrive(docId, htmlFile)
-            } catch (e) {
-                logger.error(e)
-                return res.status(500).json({
-                    error: e
-                })
-            }
-        }
-
         return res.json({
-            result: modelResult?.mainResult
+            result
         })
     })
 
     // Article editing by id
-    .put('/:id', upload.single('files'), (req: Request, res: Response) => {
+    .put('/:id', upload.single('file'), (req: Request, res: Response) => {
         res.sendStatus(200)
     })
 

@@ -30,3 +30,10 @@ export const googleDrive = {
     newsFolderId: process.env.GOOGLE_DRIVE_NEWS_FOLDER_ID,
     testFolderId: process.env.GOOGLE_DRIVE_TEST_FOLDER_ID
 }
+
+export const allowedFileTypes = {
+    html: 'text/html',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    pdf: 'application/pdf',
+    json: 'application/json'
+}

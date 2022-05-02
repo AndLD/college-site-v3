@@ -2,6 +2,7 @@ import { PlusCircleOutlined } from '@ant-design/icons'
 import { Form, Popover, Tree } from 'antd'
 import { generateKey } from 'fast-key-generator'
 import { useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
 import { IMenuBlockUpdate, IMenuElementOfTree } from '../../../utils/types'
 import MenuTreeElement from './MenuTreeElement'
 import { TreeDataPopoverContent } from './TreeDataPopoverContent'
@@ -17,6 +18,8 @@ function MenuTree({
     noUpdateCallback?: (...params: any) => any
     updateCallback?: (...params: any) => any
 }) {
+    const userStatus = useSelector((state: any) => state.app.user.status)
+
     const [addRootElemToTreeDataMenuForm] = Form.useForm()
     const [addRootElemToTreeDataMenuPopoverVisible, setAddRootElemToTreeDataMenuPopoverVisible] =
         useState<boolean>(false)
@@ -212,50 +215,52 @@ function MenuTree({
                 style={{ width: 'max-content' }}
                 selectable={false}
                 showLine
-                draggable
+                draggable={userStatus === 'admin'}
                 onDrop={onDrop}
                 treeData={treeData}
             />
-            <Popover
-                content={
-                    <TreeDataPopoverContent
-                        form={addRootElemToTreeDataMenuForm}
-                        action="Add"
-                        initialValues={{
-                            hidden: false
-                        }}
-                        onAction={(key: string | undefined, body: any) => {
-                            setTreeDataUpdates([
-                                ...treeDataUpdates,
-                                {
-                                    type: 'Add',
-                                    key,
-                                    body
-                                }
-                            ])
-                            setAddRootElemToTreeDataMenuPopoverVisible(false)
+            {userStatus === 'admin' ? (
+                <Popover
+                    content={
+                        <TreeDataPopoverContent
+                            form={addRootElemToTreeDataMenuForm}
+                            action="Add"
+                            initialValues={{
+                                hidden: false
+                            }}
+                            onAction={(key: string | undefined, body: any) => {
+                                setTreeDataUpdates([
+                                    ...treeDataUpdates,
+                                    {
+                                        type: 'Add',
+                                        key,
+                                        body
+                                    }
+                                ])
+                                setAddRootElemToTreeDataMenuPopoverVisible(false)
+                                addRootElemToTreeDataMenuForm.resetFields()
+                            }}
+                        />
+                    }
+                    visible={addRootElemToTreeDataMenuPopoverVisible}
+                    onVisibleChange={(visible) => {
+                        setAddRootElemToTreeDataMenuPopoverVisible(visible)
+                        if (!visible) {
                             addRootElemToTreeDataMenuForm.resetFields()
+                        }
+                    }}
+                    trigger="click"
+                >
+                    <PlusCircleOutlined
+                        className="menu-tree-element-action"
+                        style={{
+                            fontSize: '20px',
+                            margin: '0 5px',
+                            transform: 'translateY(20%)'
                         }}
                     />
-                }
-                visible={addRootElemToTreeDataMenuPopoverVisible}
-                onVisibleChange={(visible) => {
-                    setAddRootElemToTreeDataMenuPopoverVisible(visible)
-                    if (!visible) {
-                        addRootElemToTreeDataMenuForm.resetFields()
-                    }
-                }}
-                trigger="click"
-            >
-                <PlusCircleOutlined
-                    className="menu-tree-element-action"
-                    style={{
-                        fontSize: '20px',
-                        margin: '0 5px',
-                        transform: 'translateY(20%)'
-                    }}
-                />
-            </Popover>
+                </Popover>
+            ) : null}
         </>
     )
 }

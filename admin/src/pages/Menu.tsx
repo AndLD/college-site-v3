@@ -18,6 +18,8 @@ const { TabPane } = Tabs
 
 function Menu() {
     const token = useSelector((state: any) => state.app.token)
+    const userStatus = useSelector((state: any) => state.app.user.status)
+
     const [isMounted, setIsMounted] = useState(true)
 
     const [treeLoading, setTreeLoading] = useState(false)
@@ -87,7 +89,7 @@ function Menu() {
 
     return (
         <AdminLayout currentPage="Menu">
-            <MenuActionModal />
+            { userStatus === 'admin' ? <MenuActionModal /> : null }
             <Title level={1}>Menu</Title>
             <MenuContext.Provider
                 value={{

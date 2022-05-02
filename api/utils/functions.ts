@@ -1,7 +1,9 @@
 import { parse as parseHtml, HTMLElement, NodeType } from 'node-html-parser'
 import { ElementChild } from './types'
 import mammoth from 'mammoth'
-import logger from './logger'
+import { getLogger } from './logger'
+
+const logger = getLogger('utils/functions')
 
 // Получить значение строки между указанными строками begin и end
 export function parse(str: string, begin: string, end: string) {

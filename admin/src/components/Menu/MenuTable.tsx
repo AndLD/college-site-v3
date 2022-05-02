@@ -11,6 +11,7 @@ import MenuTableControls from './MenuTable/MenuTableControls'
 function MenuTable() {
     const dispatch = useDispatch()
     const token = useSelector((state: any) => state.app.token)
+    const userStatus = useSelector((state: any) => state.app.user.status)
 
     const [tableData, setTableData] = useContext(MenuContext).tableDataState
     const [pagination, setPagination] = useContext(MenuContext).paginationState
@@ -98,22 +99,28 @@ function MenuTable() {
 
     return (
         <>
-            <MenuTableControls
-                deleteMenu={deleteMenu}
-                selectedRows={selectedRows}
-                actionSuccessCallback={() => {
-                    fetchMenu(pagination)
-                    setSelectedRows([])
-                }}
-            />
+            {userStatus === 'admin' ? (
+                <MenuTableControls
+                    deleteMenu={deleteMenu}
+                    selectedRows={selectedRows}
+                    actionSuccessCallback={() => {
+                        fetchMenu(pagination)
+                        setSelectedRows([])
+                    }}
+                />
+            ) : null}
             <Table
-                rowSelection={{
-                    type: 'checkbox',
-                    selectedRowKeys: selectedRows.map((row: any) => row.id),
-                    onChange: (_: any, selectedRows: any) => {
-                        setSelectedRows(selectedRows)
-                    }
-                }}
+                rowSelection={
+                    userStatus === 'admin'
+                        ? {
+                              type: 'checkbox',
+                              selectedRowKeys: selectedRows.map((row: any) => row.id),
+                              onChange: (_: any, selectedRows: any) => {
+                                  setSelectedRows(selectedRows)
+                              }
+                          }
+                        : undefined
+                }
                 columns={[
                     {
                         title: 'ID',
@@ -143,23 +150,31 @@ function MenuTable() {
                         dataIndex: 'status',
                         render: (value: string, row: any, index: any) => (
                             <div className="menu-table-status-cell">
-                                <div className="menu-table-status-cell-hide-on-parent-hover">
+                                <div
+                                    className={
+                                        userStatus === 'admin'
+                                            ? 'menu-table-status-cell-hide-on-parent-hover'
+                                            : undefined
+                                    }
+                                >
                                     <Badge status={value === 'Selected' ? 'success' : 'error'} />{' '}
                                     {value}
                                 </div>
-                                <Button
-                                    className="menu-table-status-cell-show-on-parent-hover"
-                                    type="default"
-                                    danger={value === 'Selected' ? true : false}
-                                    size="small"
-                                    onClick={
-                                        value === 'Selected'
-                                            ? deselectMenu
-                                            : () => selectMenu(row.id)
-                                    }
-                                >
-                                    {value === 'Selected' ? 'deselect' : 'select'}
-                                </Button>
+                                {userStatus === 'admin' ? (
+                                    <Button
+                                        className="menu-table-status-cell-show-on-parent-hover"
+                                        type="default"
+                                        danger={value === 'Selected' ? true : false}
+                                        size="small"
+                                        onClick={
+                                            value === 'Selected'
+                                                ? deselectMenu
+                                                : () => selectMenu(row.id)
+                                        }
+                                    >
+                                        {value === 'Selected' ? 'deselect' : 'select'}
+                                    </Button>
+                                ) : null}
                             </div>
                         )
                     }

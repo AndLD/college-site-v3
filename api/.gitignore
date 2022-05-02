@@ -2,3 +2,4 @@ configs/service-account.json
 ts-built
 .env
 buffer/
+logs/

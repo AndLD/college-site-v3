@@ -1,6 +1,8 @@
 import admin from 'firebase-admin'
-import logger from '../utils/logger'
+import { getLogger } from '../utils/logger'
 import { ServiceAccount } from '../utils/types'
+
+const logger = getLogger('configs/firebase-config')
 
 let exp: any = {}
 
@@ -23,7 +25,7 @@ try {
         logger.info('Firestore successfully connected.')
     } else throw 'Firebase configs not found in ".env"!'
 } catch (e) {
-    logger.error(e)
+    logger.error('Firestore connection failure: ', e)
 }
 
 export default exp

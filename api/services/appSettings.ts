@@ -1,6 +1,8 @@
 import fs from 'fs'
 import path from 'path'
-import logger from '../utils/logger'
+import { getLogger } from '../utils/logger'
+
+const logger = getLogger('services/appSettings')
 
 const appSettingsPath = path.join(__dirname, '..', 'app-settings.json')
 
