@@ -15,7 +15,7 @@ export default function ActionsTableControls({
     declineActions: () => void
 }) {
     return (
-        <div style={{ textAlign: 'right' }}>
+        <div style={{ textAlign: 'right', marginBottom: 15 }}>
             <Button
                 disabled={
                     selectedRows.length === 0 ||
@@ -34,11 +34,11 @@ export default function ActionsTableControls({
                 title="Are you sure to decline?"
                 onConfirm={declineActions}
                 okText="Yes"
+                okButtonProps={{ danger: true }}
                 cancelText="No"
             >
                 <Button
                     style={{ margin: '0 0 0 5px' }}
-                    type="primary"
                     danger
                     disabled={
                         selectedRows.length === 0 ||

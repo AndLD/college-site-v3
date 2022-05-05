@@ -1,5 +1,7 @@
 import { Error } from './types'
 
+export const environment = process.env.ENVIRONMENT || 'dev'
+
 export const errors: {
     [key: string]: Error
 } = {
@@ -28,7 +30,8 @@ export const googleDrive = {
     rootFolderId: process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID,
     articlesFolderId: process.env.GOOGLE_DRIVE_ARTICLES_FOLDER_ID,
     newsFolderId: process.env.GOOGLE_DRIVE_NEWS_FOLDER_ID,
-    testFolderId: process.env.GOOGLE_DRIVE_TEST_FOLDER_ID
+    testArticlesFolderId: process.env.GOOGLE_DRIVE_TEST_ARTICLES_FOLDER_ID,
+    testNewsFolderId: process.env.GOOGLE_DRIVE_TEST_NEWS_FOLDER_ID
 }
 
 export const allowedFileTypes = {

@@ -21,7 +21,9 @@ export type UpdateOperator = '+' | '-'
 export type Filter =
     | [string, LogicOperator, number | boolean | string]
     | [string, 'array-contains', string]
+    | [string, 'array-contains-any', string[]]
     | [string, 'in', string[]]
+    | [string, '!=', string]
 // | [string, 'like', string]
 export type ArrayContainsFilter = [string, 'array-contains', string]
 export type UpdateSchema = [string, UpdateOperator, string | number][]
@@ -116,6 +118,7 @@ export interface IAction {
     payload: {
         [key: string]: any
     }
+    payloadIds: string[]
     status: ActionStatus
     user: string
     keywords?: string[]

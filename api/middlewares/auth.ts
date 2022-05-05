@@ -1,5 +1,5 @@
 import { Any } from '../utils/types'
-import firebase from '../configs/firebase-config'
+import { firebase } from '../configs/firebase-config'
 import { NextFunction, Response } from 'express'
 import { model } from '../model/model'
 import { IUser } from '../utils/interfaces/users/users'

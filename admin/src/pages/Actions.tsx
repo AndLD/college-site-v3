@@ -1,4 +1,4 @@
-import { Badge, Spin, Table, Typography } from 'antd'
+import { Badge, Spin, Table, Tag, Tooltip, Typography } from 'antd'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import { useSelector } from 'react-redux'
 import { useEffect, useState } from 'react'
@@ -14,7 +14,8 @@ import {
     EditOutlined,
     EditTwoTone,
     FileAddOutlined,
-    FileAddTwoTone
+    FileAddTwoTone,
+    WarningTwoTone
 } from '@ant-design/icons'
 
 const { Title } = Typography
@@ -23,6 +24,11 @@ interface IColumn {
     title: string
     dataIndex: string
     render?: (value: any) => any
+    width?: number
+}
+
+interface IWarnings {
+    [key: string]: string[]
 }
 
 function Actions() {
@@ -51,10 +57,45 @@ function Actions() {
     useEffect(() => {
         document.title = 'Admin Actions'
 
-        fetchActions(pagination)
+        fetchActions(pagination, undefined, 'timestamp,desc')
     }, [])
 
     const [tableData, setTableData] = useState<IAction[]>([])
+    const [warnings, setWarnings] = useState<IWarnings>({})
+    useEffect(() => {
+        const warnings: any = {}
+
+        const pendingActions = tableData.filter(
+            (row) =>
+                row.status === 'pending' && (row.action === 'update' || row.action === 'delete')
+        )
+
+        for (const current of pendingActions) {
+            const conflictActions: string[] = []
+
+            for (const otherAction of pendingActions) {
+                if (current === otherAction) {
+                    continue
+                }
+
+                for (const payloadId of current.payloadIds) {
+                    if (otherAction.payloadIds.includes(payloadId)) {
+                        conflictActions.push(
+                            `${otherAction.action.toUpperCase()} ${otherAction.id}`
+                        )
+                    }
+                }
+            }
+
+            if (conflictActions.length) {
+                warnings[current.id] = conflictActions
+            }
+        }
+
+        console.log(warnings)
+        setWarnings(warnings)
+    }, [tableData])
+
     const [pagination, setPagination] = useState({
         current: 1,
         pageSize: 20
@@ -110,7 +151,7 @@ function Actions() {
             }
         })
             .then(() => {
-                fetchActions(pagination)
+                fetchActions(pagination, undefined, 'timestamp,desc')
 
                 successNotification(
                     `Actions (${selectedRows.length}) were successfully ${status}d!`
@@ -140,7 +181,7 @@ function Actions() {
         }
     }
 
-    const expandedRowRender = ({ payload }: IAction) => {
+    const expandedRowRender = ({ payload, payloadIds }: IAction) => {
         const columns: IColumn[] = []
 
         for (const key in payload) {
@@ -149,9 +190,14 @@ function Actions() {
                 dataIndex: key
             }
 
+            if (key === 'tags') {
+                column.render = (tags: string[]) =>
+                    tags.map((tag: string, index) => <Tag key={'tag' + index}>{tag}</Tag>)
+            }
             if (key.includes('timestamp') || key.includes('Timestamp')) {
                 column.render = (value: number) => value && new Date(value).toLocaleString()
             } else if (key === 'data') {
+                column.width = 70
                 column.render = (data?: ArticleData) => {
                     if (data)
                         return (
@@ -176,19 +222,33 @@ function Actions() {
             columns.push(column)
         }
 
+        if (payloadIds.length) {
+            const column: IColumn = {
+                title: 'ID' + (payloadIds.length > 1 ? 's' : ''),
+                dataIndex: 'payloadIds',
+                render: (payloadIds: string[]) => {
+                    return payloadIds.map((payloadId, index) => (
+                        <Tag key={'payloadId' + index}>{payloadId}</Tag>
+                    ))
+                }
+            }
+
+            columns.push(column)
+        }
+
         columns.sort((a, b) => {
             if (a.title > b.title) return 1
             return -1
         })
 
-        const data = [payload]
+        const data = [{ ...payload, payloadIds }]
 
         return (
             <Table
                 columns={columns}
                 dataSource={data}
                 pagination={false}
-                rowKey={(record: any) => record.timestamp}
+                rowKey={(record: any) => Date.now()}
                 bordered
             />
         )
@@ -196,7 +256,7 @@ function Actions() {
 
     return (
         <AdminLayout currentPage="Actions">
-            <Title level={1}>Articles</Title>
+            <Title level={1}>Actions</Title>
             <div /*style={{ display: 'flex' }}*/>
                 {/* <div style={{ flex: 1 }}>
                     <Search
@@ -230,8 +290,29 @@ function Actions() {
                 expandable={{ expandedRowRender }}
                 columns={[
                     {
+                        align: 'center',
+                        render: (_: undefined, row) => {
+                            if (warnings[row.id]) {
+                                return (
+                                    <Tooltip
+                                        overlayStyle={{ maxWidth: 300 }}
+                                        placement="right"
+                                        title={warnings[row.id].join('\n')}
+                                    >
+                                        <WarningTwoTone
+                                            twoToneColor="#FFA500"
+                                            style={{ fontSize: 25 }}
+                                        />
+                                    </Tooltip>
+                                )
+                            }
+                            return null
+                        }
+                    },
+                    {
                         title: 'Entity',
-                        dataIndex: 'entity'
+                        dataIndex: 'entity',
+                        render: (value: string) => value.toUpperCase()
                     },
                     {
                         title: 'Action',
@@ -265,7 +346,21 @@ function Actions() {
                                 <Badge status={defineStatus(value)} />
                                 {value[0].toUpperCase() + value.slice(1)}
                             </>
-                        )
+                        ),
+                        filters: [
+                            {
+                                text: 'Approved',
+                                value: 'approved'
+                            },
+                            {
+                                text: 'Declined',
+                                value: 'declined'
+                            },
+                            {
+                                text: 'Pending',
+                                value: 'pending'
+                            }
+                        ]
                     },
                     {
                         title: 'User',
@@ -279,7 +374,8 @@ function Actions() {
                         align: 'center',
                         render: (value: number) => value && new Date(value).toLocaleString(),
                         sorter: (row1: any, row2: any) => row1.timestamp - row2.timestamp,
-                        sortDirections: ['descend']
+                        sortDirections: ['descend'],
+                        defaultSortOrder: 'descend'
                     },
                     {
                         title: 'Last update timestamp',
@@ -308,6 +404,8 @@ function Actions() {
                 pagination={pagination}
                 loading={tableLoading}
                 onChange={(pagination: any, filters: any, sorter: any) => {
+                    const f = filters?.status && `status,in,${filters.status.join('.')}`
+
                     const sorterOrder =
                         sorter.order === 'ascend'
                             ? 'asc'
@@ -317,7 +415,7 @@ function Actions() {
                     const order = sorterOrder && `${sorter.field},${sorterOrder}`
 
                     setSearchValue('')
-                    fetchActions(pagination, undefined, order)
+                    fetchActions(pagination, f, order)
                 }}
             />
         </AdminLayout>

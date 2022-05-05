@@ -1,7 +1,7 @@
 import { PlusOutlined } from '@ant-design/icons'
 import { Input, Tag } from 'antd'
 import { generateKey } from 'fast-key-generator'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 function EditableTags({
     tags: initialTags,
@@ -12,9 +12,13 @@ function EditableTags({
     onSave: (newTags: string[]) => void
     isNewTagBtnVisible?: boolean
 }) {
-    const [tags, setTags] = useState<string[]>(initialTags)
+    const [tags, setTags] = useState<string[]>(initialTags || [])
     const [newTag, setNewTag] = useState<string>('')
     const [editMode, setEditMode] = useState<boolean>(false)
+
+    useEffect(() => {
+        setTags(initialTags || [])
+    }, [initialTags])
 
     return (
         <div className="users-tags-cell" style={{ minHeight: '15px' }}>

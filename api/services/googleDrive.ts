@@ -1,11 +1,10 @@
 import { google } from 'googleapis'
 import { getLogger } from '../utils/logger'
 import key from '../configs/service-account.json'
-import { googleDrive } from '../utils/constants'
+import { environment, googleDrive } from '../utils/constants'
 import { Readable } from 'stream'
 import { bufferFolderPath, bufferService } from './buffer'
-import { appSettingsService } from './appSettings'
-import { AllowedFileExtension } from '../utils/types'
+import { AllowedFileExtension, EntityName } from '../utils/types'
 
 const logger = getLogger('services/googleDrive')
 
@@ -24,8 +23,25 @@ jwtToken.authorize((err: any) => {
 
 // TODO: Wrap each function of googleDrive service with try-catch
 
-async function _getFilesMetadataByDocIds(
+function _getFolderIdByEntity(entity: 'articles' | 'news') {
+    if (environment === 'dev') {
+        if (entity === 'articles') {
+            return googleDrive.testArticlesFolderId
+        } else if (entity === 'news') {
+            return googleDrive.testNewsFolderId
+        }
+    } else if (environment === 'prod') {
+        if (entity === 'articles') {
+            return googleDrive.articlesFolderId
+        } else if (entity === 'news') {
+            return googleDrive.newsFolderId
+        }
+    } else throw 'Invalid "environment" variable!'
+}
+
+async function getFilesMetadataByDocIds(
     docIds: string[],
+    entity: 'articles' | 'news',
     options?: {
         [key: string]: [
             AllowedFileExtension,
@@ -33,9 +49,10 @@ async function _getFilesMetadataByDocIds(
             AllowedFileExtension?,
             AllowedFileExtension?
         ]
-    },
-    folderId?: string
+    }
 ) {
+    const folderId = _getFolderIdByEntity(entity)
+
     const nameCondition = docIds
         .map((docId) =>
             ((options && options[docId]) || ['html', 'docx', 'pdf', 'json'])
@@ -46,27 +63,27 @@ async function _getFilesMetadataByDocIds(
 
     const response = await drive.files.list({
         auth: jwtToken,
-        q: `'${
-            folderId || googleDrive.testFolderId
-        }' in parents and trashed=false and (${nameCondition})`,
+        q: `'${folderId}' in parents and trashed=false and (${nameCondition})`,
         fields: 'files(id, name, fileExtension, size)'
     })
-    const filesMetadata = response.data.files
-    if (!filesMetadata?.length) throw 'No file obtained'
+    const fileMetadatas = response.data.files
 
-    return filesMetadata.map(
+    if (!fileMetadatas?.length) return []
+
+    return fileMetadatas.map(
         ({ id, name, fileExtension, size }: any) =>
             ({
                 id,
                 name,
                 fileExtension,
                 size
-            } as { id: string; name: string; fileExtension: string; size: number })
+            } as { id: string; name: string; fileExtension: AllowedFileExtension; size: number })
     )
 }
 
 async function downloadFiles(
     docIds: string[],
+    entity: 'articles' | 'news',
     options?: {
         [key: string]: [
             AllowedFileExtension,
@@ -76,7 +93,7 @@ async function downloadFiles(
         ]
     }
 ) {
-    const filesMetadata = await _getFilesMetadataByDocIds(docIds, options)
+    const filesMetadata = await getFilesMetadataByDocIds(docIds, entity, options)
 
     const filenames = []
 
@@ -146,7 +163,7 @@ async function uploadFile(
         auth: jwtToken,
         resource: {
             name: `${filename}.${file.ext}`,
-            parents: [googleDrive.testFolderId]
+            parents: [googleDrive.testArticlesFolderId]
         },
         media: {
             mimeType: file.mimetype,
@@ -157,21 +174,22 @@ async function uploadFile(
     return response.data
 }
 
-async function updateFile(
-    docId: string,
-    file: { ext: string; mimetype: string; body: Buffer; size: number }
-) {
-    // TODO: Check if specified file truly deleted
-    await deleteFiles([docId])
+// async function updateFile(
+//     docId: string,
+//     file: { ext: string; mimetype: string; body: Buffer; size: number }
+// ) {
+//     // TODO: Check if specified file truly deleted
+//     await deleteFiles([docId])
 
-    const uploadingResult = await uploadFile(docId, file)
+//     const uploadingResult = await uploadFile(docId, file)
 
-    return uploadingResult
-}
+//     return uploadingResult
+// }
 
 async function updateFilename(
     filename: string,
     newFilename: string,
+    entity: 'articles' | 'news',
     options?: {
         [key: string]: [
             AllowedFileExtension,
@@ -179,30 +197,31 @@ async function updateFilename(
             AllowedFileExtension?,
             AllowedFileExtension?
         ]
-    }
+    },
+    fileId?: string
 ) {
-    const fileMetadatas = await _getFilesMetadataByDocIds([filename], options)
-
-    for (const fileMetadata of fileMetadatas) {
-        await drive.files.update({
-            auth: jwtToken,
-            fileId: fileMetadata.id,
-            requestBody: { name: newFilename }
-        })
+    if (!fileId) {
+        var [fileMetadata] = await getFilesMetadataByDocIds([filename], entity, options)
     }
+
+    await drive.files.update({
+        auth: jwtToken,
+        fileId: fileId || fileMetadata.id,
+        requestBody: { name: newFilename }
+    })
 }
 
-async function deleteFiles(docIds: string[]) {
-    const responses = []
+async function deleteFiles(docIds: string[], entity: 'articles' | 'news') {
+    const promises = []
 
-    const fileMetadatas = await _getFilesMetadataByDocIds(docIds)
+    const fileMetadatas = await getFilesMetadataByDocIds(docIds, entity)
 
     for (const fileMetadata of fileMetadatas) {
-        const response = await drive.files.delete({
+        const promise = drive.files.delete({
             auth: jwtToken,
             fileId: fileMetadata.id
         })
-        responses.push(response.data)
+        promises.push(promise)
 
         if (
             bufferService.getBufferMetadata(fileMetadata.name) &&
@@ -212,13 +231,16 @@ async function deleteFiles(docIds: string[]) {
         }
     }
 
-    return responses
+    const responses = await Promise.all(promises)
+
+    return responses.map(({ data }: any) => data)
 }
 
 export const googleDriveService = {
     downloadFiles,
     uploadFile,
-    updateFile,
+    // updateFile,
     deleteFiles,
-    updateFilename
+    updateFilename,
+    getFilesMetadataByDocIds
 }

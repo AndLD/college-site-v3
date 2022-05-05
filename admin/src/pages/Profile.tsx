@@ -70,12 +70,10 @@ function Profile() {
                 <div style={{ margin: 'auto', width: '20%' }}>
                     {user?.tags ? (
                         <EditableTags
-                            tags={user?.tags}
+                            tags={user.tags}
                             onSave={(newTags: string[]) => updateAuthorizedUser({ tags: newTags })}
                         />
-                    ) : (
-                        ''
-                    )}
+                    ) : null}
                 </div>
             </div>
         </AdminLayout>

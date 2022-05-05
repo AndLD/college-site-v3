@@ -1,6 +1,6 @@
 import { Typography, Tabs } from 'antd'
 import axios, { AxiosError, AxiosResponse } from 'axios'
-import { ChangeEvent, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import AdminLayout from '../components/AdminLayout'
 import { errorNotification, warningNotification } from '../utils/notifications'
 import { IMenuBlock } from '../utils/types'
@@ -89,7 +89,7 @@ function Menu() {
 
     return (
         <AdminLayout currentPage="Menu">
-            { userStatus === 'admin' ? <MenuActionModal /> : null }
+            {userStatus === 'admin' ? <MenuActionModal /> : null}
             <Title level={1}>Menu</Title>
             <MenuContext.Provider
                 value={{

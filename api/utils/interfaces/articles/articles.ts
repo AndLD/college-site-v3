@@ -6,8 +6,8 @@ export interface IArticle {
     description?: string
     tags?: string[]
     keywords?: string[]
-    publicTimestamp: number
-    timestamp: number
+    publicTimestamp?: number
+    timestamp?: number
     lastUpdateTimestamp?: number
     user: string
 }
@@ -22,17 +22,26 @@ export type ArticleData = {
 export interface IArticlePost {
     oldId?: number
     title: string
-    data: ArticleData
     description?: string
     tags?: string[]
-    publicTimestamp: number
+    publicTimestamp?: number
 }
 
 export interface IArticlePut {
     oldId?: number
-    title: string
-    data: ArticleData
+    title?: string
     description?: string
     tags?: string[]
-    publicTimestamp: number
+    publicTimestamp?: number
+}
+
+export interface IArticleUpdate {
+    oldId?: number
+    title?: string
+    description?: string
+    tags?: string[]
+    publicTimestamp?: number
+    lastUpdateTimestamp?: number
+    data?: ArticleData
+    keywords?: string[]
 }

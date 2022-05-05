@@ -88,14 +88,14 @@ export interface ITokenData {
 export type AllowedFileExtension = 'docx' | 'html' | 'pdf' | 'json'
 
 export interface IAction {
-    id?: string
+    id: string
     parentId?: string
     entity: 'menu' | 'articles' | 'news'
     action: 'add' | 'update' | 'delete'
     payload: {
-        id: string | number
         [key: string]: any
     }
+    payloadIds: string[]
     status: 'pending' | 'approved' | 'declined'
     user: string
     keywords?: string[]

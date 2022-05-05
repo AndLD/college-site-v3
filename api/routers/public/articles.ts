@@ -23,7 +23,7 @@ export default Router()
             ]
         } = JSON.parse(req.headers['download-options'])
 
-        const filenames = await googleDriveService.downloadFiles([], options)
+        const filenames = await googleDriveService.downloadFiles([], 'articles', options)
 
         if (!filenames.length) {
             res.sendStatus(500)

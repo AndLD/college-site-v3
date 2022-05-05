@@ -1,4 +1,4 @@
-import { Badge, Table, Typography } from 'antd'
+import { Badge, Table, TablePaginationConfig, Typography } from 'antd'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import { useDispatch, useSelector } from 'react-redux'
 import { useEffect, useState } from 'react'
@@ -6,7 +6,7 @@ import AdminLayout from '../components/AdminLayout'
 import Search from 'antd/lib/input/Search'
 import { privateRoutes } from '../utils/constants'
 import { errorNotification, successNotification } from '../utils/notifications'
-import { AllowedFileExtension, ArticleData, IArticle, IArticlePut } from '../utils/types'
+import { AllowedFileExtension, ArticleData, IArticle } from '../utils/types'
 import Tags from '../components/Users/Tags'
 import ArticlesTableControls from '../components/Articles/ArticlesTableControls'
 import { setTableSelectedRows } from '../store/actions'
@@ -106,20 +106,6 @@ function Articles() {
             .catch((err: AxiosError) => errorNotification(err.message))
     }
 
-    function updateArticle(id: string, data: IArticlePut) {
-        axios(`${privateRoutes.USER}/${id}`, {
-            method: 'PUT',
-            data,
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        })
-            .then(() => {
-                successNotification('Article has been successfully updated!')
-            })
-            .catch((err: AxiosError) => errorNotification(err.message))
-    }
-
     function deleteArticles() {
         setIsDeleteBtnLoading(true)
         axios(privateRoutes.ARTICLE, {
@@ -131,11 +117,19 @@ function Articles() {
                 Authorization: `Bearer ${token}`
             }
         })
-            .then(() => {
+            .then((res: AxiosResponse) => {
                 setIsDeleteBtnLoading(false)
-                fetchArticles(pagination)
 
-                successNotification(`Articles (${selectedRows.length}) were successfully deleted!`)
+                const actionId = res.data.result?.actionId
+                const msg = actionId
+                    ? `Request ['${actionId}'] to delete articles ('${selectedRows.length}') was successfully sent`
+                    : `Articles ('${selectedRows.length}') was successfully deleted`
+                successNotification(msg)
+
+                if (!actionId) {
+                    fetchArticles(pagination)
+                }
+
                 setSelectedRows([])
             })
             .catch((err: AxiosError) => errorNotification(err.message))
@@ -185,13 +179,9 @@ function Articles() {
             .catch((err: AxiosError) => errorNotification(err.message))
     }
 
-    useEffect(() => {
-        dispatch(setTableSelectedRows(selectedRows))
-    }, [selectedRows])
-
     return (
         <AdminLayout currentPage="Articles">
-            <ArticlesActionModal />
+            <ArticlesActionModal selectedRowsState={[selectedRows, setSelectedRows]} />
             <Title level={1}>Articles</Title>
             <div style={{ display: 'flex' }}>
                 <div style={{ flex: 1 }}>
@@ -330,17 +320,17 @@ function Articles() {
                 pagination={pagination}
                 loading={tableLoading}
                 scroll={{ x: 1500 }}
-                onChange={(pagination: any, filters: any, sorter: any) => {
+                onChange={(pagination: TablePaginationConfig, filters: any, sorter: any) => {
                     setFilteredValue(filters)
                     const f = filters?.status && `status,in,${filters.status.join('.')}`
 
-                    const sorterOrder =
+                    const sortOrder =
                         sorter.order === 'ascend'
                             ? 'asc'
                             : sorter.order === 'descend'
                             ? 'desc'
                             : undefined
-                    const order = sorterOrder && `${sorter.field},${sorterOrder}`
+                    const order = sortOrder && `${sorter.field},${sortOrder}`
 
                     setSearchValue('')
                     fetchArticles(pagination, f, order)

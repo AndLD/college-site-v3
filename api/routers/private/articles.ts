@@ -2,16 +2,13 @@ import { Request, Response, Router } from 'express'
 import { controller } from '../../controller/controller'
 import multer from 'multer'
 import { googleDriveService } from '../../services/googleDrive'
-import { model } from '../../model/model'
-import { IArticle } from '../../utils/interfaces/articles/articles'
 import {
-    AllowedFileExtension,
-    AllowedFileType,
-    Error,
-    FileData,
-    IAction,
-    ModelResult
-} from '../../utils/types'
+    ArticleData,
+    IArticle,
+    IArticlePut,
+    IArticleUpdate
+} from '../../utils/interfaces/articles/articles'
+import { AllowedFileExtension, AllowedFileType, FileData, IAction } from '../../utils/types'
 import JSZip from 'jszip'
 import fs from 'fs'
 import { bufferFolderPath, bufferService } from '../../services/buffer'
@@ -20,6 +17,7 @@ import { getLogger } from '../../utils/logger'
 import { articlesService } from '../../services/articles'
 import { actionsService } from '../../services/actions'
 import { allowedFileTypes } from '../../utils/constants'
+import { firebase } from '../../configs/firebase-config'
 
 const logger = getLogger('routes/private/articles')
 
@@ -59,9 +57,13 @@ export default Router()
     // Articles getting
     .get('/', controller)
 
+    // Article getting by id
+    .get('/:id', controller)
+
+    // TODO: Add validation middleware
     // Download articles
     .get('/download', async (req: any, res: Response) => {
-        const ids = req.query.ids?.split(',')
+        const ids = req.query.ids && req.query.ids.split(',')
 
         if (!ids)
             return res.status(400).json({
@@ -77,7 +79,7 @@ export default Router()
             ]
         } = JSON.parse(req.headers['download-options'])
 
-        const filenames = await googleDriveService.downloadFiles(ids, options)
+        const filenames = await googleDriveService.downloadFiles(ids, 'articles', options)
 
         if (!filenames.length) {
             res.sendStatus(500)
@@ -109,36 +111,52 @@ export default Router()
         }
     })
 
+    // TODO: Add validation middleware
     // Article adding
     .post('/', upload.single('file'), async (req: any, res: Response) => {
         const user = {
             email: req.user.email,
             status: req.user._doc.status
         }
-
-        const body: IArticlePost = JSON.parse(req.body.json)
-        const file = processFile(req.file)
         const timestamp = Date.now()
 
-        const data: any = {}
-        data[file.ext] = true
+        const body: IArticlePost = JSON.parse(req.body.json)
+
+        try {
+            var file = req.file && processFile(req.file)
+
+            if (!file) {
+                throw 'File missed'
+            }
+        } catch (e) {
+            logger.error(e)
+            return res.status(400).json({
+                error: e
+            })
+        }
+
+        const data: ArticleData = {}
+        data[file.ext as AllowedFileExtension] = true
         if (file.mimetype === allowedFileTypes.docx) {
             data.html = true
         }
 
         const articleMetadata: IArticle = {
             ...body,
-            timestamp,
-            publicTimestamp: body.publicTimestamp || timestamp,
+            publicTimestamp: timestamp,
             data,
             user: user.email
         }
+        if (body.publicTimestamp) articleMetadata.publicTimestamp = timestamp
+
+        const docId = firebase.db.collection('articles').doc().id
 
         const actionMetadata: IAction = {
             entity: 'articles',
             action: 'add',
             status: user.status === 'admin' ? 'approved' : 'pending',
             payload: articleMetadata,
+            payloadIds: [docId],
             user: user.email,
             timestamp
         }
@@ -155,7 +173,7 @@ export default Router()
                 })
             }
 
-            var result = await articlesService.add(articleMetadata, file)
+            var result = await articlesService.addArticle(docId, articleMetadata, file)
         } catch (e: any) {
             logger.error(e)
             return res.status(500).json({
@@ -169,34 +187,123 @@ export default Router()
     })
 
     // Article editing by id
-    .put('/:id', upload.single('file'), (req: Request, res: Response) => {
-        res.sendStatus(200)
+    .put('/:id', upload.single('file'), async (req: any, res: Response) => {
+        const user = {
+            email: req.user.email,
+            status: req.user._doc.status
+        }
+        const docId = req.params.id
+
+        const body: IArticlePut = JSON.parse(req.body.json)
+
+        const articleMetadataUpdate: IArticleUpdate = {
+            ...body
+        }
+
+        try {
+            var file = req.file && processFile(req.file)
+        } catch (e) {
+            logger.error(e)
+            return res.status(400).json({
+                error: e
+            })
+        }
+
+        if (file) {
+            const data: any = {
+                docx: false,
+                html: false,
+                pdf: false,
+                json: false
+            }
+            data[file.ext] = true
+            if (file.mimetype === allowedFileTypes.docx) {
+                data.html = true
+            }
+
+            articleMetadataUpdate.data = data
+        }
+
+        const actionMetadata: IAction = {
+            entity: 'articles',
+            action: 'update',
+            status: user.status === 'admin' ? 'approved' : 'pending',
+            payload: articleMetadataUpdate,
+            payloadIds: [docId],
+            user: user.email,
+            timestamp: Date.now()
+        }
+
+        // TODO: Remove it after debug
+        actionMetadata.status = 'pending'
+
+        try {
+            const actionId = await actionsService.addAction(actionMetadata, file)
+
+            if (actionMetadata.status === 'pending') {
+                return res.json({
+                    result: { actionId }
+                })
+            }
+
+            var result = await articlesService.updateArticle(docId, articleMetadataUpdate, file)
+        } catch (e: any) {
+            logger.error(e)
+            return res.status(500).json({
+                error: e
+            })
+        }
+
+        return res.json({
+            result
+        })
     })
 
     // Articles deleting by array of ids
     .delete('/', async (req: any, res: Response) => {
-        const ids = req.query.ids?.split(',')
-        const entity = req.entity
+        const user = {
+            email: req.user.email,
+            status: req.user._doc.status
+        }
+
+        const ids = req.query.ids && req.query.ids.split(',')
 
         if (!ids)
             return res.status(400).json({
                 error: '"ids" query param is missed!'
             })
 
-        await googleDriveService.deleteFiles(ids)
+        const actionMetadata: IAction = {
+            entity: 'articles',
+            action: 'delete',
+            status: user.status === 'admin' ? 'approved' : 'pending',
+            payload: {},
+            payloadIds: ids,
+            user: user.email,
+            timestamp: Date.now()
+        }
 
-        const [modelResult, modelError] = await model({
-            collection: entity,
-            docIds: ids,
-            action: 'delete'
-        })
+        // TODO: Remove it after debug
+        actionMetadata.status = 'pending'
 
-        if (modelError)
-            return res.status(modelError.code || 500).json({
-                error: modelError.msg
+        try {
+            const actionId = await actionsService.addAction(actionMetadata)
+
+            if (actionMetadata.status === 'pending') {
+                return res.json({
+                    result: { actionId }
+                })
+            }
+
+            await articlesService.deleteArticles(ids)
+        } catch (e) {
+            logger.error(e)
+            return res.status(500).json({
+                error: e
             })
+        }
 
         return res.json({
-            result: modelResult?.mainResult
+            result: null
         })
     })

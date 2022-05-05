@@ -1,16 +1,25 @@
 import { model } from '../model/model'
-import { ActionStatus, Error, FileData, IAction, ModelResult } from '../utils/types'
+import {
+    ActionStatus,
+    AllowedFileExtension,
+    Error,
+    FileData,
+    Filter,
+    IAction,
+    ModelResult
+} from '../utils/types'
 import { getLogger } from '../utils/logger'
-import { Response } from 'express'
 import { articlesService } from './articles'
 import { googleDriveService } from './googleDrive'
 import { IArticle } from '../utils/interfaces/articles/articles'
+import { notificationService } from './notification'
+import { firebase } from '../configs/firebase-config'
 
 const actionsCollection = 'actions'
 
 const logger = getLogger('services/actions')
 
-async function addAction(actionMetadata: IAction, file: FileData | null) {
+async function addAction(actionMetadata: IAction, file?: FileData) {
     // Wright action metadata to database
     const [modelResult, modelError] = (await model({
         action: 'add',
@@ -29,9 +38,16 @@ async function addAction(actionMetadata: IAction, file: FileData | null) {
     }
 
     if (file && actionMetadata.status === 'pending') {
-        if (actionMetadata.action === 'add' && actionMetadata.entity === 'articles') {
+        if (
+            (actionMetadata.action === 'add' || actionMetadata.action === 'update') &&
+            actionMetadata.entity === 'articles'
+        ) {
             await _addPendedArticle(actionId, file)
         }
+    }
+
+    if (actionMetadata.status === 'pending') {
+        notificationService.sendNewActionNotication(actionId, actionMetadata)
     }
 
     return actionId
@@ -46,7 +62,7 @@ async function updateActions(actionIds: string[], newStatus: ActionStatus) {
 
     const actionMetadatas = await Promise.all(promises)
 
-    const filenamesToDelete: string[] = []
+    const articleFilenamesToDelete: string[] = []
 
     try {
         for (const actionMetadata of actionMetadatas) {
@@ -55,9 +71,12 @@ async function updateActions(actionIds: string[], newStatus: ActionStatus) {
             }
 
             if (newStatus === 'approved') {
-                if (actionMetadata.action === 'add') {
-                    if (actionMetadata.entity === 'articles') {
-                        const docId = await articlesService.addMetadataToDBFlow(
+                if (actionMetadata.entity === 'articles') {
+                    if (actionMetadata.action === 'add') {
+                        const docId = actionMetadata.payloadIds[0]
+
+                        await articlesService.addMetadataToDBFlow(
+                            docId,
                             actionMetadata.payload as IArticle
                         )
                         const articleData = actionMetadata.payload.data
@@ -65,48 +84,80 @@ async function updateActions(actionIds: string[], newStatus: ActionStatus) {
                             await googleDriveService.updateFilename(
                                 `${actionMetadata.id}_pending`,
                                 `${docId}.docx`,
+                                'articles',
                                 { [`${actionMetadata.id}_pending`]: ['docx'] }
                             )
                             await googleDriveService.updateFilename(
                                 `${actionMetadata.id}_pending`,
                                 `${docId}.html`,
+                                'articles',
                                 { [`${actionMetadata.id}_pending`]: ['html'] }
                             )
                         } else {
-                            const ext = Object.keys(articleData)[0]
-                            // TODO: Investigate the problem of extensions in filenames
+                            const ext = Object.keys(articleData)[0] as AllowedFileExtension
+
                             await googleDriveService.updateFilename(
                                 `${actionMetadata.id}_pending`,
-                                `${docId}.${ext}`
+                                `${docId}.${ext}`,
+                                'articles',
+                                { [`${actionMetadata.id}_pending`]: [ext] }
                             )
                         }
+                    } else if (actionMetadata.action === 'update') {
+                        const docId = actionMetadata.payloadIds[0]
+
+                        await articlesService.updateMetadataToDBFlow(docId, actionMetadata.payload)
+
+                        const fileMetadatas = await googleDriveService.getFilesMetadataByDocIds(
+                            [actionMetadata.id + '_pending'],
+                            'articles'
+                        )
+                        const isFileUpdated = fileMetadatas.length
+
+                        if (isFileUpdated) {
+                            await googleDriveService.deleteFiles([docId], 'articles')
+
+                            for (const fileMetadata of fileMetadatas) {
+                                await googleDriveService.updateFilename(
+                                    `${actionMetadata.id}_pending`,
+                                    `${docId}.${fileMetadata.fileExtension}`,
+                                    'articles',
+                                    { [fileMetadata.name]: [fileMetadata.fileExtension] },
+                                    fileMetadata.id
+                                )
+                            }
+                        }
+                    } else if (actionMetadata.action === 'delete') {
+                        await articlesService.deleteArticles(actionMetadata.payloadIds)
                     }
-                } else if (actionMetadata.action === 'update') {
-                } else if (actionMetadata.action === 'delete') {
                 }
             } else if (
                 newStatus === 'declined' &&
                 (actionMetadata.action === 'add' || actionMetadata.action === 'update')
             ) {
-                filenamesToDelete.push(actionMetadata.id + '_pending')
+                articleFilenamesToDelete.push(actionMetadata.id + '_pending')
             }
         }
 
-        if (filenamesToDelete.length) {
-            await googleDriveService.deleteFiles(filenamesToDelete)
+        if (articleFilenamesToDelete.length) {
+            await googleDriveService.deleteFiles(articleFilenamesToDelete, 'articles')
         }
     } catch (e) {
+        const errorMsg = 'Error during action update: ' + e
+
+        logger.error(errorMsg)
+        logger.info('Reverting action metadata update...')
+
         const promises = []
-        if (newStatus === 'approved') {
-            for (const actionId of actionIds) {
-                promises.push(_updateActionMetadata(actionId, 'declined'))
-            }
-        } else if (newStatus === 'declined') {
-            for (const actionId of actionIds) {
-                promises.push(_updateActionMetadata(actionId, 'approved'))
-            }
+
+        for (const actionId of actionIds) {
+            promises.push(_updateActionMetadata(actionId, 'pending'))
         }
+
         await Promise.all(promises)
+        logger.info('Action metadata update successfully reverted')
+
+        throw errorMsg
     }
 }
 
@@ -138,7 +189,78 @@ async function _addPendedArticle(actionId: string, file: FileData) {
     await articlesService.addFileToGoogleDriveFlow(actionId, file, `${actionId}_pending`)
 }
 
+async function getConflicts({ actionId, articleId }: { actionId?: string; articleId?: string }) {
+    type ActionConflictsWhereCondition = (
+        | ['payloadIds', 'array-contains-any', string[]]
+        | ['payloadIds', 'array-contains', string]
+        | ['status', '==', 'pending']
+        | [string, '!=', string]
+    )[]
+
+    const where: ActionConflictsWhereCondition = [['status', '==', 'pending']]
+
+    if (actionId) {
+        const actionMetadata = await _getMetadataById(actionId)
+
+        if (actionMetadata.status != 'pending' || actionMetadata.action === 'add') {
+            return []
+        }
+
+        const ids = actionMetadata.payloadIds
+
+        where.push(
+            [firebase.documentId.toString(), '!=', actionId],
+            ['payloadIds', 'array-contains-any', ids]
+        )
+    } else if (articleId) {
+        where.push(['payloadIds', 'array-contains', articleId])
+    } else {
+        throw '"actionId" or "articleId" missed'
+    }
+
+    const conflicts = await _getMetadatas(where)
+
+    return conflicts
+}
+
+async function _getMetadataById(actionId: string) {
+    const [modelResult, modelError] = (await model({
+        collection: actionsCollection,
+        action: 'get',
+        docId: actionId
+    })) as [ModelResult | null, Error | null]
+
+    if (modelError) {
+        throw 'Error getting actionMetadata: ' + modelError.msg
+    }
+
+    if (!modelResult?.mainResult?.id) {
+        throw `actionMetadata with ID [${actionId}] does not exist`
+    }
+
+    return modelResult.mainResult as IAction
+}
+
+async function _getMetadatas(where: Filter[]) {
+    const [modelResult, modelError] = (await model({
+        collection: actionsCollection,
+        action: 'get',
+        where
+    })) as [ModelResult | null, Error | null]
+
+    if (modelError) {
+        throw 'Error getting actionMetadata: ' + modelError.msg
+    }
+
+    if (!modelResult?.mainResult) {
+        return []
+    }
+
+    return modelResult.mainResult as IAction[]
+}
+
 export const actionsService = {
     addAction,
-    updateActions
+    updateActions,
+    getConflicts
 }

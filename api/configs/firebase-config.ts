@@ -4,8 +4,6 @@ import { ServiceAccount } from '../utils/types'
 
 const logger = getLogger('configs/firebase-config')
 
-let exp: any = {}
-
 try {
     if (process.env.CLIENT_EMAIL && process.env.PRIVATE_KEY && process.env.PROJECT_ID) {
         admin.initializeApp({
@@ -16,16 +14,21 @@ try {
             } as ServiceAccount)
         })
 
-        exp = {
-            admin,
-            db: admin.firestore(),
-            documentId: admin.firestore.FieldPath.documentId()
-        }
-
         logger.info('Firestore successfully connected.')
     } else throw 'Firebase configs not found in ".env"!'
+
+    var firebaseData: {
+        admin: any
+        db: FirebaseFirestore.Firestore
+        documentId: FirebaseFirestore.FieldPath
+    } = {
+        admin,
+        db: admin.firestore(),
+        documentId: admin.firestore.FieldPath.documentId()
+    }
 } catch (e) {
     logger.error('Firestore connection failure: ', e)
+    process.exit(1)
 }
 
-export default exp
+export const firebase = firebaseData

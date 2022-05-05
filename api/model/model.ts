@@ -1,4 +1,4 @@
-import firebase from '../configs/firebase-config'
+import { firebase } from '../configs/firebase-config'
 import {
     Any,
     ControllerTrigger,
@@ -12,6 +12,10 @@ import {
 } from '../utils/types'
 
 const { db, documentId } = firebase
+
+if (!db || !documentId) {
+    throw '"db" or "documentId" variables are undefined'
+}
 
 export const model = async ({
     email,
@@ -73,7 +77,7 @@ export const model = async ({
         })
 
         // Making request
-        const firebaseRes = await queryRef[action](obj)
+        const firebaseRes = await queryRef[docId && action == 'add' ? 'set' : action](obj)
 
         ;[mainResult, error] = await processFirebaseRes(
             firebaseRes,
@@ -160,14 +164,18 @@ const prepareQueryRef = ({
     let metaQuertRef: any
 
     // PUT & DELETE
-    if (action == 'update' || action == 'delete') queryRef = queryRef.doc(docId)
-    else if (docId) queryRef = queryRef.where(documentId, '==', docId)
+    if (action == 'update' || action == 'delete' || (action == 'add' && docId)) {
+        queryRef = queryRef.doc(docId)
+    } else if (action == 'get' && docId) {
+        queryRef = queryRef.where(documentId, '==', docId)
+    }
 
     // GET
-    if (where && action == 'get')
+    if (where && action == 'get') {
         for (const whereArgs of where) {
             queryRef = queryRef.where(...whereArgs)
         }
+    }
 
     if (action == 'get' && pagination) {
         // TODO: Уязвимость: первым элементом массива order может быть любая строка, необходимо валидировать на соответствие полям получаемой сущности
@@ -219,6 +227,7 @@ const makeBatchedDeletes = ({
         batch[action](db.collection(collection).doc(id))
     }
 
+    // TODO: Add "await" before batch.commit()
     return [batch.commit(), null]
 }
 
@@ -255,9 +264,15 @@ const processFirebaseRes = async (
             })
             break
         case 'add':
-            result = firebaseRes.path.split('/')
-            const id = result[result.length - 1]
-            ;[result, error] = await module.exports.model({ collection, docId: id, action: 'get' })
+            if (!docId) {
+                result = firebaseRes.path.split('/')
+                var id = result[result.length - 1]
+            }
+            ;[result, error] = await module.exports.model({
+                collection,
+                docId: docId || id,
+                action: 'get'
+            })
             if (error) return [null, error]
             break
         case 'update':
