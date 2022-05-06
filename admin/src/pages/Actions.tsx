@@ -9,6 +9,7 @@ import { privateRoutes } from '../utils/constants'
 import { errorNotification, successNotification, warningNotification } from '../utils/notifications'
 import { DeleteTwoTone, EditTwoTone, FileAddTwoTone, WarningTwoTone } from '@ant-design/icons'
 import { Link } from 'react-router-dom'
+import Search from 'antd/lib/input/Search'
 
 const { Title } = Typography
 
@@ -97,7 +98,7 @@ function Actions() {
     })
     const [tableLoading, setTableLoading] = useState<boolean>(false)
 
-    // const [searchValue, setSearchValue] = useState<string>()
+    const [searchValue, setSearchValue] = useState<string>()
 
     const [selectedRows, setSelectedRows] = useState([])
 
@@ -261,8 +262,8 @@ function Actions() {
     return (
         <AdminLayout currentPage="Actions">
             <Title level={1}>Actions</Title>
-            <div /*style={{ display: 'flex' }}*/>
-                {/* <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex' }}>
+                <div style={{ flex: 1 }}>
                     <Search
                         style={{ marginBottom: 20 }}
                         placeholder="Search by title"
@@ -273,12 +274,13 @@ function Actions() {
                             setSearchValue(text)
                             fetchActions(
                                 pagination,
-                                text ? `keywords,contains,${text.toLowerCase()}` : undefined
+                                text ? `keywords,contains,${text.toLowerCase()}` : undefined,
+                                'timestamp,desc'
                             )
                         }}
                         enterButton
                     />
-                </div> */}
+                </div>
                 {userStatus === 'admin' ? (
                     <ActionsTableControls
                         selectedRows={selectedRows}
@@ -432,7 +434,7 @@ function Actions() {
                             : undefined
                     const order = sorterOrder && `${sorter.field},${sorterOrder}`
 
-                    // setSearchValue('')
+                    setSearchValue('')
                     fetchActions(pagination, f, order)
                 }}
             />

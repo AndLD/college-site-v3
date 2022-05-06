@@ -1,10 +1,15 @@
 import { Response } from 'express'
+import { firebase } from '../configs/firebase-config'
 import { model } from '../model/model'
-import { allowedFileTypes } from '../utils/constants'
+import { allowedFileTypes, innerErrors } from '../utils/constants'
 import { convertDocxToHtml, getAllCompatibleInputForString } from '../utils/functions'
 import { IArticle, IArticleUpdate } from '../utils/interfaces/articles/articles'
-import { Error, FileData, ModelResult } from '../utils/types'
+import { getLogger } from '../utils/logger'
+import { Error, FileData, Filter, ModelResult } from '../utils/types'
 import { googleDriveService } from './googleDrive'
+import { notificationService } from './notification'
+
+const logger = getLogger('services/articles')
 
 const articlesCollection = 'articles'
 
@@ -229,10 +234,95 @@ async function _getMetadataFromDB(docId: string) {
     return modelResult.mainResult as IArticle
 }
 
+async function _getMetadatasFromDB({ where, docIds }: { where?: Filter[]; docIds?: string[] }) {
+    if (!(where || docIds)) {
+        throw '"docIds" or "where" parameter should be specified'
+    }
+
+    const [modelResult, modelError] = (await model({
+        collection: articlesCollection,
+        where,
+        docIds,
+        action: 'get'
+    })) as [ModelResult | null, Error | null]
+
+    if (modelError) {
+        throw modelError.msg
+    }
+
+    if (!modelResult?.mainResult) {
+        return []
+    }
+
+    return modelResult.mainResult as IArticle[]
+}
+
 async function updateFileToGoogleDriveFlow(docId: string, file: FileData) {
     await googleDriveService.deleteFiles([docId], 'articles')
 
     await addFileToGoogleDriveFlow(docId, file)
+}
+
+async function replaceOldIds(docIds: string[]) {
+    const ids: string[] = []
+
+    const where: Filter[] = []
+
+    for (const docId of docIds) {
+        if (docId.length < 10) {
+            try {
+                const oldId = parseInt(docId)
+                if (oldId) {
+                    where.push(['oldId', '==', docId])
+                }
+            } catch {}
+        } else {
+            ids.push(docId)
+        }
+    }
+
+    if (!where.length) {
+        return ids
+    }
+
+    const articleMetadatas = await _getMetadatasFromDB({ where })
+
+    const oldIds: number[] = []
+
+    for (const articleMetadata of articleMetadatas) {
+        if (!articleMetadata.oldId || !articleMetadata.id) {
+            continue
+        }
+
+        if (oldIds.includes(articleMetadata.oldId)) {
+            notificationService.sendError(
+                innerErrors.ARTICLE_OLD_ID_DUBLICATE,
+                `oldId = ${articleMetadata.oldId}`
+            )
+            logger.error(
+                `ERROR [${innerErrors.ARTICLE_OLD_ID_DUBLICATE.code}]: ${innerErrors.ARTICLE_OLD_ID_DUBLICATE.msg}: oldId = ${articleMetadata.oldId}`
+            )
+        } else {
+            // TODO: Investigate the situation: is it possible "ids" array includes "articleMetadata.id" already
+            ids.push(articleMetadata.id)
+        }
+    }
+
+    return ids
+}
+
+async function checkOldIdUsage(oldId: number) {
+    const where: Filter[] = [['oldId', '==', oldId.toString()]]
+
+    const articleMetadatas = await _getMetadatasFromDB({ where })
+
+    return articleMetadatas.map((articleMetadata: IArticle) => articleMetadata.id) as string[]
+}
+
+async function checkMetadatasExistance(docIds: string[]) {
+    const articleMetadatas = await _getMetadatasFromDB({ docIds })
+
+    return articleMetadatas.map((articleMetadata: IArticle) => articleMetadata.id)
 }
 
 export const articlesService = {
@@ -242,5 +332,8 @@ export const articlesService = {
     deleteArticles,
     updateArticle,
     updateMetadataToDBFlow,
-    updateFileToGoogleDriveFlow
+    updateFileToGoogleDriveFlow,
+    replaceOldIds,
+    checkOldIdUsage,
+    checkMetadatasExistance
 }

@@ -19,19 +19,20 @@ const actionsCollection = 'actions'
 
 const logger = getLogger('services/actions')
 
-async function addAction(actionMetadata: IAction, file?: FileData) {
+async function addAction(actionId: string, actionMetadata: IAction, file?: FileData) {
     // Wright action metadata to database
     const [modelResult, modelError] = (await model({
         action: 'add',
         collection: 'actions',
-        obj: actionMetadata
+        obj: actionMetadata,
+        docId: actionId
     })) as [ModelResult | null, Error | null]
 
     if (modelError) {
         throw 'Add action metadata to database failed with error: ' + modelError.msg
     }
 
-    const actionId = modelResult?.mainResult?.id
+    actionId = modelResult?.mainResult?.id
 
     if (!actionId) {
         throw 'Action was not stored to database! Body: ' + JSON.stringify(actionMetadata)

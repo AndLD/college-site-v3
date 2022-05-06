@@ -1,6 +1,6 @@
 import { Telegraf } from 'telegraf'
 import { getLogger } from '../utils/logger'
-import { IAction } from '../utils/types'
+import { Error, IAction } from '../utils/types'
 
 const logger = getLogger('services/notification')
 
@@ -32,10 +32,12 @@ function sendNewActionNotification(actionId: string, actionMetadata: IAction) {
     let message: string = `New action [${actionId}]`
 
     if (actionMetadata.entity === 'articles') {
-        message = `Action [${actionId}]: Article [${
+        message = `Action [${actionId}]: Article${
+            actionMetadata.payloadIds.length > 1 ? 's' : ''
+        } [${
             actionMetadata.action === 'add'
                 ? actionMetadata.payload.title
-                : actionMetadata.payloadIds[0]
+                : actionMetadata.payloadIds.join(', ')
         }] requested to ${actionMetadata.action.toUpperCase()} by User [${actionMetadata.user}]`
     }
 
@@ -48,7 +50,20 @@ function sendNewUserNofication(name: string, email: string) {
     _sendMessage(message)
 }
 
+function sendError({ code, msg }: Error, payload: string) {
+    const message = `🚨 ERROR [${code}]: ${msg}: ${payload}`
+
+    _sendMessage(message)
+}
+
+function sendWarning(message: string) {
+    message = `⚠️ WARNING: ${message}`
+
+    _sendMessage(message)
+}
+
 export const notificationService = {
     sendNewActionNotification,
-    sendNewUserNofication
+    sendNewUserNofication,
+    sendError
 }

@@ -1,10 +1,13 @@
 import { google } from 'googleapis'
 import { getLogger } from '../utils/logger'
 import key from '../configs/service-account.json'
-import { environment, googleDrive } from '../utils/constants'
+import { environment, googleDrive, innerErrors } from '../utils/constants'
 import { Readable } from 'stream'
 import { bufferFolderPath, bufferService } from './buffer'
-import { AllowedFileExtension, EntityName } from '../utils/types'
+import { AllowedFileExtension, Filter } from '../utils/types'
+import { firebase } from '../configs/firebase-config'
+import { articlesService } from './articles'
+import { notificationService } from './notification'
 
 const logger = getLogger('services/googleDrive')
 

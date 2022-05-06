@@ -4,6 +4,7 @@ import { NextFunction, Response } from 'express'
 import { model } from '../model/model'
 import { IUser } from '../utils/interfaces/users/users'
 import { getAllCompatibleInputForString } from '../utils/functions'
+import { notificationService } from '../services/notification'
 
 export async function isAuthorized(req: any, res: Response, next: NextFunction) {
     if (!req.headers.authorization) return res.sendStatus(401)
@@ -44,11 +45,14 @@ export async function isAuthorized(req: any, res: Response, next: NextFunction) 
                 action: 'add',
                 obj: newUser
             })
+
             if (createUserError) {
                 return res.status(createUserError.code).json({
                     error: createUserError.msg
                 })
             }
+
+            notificationService.sendNewUserNofication(req.user.name, req.user.email)
 
             req.user._doc = result?.mainResult
         } else {

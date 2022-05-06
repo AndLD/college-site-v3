@@ -24,6 +24,7 @@ export type Filter =
     | [string, 'array-contains-any', string[]]
     | [string, 'in', string[]]
     | [string, '!=', string]
+    | [FirebaseFirestore.FieldPath, '==', string]
 // | [string, 'like', string]
 export type ArrayContainsFilter = [string, 'array-contains', string]
 export type UpdateSchema = [string, UpdateOperator, string | number][]

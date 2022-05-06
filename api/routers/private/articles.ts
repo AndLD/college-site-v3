@@ -18,6 +18,7 @@ import { articlesService } from '../../services/articles'
 import { actionsService } from '../../services/actions'
 import { allowedFileTypes } from '../../utils/constants'
 import { firebase } from '../../configs/firebase-config'
+import { getAllCompatibleInputForString } from '../../utils/functions'
 
 const logger = getLogger('routes/private/articles')
 
@@ -59,12 +60,16 @@ export default Router()
 
     // Download articles
     .get('/download', async (req: any, res: Response) => {
-        const ids = req.query.ids && req.query.ids.split(',')
+        let ids = req.query.ids && req.query.ids.split(',')
 
         if (!ids)
             return res.status(400).json({
                 error: '"ids" query param is missed!'
             })
+
+        console.log(ids)
+
+        ids = await articlesService.replaceOldIds(ids)
 
         const options:
             | {
@@ -77,6 +82,8 @@ export default Router()
               }
             | undefined =
             req.headers['download-options'] && JSON.parse(req.headers['download-options'])
+
+        console.log(ids, options)
 
         const filenames = await googleDriveService.downloadFiles(ids, 'articles', options)
 
@@ -121,6 +128,14 @@ export default Router()
 
         const body: IArticlePost = JSON.parse(req.body.json)
 
+        if (body.oldId) {
+            // TODO: Rename the variable :)
+            const sameOldIdArticleIds = await articlesService.checkOldIdUsage(body.oldId)
+            return res.status(400).json({
+                error: `"oldId" is used by articles [${sameOldIdArticleIds.join(', ')}]`
+            })
+        }
+
         try {
             var file = req.file && processFile(req.file)
 
@@ -149,6 +164,7 @@ export default Router()
         if (body.publicTimestamp) articleMetadata.publicTimestamp = timestamp
 
         const docId = firebase.db.collection('articles').doc().id
+        const actionId = firebase.db.collection('actions').doc().id
 
         const actionMetadata: IAction = {
             entity: 'articles',
@@ -157,6 +173,10 @@ export default Router()
             payload: articleMetadata,
             payloadIds: [docId],
             user: user.email,
+            keywords: [
+                ...getAllCompatibleInputForString(actionId),
+                ...getAllCompatibleInputForString(docId)
+            ],
             timestamp
         }
 
@@ -164,7 +184,7 @@ export default Router()
         actionMetadata.status = 'pending'
 
         try {
-            const actionId = await actionsService.addAction(actionMetadata, file)
+            await actionsService.addAction(actionId, actionMetadata, file)
 
             if (actionMetadata.status === 'pending') {
                 return res.json({
@@ -191,9 +211,24 @@ export default Router()
             email: req.user.email,
             status: req.user._doc.status
         }
-        const docId = req.params.id
+        let docId = req.params.id
+
+        const checkedArticleIds = await articlesService.checkMetadatasExistance([docId])
+        if (!checkedArticleIds.length) {
+            return res.sendStatus(404)
+        }
+
+        ;[docId] = checkedArticleIds
 
         const body: IArticlePut = JSON.parse(req.body.json)
+
+        if (body.oldId) {
+            // TODO: Rename the variable :)
+            const sameOldIdArticleIds = await articlesService.checkOldIdUsage(body.oldId)
+            return res.status(400).json({
+                error: `"oldId" is used by articles [${sameOldIdArticleIds.join(', ')}]`
+            })
+        }
 
         const articleMetadataUpdate: IArticleUpdate = {
             ...body
@@ -223,6 +258,8 @@ export default Router()
             articleMetadataUpdate.data = data
         }
 
+        const actionId = firebase.db.collection('actions').doc().id
+
         const actionMetadata: IAction = {
             entity: 'articles',
             action: 'update',
@@ -230,6 +267,10 @@ export default Router()
             payload: articleMetadataUpdate,
             payloadIds: [docId],
             user: user.email,
+            keywords: [
+                ...getAllCompatibleInputForString(actionId),
+                ...getAllCompatibleInputForString(docId)
+            ],
             timestamp: Date.now()
         }
 
@@ -237,7 +278,7 @@ export default Router()
         actionMetadata.status = 'pending'
 
         try {
-            const actionId = await actionsService.addAction(actionMetadata, file)
+            await actionsService.addAction(actionId, actionMetadata, file)
 
             if (actionMetadata.status === 'pending') {
                 return res.json({
@@ -265,12 +306,24 @@ export default Router()
             status: req.user._doc.status
         }
 
-        const ids = req.query.ids && req.query.ids.split(',')
+        let ids = req.query.ids && req.query.ids.split(',')
 
         if (!ids)
             return res.status(400).json({
                 error: '"ids" query param is missed!'
             })
+
+        ids = await articlesService.checkMetadatasExistance(ids)
+        if (!ids.length) {
+            return res.sendStatus(404)
+        }
+
+        const actionId = firebase.db.collection('actions').doc().id
+
+        const keywords = [...getAllCompatibleInputForString(actionId)]
+        for (const id of ids) {
+            keywords.push(...getAllCompatibleInputForString(id))
+        }
 
         const actionMetadata: IAction = {
             entity: 'articles',
@@ -279,6 +332,7 @@ export default Router()
             payload: {},
             payloadIds: ids,
             user: user.email,
+            keywords,
             timestamp: Date.now()
         }
 
@@ -286,7 +340,7 @@ export default Router()
         actionMetadata.status = 'pending'
 
         try {
-            const actionId = await actionsService.addAction(actionMetadata)
+            await actionsService.addAction(actionId, actionMetadata)
 
             if (actionMetadata.status === 'pending') {
                 return res.json({

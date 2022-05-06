@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { model } from '../model/model'
 import { appSettingsService } from '../services/appSettings'
+import { articlesService } from '../services/articles'
 import { errors } from '../utils/constants'
 import { tryCatch } from '../utils/decorators'
 import {
@@ -60,6 +61,12 @@ export const controller = tryCatch(async function (req: Request, res: Response) 
         controllerCallbacks: undefined | ControllerCallbackCaller[]
     }
 
+    let replacedId: string | undefined
+
+    if (method == 'GET' && id) {
+        ;[replacedId] = await articlesService.replaceOldIds([id])
+    }
+
     // const whereUserIsOwner: Filter = ['user', '==', email]
     // const findByUserEmail: boolean = (method == 'GET' || method == 'PUT' || method == 'DELETE') && !id
     // if (findByUserEmail) where.push(whereUserIsOwner)
@@ -70,7 +77,7 @@ export const controller = tryCatch(async function (req: Request, res: Response) 
         })
 
     let [modelResult, modelError] = (await controllerMethods[method]({
-        id,
+        id: replacedId || id,
         ids,
         pagination,
         select,

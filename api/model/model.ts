@@ -31,7 +31,7 @@ export const model = async ({
     obj,
     triggers /*, noRecursion*/
 }: ModelArgs) => {
-    validateModelArgs({ where, docId, docIds, action })
+    validateModelArgs({ where, docId, action })
     let mainResult, triggersResult, error
     let total = 0
 
@@ -71,6 +71,7 @@ export const model = async ({
             collection,
             where,
             docId,
+            docIds,
             pagination,
             select,
             order,
@@ -132,17 +133,15 @@ const callTriggers = async (triggers: ControllerTrigger[], args: ControllerTrigg
 const validateModelArgs = ({
     where,
     docId,
-    docIds,
     action
 }: {
     where?: Filter[]
     docId?: string
-    docIds?: string[]
     action: ModelAction
 }) => {
     if (['add', 'update', 'delete'].includes(action) && where)
         throw 'validateModelArgs: Incorrect mix: action & where'
-    if (action == 'update' && !(docId || docIds))
+    if (action == 'update' && !docId)
         throw `validateModelArgs: Missing docId or docIds during "${action}" action`
 }
 
@@ -150,6 +149,7 @@ const prepareQueryRef = ({
     collection,
     where,
     docId,
+    docIds,
     pagination,
     select,
     order,
@@ -158,6 +158,7 @@ const prepareQueryRef = ({
     collection: string
     where?: Filter[]
     docId?: string
+    docIds?: string[]
     pagination?: Pagination
     select?: string[]
     order?: [string, string]
@@ -171,6 +172,8 @@ const prepareQueryRef = ({
         queryRef = queryRef.doc(docId)
     } else if (action == 'get' && docId) {
         queryRef = queryRef.where(documentId, '==', docId)
+    } else if (action == 'get' && docIds) {
+        queryRef = queryRef.where(documentId, 'in', docIds)
     }
 
     // GET

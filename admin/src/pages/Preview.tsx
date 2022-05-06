@@ -79,6 +79,10 @@ function Preview() {
                 const name = filename.slice(0, filename.lastIndexOf('.'))
                 const ext = filename.slice(filename.lastIndexOf('.') + 1)
 
+                if (ext !== 'html' && ext !== 'pdf') {
+                    throw new Error(`Unsupported "${ext}" file obtained`)
+                }
+
                 if (ext === 'html') {
                     data.text().then((htmlString: string) => {
                         setPreviewFile({

@@ -14,6 +14,14 @@ export const errors: {
     DOC_NOT_FOUND: { msg: 'The document does not exist', code: 404 }
 }
 
+export const innerErrors: { [key: string]: Error } = {
+    ARTICLE_OLD_ID_DUBLICATE: {
+        msg: 'Multiple articles with the one "oldId" field detected',
+        code: 1000
+    },
+    NEWS_OLD_ID_DUBLICATE: { msg: 'Multiple news with the one "oldId" field detected', code: 1001 }
+}
+
 export const entities: {
     [key: string]: string
 } = {
