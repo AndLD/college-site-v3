@@ -53,6 +53,18 @@ privateRouter.use('/action', setReqEntity(entities.ACTIONS), actionsPrivateRoute
 
 // Statistics (test route)
 privateRouter.get('/statistics', hasModeratorStatus, async (_: Request, res: Response) => {
+    // total articles
+    // total news
+    // total menu blocks
+    // total users
+    // Google Drive ROOT folder taken space
+    // total actions (articles: add / update / delete; news: add / update / delete)
+    // the most active users (top users with the largest amount of actions)
+    // total errors count (and separately articles / news / menu / users / actions / app-settings)
+    // Up time / start time
+    // Top 5 most requested articles
+    // Total buffer folder taken space
+
     return res.json({
         incomes: 5000,
         outcomes: 2000

@@ -1,6 +1,6 @@
 import { Badge, Table, TablePaginationConfig, Typography } from 'antd'
 import axios, { AxiosError, AxiosResponse } from 'axios'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { useEffect, useState } from 'react'
 import AdminLayout from '../components/AdminLayout'
 import Search from 'antd/lib/input/Search'
@@ -9,13 +9,11 @@ import { errorNotification, successNotification } from '../utils/notifications'
 import { AllowedFileExtension, ArticleData, IArticle } from '../utils/types'
 import Tags from '../components/Users/Tags'
 import ArticlesTableControls from '../components/Articles/ArticlesTableControls'
-import { setTableSelectedRows } from '../store/actions'
 import ArticlesActionModal from '../components/Articles/ArticlesActionModal'
 
 const { Title } = Typography
 
 function Articles() {
-    const dispatch = useDispatch()
     const token = useSelector((state: any) => state.app.token)
 
     // const testTableData = [
@@ -65,7 +63,7 @@ function Articles() {
         current: 1,
         pageSize: 20
     })
-    const [tableLoading, setTableLoading] = useState<boolean>(false)
+    const [isTableLoading, setIsTableLoading] = useState<boolean>(false)
 
     const [searchValue, setSearchValue] = useState<string>()
     const [filteredValue, setFilteredValue] = useState<any>()
@@ -81,7 +79,7 @@ function Articles() {
     }, [])
 
     function fetchArticles(pagination: any, filters?: string, order?: string) {
-        setTableLoading(true)
+        setIsTableLoading(true)
         axios(privateRoutes.ARTICLE, {
             params: {
                 page: pagination.current,
@@ -97,13 +95,16 @@ function Articles() {
                 if (!res.data.meta?.pagination) throw new Error('No pagination obtained')
 
                 setTableData(res.data.result)
-                setTableLoading(false)
+                setIsTableLoading(false)
                 setPagination({
                     ...pagination,
                     total: res.data.meta.pagination.total
                 })
             })
             .catch((err: AxiosError) => errorNotification(err.message))
+            .finally(() => {
+                setIsTableLoading(false)
+            })
     }
 
     function deleteArticles() {
@@ -118,8 +119,6 @@ function Articles() {
             }
         })
             .then((res: AxiosResponse) => {
-                setIsDeleteBtnLoading(false)
-
                 const actionId = res.data.result?.actionId
                 const msg = actionId
                     ? `Request ['${actionId}'] to delete articles ('${selectedRows.length}') was successfully sent`
@@ -133,6 +132,9 @@ function Articles() {
                 setSelectedRows([])
             })
             .catch((err: AxiosError) => errorNotification(err.message))
+            .finally(() => {
+                setIsDeleteBtnLoading(false)
+            })
     }
 
     function downloadArticles() {
@@ -164,12 +166,18 @@ function Articles() {
             responseType: 'blob'
         })
             .then((res: AxiosResponse) => {
+                const contentDisposition = res.headers['content-disposition']
+
+                if (!contentDisposition) {
+                    throw new Error('"content-disposition" response header missed')
+                }
+
                 const url = window.URL.createObjectURL(new Blob([res.data]))
                 const link = document.createElement('a')
                 link.href = url
                 link.setAttribute(
                     'download',
-                    res.headers['content-disposition'].split('filename=')[1].replaceAll('"', '')
+                    contentDisposition.split('filename=')[1].replaceAll('"', '')
                 )
                 document.body.appendChild(link)
                 link.click()
@@ -188,7 +196,7 @@ function Articles() {
                     <Search
                         style={{ marginBottom: 20 }}
                         placeholder="Search by title"
-                        loading={tableLoading}
+                        loading={isTableLoading}
                         value={searchValue}
                         onChange={(event) => {
                             const text = event.target.value
@@ -318,7 +326,7 @@ function Articles() {
                 size="small"
                 rowKey={(record: any) => record.id}
                 pagination={pagination}
-                loading={tableLoading}
+                loading={isTableLoading}
                 scroll={{ x: 1500 }}
                 onChange={(pagination: TablePaginationConfig, filters: any, sorter: any) => {
                     setFilteredValue(filters)

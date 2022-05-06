@@ -32,7 +32,10 @@ export async function isAuthorized(req: any, res: Response, next: NextFunction) 
                 email: req.user.email,
                 name: req.user.name,
                 status: 'unconfirmed',
-                keywords: getAllCompatibleInputForString(req.user.name),
+                keywords: [
+                    ...getAllCompatibleInputForString(req.user.name),
+                    ...getAllCompatibleInputForString(req.user.email)
+                ],
                 timestamp: Date.now()
             }
 

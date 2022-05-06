@@ -4,6 +4,7 @@ import Dashboard from '../pages/Dashboard'
 import Guide from '../pages/Guide'
 import Menu from '../pages/Menu'
 import News from '../pages/News'
+import Preview from '../pages/Preview'
 import Profile from '../pages/Profile'
 import Settings from '../pages/Settings'
 import Users from '../pages/Users'
@@ -11,48 +12,43 @@ import Users from '../pages/Users'
 const privateRoutes = [
     {
         path: '/admin',
-        component: Dashboard,
-        exact: true
+        component: Dashboard
     },
     {
         path: '/admin/menu',
-        component: Menu,
-        exact: true
+        component: Menu
     },
     {
         path: '/admin/news',
-        component: News,
-        exact: true
+        component: News
     },
     {
         path: '/admin/articles',
-        component: Articles,
-        exact: true
+        component: Articles
     },
     {
         path: '/admin/users',
-        component: Users,
-        exact: true
+        component: Users
     },
     {
         path: '/admin/actions',
-        component: Actions,
-        exact: true
+        component: Actions
     },
     {
         path: '/admin/profile',
-        component: Profile,
-        exact: true
+        component: Profile
     },
     {
         path: '/admin/settings',
-        component: Settings,
-        exact: true
+        component: Settings
     },
     {
         path: '/admin/guide',
-        component: Guide,
-        exact: true
+        component: Guide
+    },
+    {
+        path: '/admin/preview/:actionId',
+        component: Preview
     }
 ]
 

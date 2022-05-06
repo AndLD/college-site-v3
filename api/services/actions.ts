@@ -47,17 +47,20 @@ async function addAction(actionMetadata: IAction, file?: FileData) {
     }
 
     if (actionMetadata.status === 'pending') {
-        notificationService.sendNewActionNotication(actionId, actionMetadata)
+        notificationService.sendNewActionNotification(actionId, actionMetadata)
     }
 
     return actionId
 }
 
-async function updateActions(actionIds: string[], newStatus: ActionStatus) {
+async function updateActions(actionIds: string[], newStatus: ActionStatus, email: string) {
+    actionIds = await _filterPendingActionsByIds(actionIds)
+
+    // Check each action by actionId for status === 'pending'. Remove actionIds whose action status != 'pending'
     const promises = []
 
     for (const actionId of actionIds) {
-        promises.push(_updateActionMetadata(actionId, newStatus))
+        promises.push(_updateActionMetadata(actionId, newStatus, email))
     }
 
     const actionMetadatas = await Promise.all(promises)
@@ -142,6 +145,8 @@ async function updateActions(actionIds: string[], newStatus: ActionStatus) {
         if (articleFilenamesToDelete.length) {
             await googleDriveService.deleteFiles(articleFilenamesToDelete, 'articles')
         }
+
+        return actionIds
     } catch (e) {
         const errorMsg = 'Error during action update: ' + e
 
@@ -151,7 +156,7 @@ async function updateActions(actionIds: string[], newStatus: ActionStatus) {
         const promises = []
 
         for (const actionId of actionIds) {
-            promises.push(_updateActionMetadata(actionId, 'pending'))
+            promises.push(_updateActionMetadata(actionId, 'pending', email))
         }
 
         await Promise.all(promises)
@@ -161,14 +166,29 @@ async function updateActions(actionIds: string[], newStatus: ActionStatus) {
     }
 }
 
-async function _updateActionMetadata(actionId: string, newStatus: ActionStatus) {
+async function _filterPendingActionsByIds(actionIds: string[]) {
+    let actionMetadatas = await _getMetadatasByIds(actionIds)
+
+    actionIds = []
+
+    for (const actionMetadata of actionMetadatas) {
+        if (actionMetadata.status === 'pending' && actionMetadata.id) {
+            actionIds.push(actionMetadata.id)
+        }
+    }
+
+    return actionIds
+}
+
+async function _updateActionMetadata(actionId: string, newStatus: ActionStatus, email: string) {
     const [modelResult, modelError] = (await model({
         action: 'update',
         collection: actionsCollection,
         docId: actionId,
         obj: {
             status: newStatus,
-            lastUpdateTimestamp: Date.now()
+            lastUpdateTimestamp: Date.now(),
+            lastUpdateUser: email
         }
     })) as [ModelResult | null, Error | null]
 
@@ -250,6 +270,24 @@ async function _getMetadatas(where: Filter[]) {
 
     if (modelError) {
         throw 'Error getting actionMetadata: ' + modelError.msg
+    }
+
+    if (!modelResult?.mainResult) {
+        return []
+    }
+
+    return modelResult.mainResult as IAction[]
+}
+
+async function _getMetadatasByIds(docIds: string[]) {
+    const [modelResult, modelError] = (await model({
+        collection: actionsCollection,
+        action: 'get',
+        docIds
+    })) as [ModelResult | null, Error | null]
+
+    if (modelError) {
+        throw 'Error getting actionMetadatas: ' + modelError.msg
     }
 
     if (!modelResult?.mainResult) {

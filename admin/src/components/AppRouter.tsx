@@ -17,7 +17,7 @@ const AppRouter = () => {
 
     useEffect(() => {
         if (auth === true && user && user.status !== 'admin' && user.status !== 'moderator') {
-            setRoutes([{ path: '/forbidden', component: Forbidden, exact: true }])
+            setRoutes([{ path: '/forbidden', component: Forbidden }])
         } else if (auth === true && user && user.status === 'admin') {
             setRoutes(privateRoutes)
         } else if (auth === true && user && user.status === 'moderator') {
@@ -35,13 +35,8 @@ const AppRouter = () => {
     return (
         <BrowserRouter>
             <Switch>
-                {routes.map((route: { path: string; component: any; exact: boolean }) => (
-                    <Route
-                        path={route.path}
-                        component={route.component}
-                        exact={route.exact}
-                        key={route.path}
-                    />
+                {routes.map((route: { path: string; component: any }) => (
+                    <Route path={route.path} component={route.component} exact key={route.path} />
                 ))}
 
                 <Redirect

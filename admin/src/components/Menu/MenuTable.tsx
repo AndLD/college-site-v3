@@ -15,6 +15,7 @@ function MenuTable() {
 
     const [tableData, setTableData] = useContext(MenuContext).tableDataState
     const [pagination, setPagination] = useContext(MenuContext).paginationState
+    // TODO: Rename "tableLoading" to "isTableLoading"
     const [tableLoading, setTableLoading] = useContext(MenuContext).tableLoadingState
     const [selectedMenu, setSelectedMenu] = useContext(MenuContext).selectedMenuState
 

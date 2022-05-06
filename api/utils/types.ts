@@ -112,7 +112,6 @@ export type AllowedFileExtension = 'docx' | 'html' | 'pdf' | 'json'
 
 export interface IAction {
     id?: string
-    parentId?: string
     entity: 'menu' | 'articles' | 'news'
     action: 'add' | 'update' | 'delete'
     payload: {
@@ -121,6 +120,7 @@ export interface IAction {
     payloadIds: string[]
     status: ActionStatus
     user: string
+    lastUpdateUser?: string
     keywords?: string[]
     timestamp: number
     lastUpdateTimestamp?: number

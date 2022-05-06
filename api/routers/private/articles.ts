@@ -57,10 +57,6 @@ export default Router()
     // Articles getting
     .get('/', controller)
 
-    // Article getting by id
-    .get('/:id', controller)
-
-    // TODO: Add validation middleware
     // Download articles
     .get('/download', async (req: any, res: Response) => {
         const ids = req.query.ids && req.query.ids.split(',')
@@ -70,19 +66,22 @@ export default Router()
                 error: '"ids" query param is missed!'
             })
 
-        const options: {
-            [key: string]: [
-                AllowedFileExtension,
-                AllowedFileExtension?,
-                AllowedFileExtension?,
-                AllowedFileExtension?
-            ]
-        } = JSON.parse(req.headers['download-options'])
+        const options:
+            | {
+                  [key: string]: [
+                      AllowedFileExtension,
+                      AllowedFileExtension?,
+                      AllowedFileExtension?,
+                      AllowedFileExtension?
+                  ]
+              }
+            | undefined =
+            req.headers['download-options'] && JSON.parse(req.headers['download-options'])
 
         const filenames = await googleDriveService.downloadFiles(ids, 'articles', options)
 
         if (!filenames.length) {
-            res.sendStatus(500)
+            return res.sendStatus(500)
         }
 
         res.set('Access-Control-Expose-Headers', 'Content-Disposition')
@@ -307,3 +306,6 @@ export default Router()
             result: null
         })
     })
+
+    // Article getting by id
+    .get('/:id', controller)

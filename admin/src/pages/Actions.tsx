@@ -1,22 +1,14 @@
-import { Badge, Spin, Table, Tag, Tooltip, Typography } from 'antd'
+import { Badge, Table, Tag, Tooltip, Typography } from 'antd'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import { useSelector } from 'react-redux'
 import { useEffect, useState } from 'react'
 import AdminLayout from '../components/AdminLayout'
 import ActionsTableControls from '../components/Actions/ActionsTableControls'
 import { ArticleData, IAction } from '../utils/types'
-import Search from 'antd/lib/input/Search'
 import { privateRoutes } from '../utils/constants'
-import { errorNotification, successNotification } from '../utils/notifications'
-import {
-    DeleteOutlined,
-    DeleteTwoTone,
-    EditOutlined,
-    EditTwoTone,
-    FileAddOutlined,
-    FileAddTwoTone,
-    WarningTwoTone
-} from '@ant-design/icons'
+import { errorNotification, successNotification, warningNotification } from '../utils/notifications'
+import { DeleteTwoTone, EditTwoTone, FileAddTwoTone, WarningTwoTone } from '@ant-design/icons'
+import { Link } from 'react-router-dom'
 
 const { Title } = Typography
 
@@ -63,6 +55,10 @@ function Actions() {
     const [tableData, setTableData] = useState<IAction[]>([])
     const [warnings, setWarnings] = useState<IWarnings>({})
     useEffect(() => {
+        if (!tableData?.length) {
+            return
+        }
+
         const warnings: any = {}
 
         const pendingActions = tableData.filter(
@@ -92,7 +88,6 @@ function Actions() {
             }
         }
 
-        console.log(warnings)
         setWarnings(warnings)
     }, [tableData])
 
@@ -102,7 +97,7 @@ function Actions() {
     })
     const [tableLoading, setTableLoading] = useState<boolean>(false)
 
-    const [searchValue, setSearchValue] = useState<string>()
+    // const [searchValue, setSearchValue] = useState<string>()
 
     const [selectedRows, setSelectedRows] = useState([])
 
@@ -150,12 +145,21 @@ function Actions() {
                 Authorization: `Bearer ${token}`
             }
         })
-            .then(() => {
+            .then((res: AxiosResponse) => {
                 fetchActions(pagination, undefined, 'timestamp,desc')
 
-                successNotification(
-                    `Actions (${selectedRows.length}) were successfully ${status}d!`
-                )
+                const updateActionIds: string[] = res.data.result
+
+                if (updateActionIds.length === selectedRows.length) {
+                    successNotification(
+                        `Actions (${selectedRows.length}) were successfully ${status}d!`
+                    )
+                } else {
+                    warningNotification(
+                        `Actions (${updateActionIds.length} of ${selectedRows.length}) were successfully ${status}d! Probably you trying to ${status} actions whose status is defined already.`
+                    )
+                }
+
                 setSelectedRows([])
             })
             .catch((err: AxiosError) => errorNotification(err.message))
@@ -332,11 +336,20 @@ function Actions() {
                     {
                         title: 'ID',
                         dataIndex: 'id',
-                        width: 200
-                    },
-                    {
-                        title: 'Parent ID',
-                        dataIndex: 'parentId'
+                        width: 200,
+                        render: (value: string, row: IAction) => (
+                            <>
+                                {row.payload.data && row.status === 'pending' ? (
+                                    <Link
+                                        to={`/admin/preview/${value}?action=${JSON.stringify(row)}`}
+                                    >
+                                        {value}
+                                    </Link>
+                                ) : (
+                                    value
+                                )}
+                            </>
+                        )
                     },
                     {
                         title: 'Status',
@@ -365,6 +378,11 @@ function Actions() {
                     {
                         title: 'User',
                         dataIndex: 'user',
+                        width: 200
+                    },
+                    {
+                        title: 'Last update User',
+                        dataIndex: 'lastUpdateUser',
                         width: 200
                     },
                     {
@@ -414,7 +432,7 @@ function Actions() {
                             : undefined
                     const order = sorterOrder && `${sorter.field},${sorterOrder}`
 
-                    setSearchValue('')
+                    // setSearchValue('')
                     fetchActions(pagination, f, order)
                 }}
             />

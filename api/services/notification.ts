@@ -28,7 +28,7 @@ function _sendMessage(message: string) {
     bot.telegram.sendMessage(channelId, message)
 }
 
-function sendNewActionNotication(actionId: string, actionMetadata: IAction) {
+function sendNewActionNotification(actionId: string, actionMetadata: IAction) {
     let message: string = `New action [${actionId}]`
 
     if (actionMetadata.entity === 'articles') {
@@ -42,6 +42,13 @@ function sendNewActionNotication(actionId: string, actionMetadata: IAction) {
     _sendMessage(message)
 }
 
+function sendNewUserNofication(name: string, email: string) {
+    const message = `New user [${name}, ${email}] registered in the system`
+
+    _sendMessage(message)
+}
+
 export const notificationService = {
-    sendNewActionNotication
+    sendNewActionNotification,
+    sendNewUserNofication
 }

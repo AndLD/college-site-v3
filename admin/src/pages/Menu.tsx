@@ -46,7 +46,7 @@ function Menu() {
     const [tableData, setTableData] = useState([])
     const [pagination, setPagination] = useState({
         current: 1,
-        pageSize: 5
+        pageSize: 20
     })
     const [tableLoading, setTableLoading] = useState(false)
 

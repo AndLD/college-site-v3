@@ -17,6 +17,7 @@ if (!db || !documentId) {
     throw '"db" or "documentId" variables are undefined'
 }
 
+// TODO: Refactor & Optimization: Separate "model" function into lots of small functions. Use TRANSACTIONS, BATCH and BULK requests
 export const model = async ({
     email,
     collection,
@@ -30,7 +31,7 @@ export const model = async ({
     obj,
     triggers /*, noRecursion*/
 }: ModelArgs) => {
-    validateModelArgs({ where, docId, action })
+    validateModelArgs({ where, docId, docIds, action })
     let mainResult, triggersResult, error
     let total = 0
 
@@ -127,20 +128,22 @@ const callTriggers = async (triggers: ControllerTrigger[], args: ControllerTrigg
     return [results, null]
 }
 
-// ! Валидировать все аргументы функции
+// TODO: Validate all "model" function parameters
 const validateModelArgs = ({
     where,
     docId,
+    docIds,
     action
 }: {
     where?: Filter[]
     docId?: string
+    docIds?: string[]
     action: ModelAction
 }) => {
     if (['add', 'update', 'delete'].includes(action) && where)
         throw 'validateModelArgs: Incorrect mix: action & where'
-    if (action == 'update' && !docId)
-        throw `validateModelArgs: Missing docId during "${action}" action`
+    if (action == 'update' && !(docId || docIds))
+        throw `validateModelArgs: Missing docId or docIds during "${action}" action`
 }
 
 const prepareQueryRef = ({

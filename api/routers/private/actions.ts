@@ -2,7 +2,6 @@ import { Response, Router } from 'express'
 import { controller } from '../../controller/controller'
 import { hasAdminStatus, hasModeratorStatus } from '../../middlewares/auth'
 import { actionsService } from '../../services/actions'
-import { IAction } from '../../utils/types'
 
 export default Router()
     // Actions getting
@@ -33,9 +32,11 @@ export default Router()
                 error: '"ids" query param is missed!'
             })
 
-        await actionsService.updateActions(ids, 'approved')
+        const updatedActionIds = await actionsService.updateActions(ids, 'approved', req.user.email)
 
-        res.sendStatus(200)
+        res.json({
+            result: updatedActionIds
+        })
     })
 
     .post('/decline', hasAdminStatus, async (req: any, res: Response) => {
@@ -46,7 +47,9 @@ export default Router()
                 error: '"ids" query param is missed!'
             })
 
-        await actionsService.updateActions(ids, 'declined')
+        const updatedActionIds = await actionsService.updateActions(ids, 'declined', req.user.email)
 
-        res.sendStatus(200)
+        res.json({
+            result: updatedActionIds
+        })
     })

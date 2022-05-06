@@ -38,9 +38,6 @@ function ArticlesActionModal({ selectedRowsState }: { selectedRowsState: [IArtic
     const [selectedRows, setSelectedRows] = selectedRowsState
 
     const [warnings, setWarnings] = useState<IAction[]>([])
-    useEffect(() => {
-        console.log(warnings)
-    }, [warnings])
 
     const [fetchedArticle, setFetchedArticle] = useState<IArticle>()
 

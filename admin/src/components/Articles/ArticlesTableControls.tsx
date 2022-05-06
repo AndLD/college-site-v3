@@ -1,4 +1,4 @@
-import { DownloadOutlined } from '@ant-design/icons'
+import { ArrowDownOutlined } from '@ant-design/icons'
 import { Button, Popconfirm } from 'antd'
 import { useDispatch } from 'react-redux'
 import { setAction, setActionModalVisibility, setActionSuccessCallback } from '../../store/actions'
@@ -63,7 +63,7 @@ export default function ArticlesTableControls({
                 style={{ margin: '0 0 0 10px' }}
                 type="primary"
                 disabled={selectedRows.length === 0}
-                icon={<DownloadOutlined />}
+                icon={<ArrowDownOutlined />}
                 // loading={}
                 onClick={() => downloadArticles()}
             ></Button>

@@ -89,7 +89,6 @@ export type AllowedFileExtension = 'docx' | 'html' | 'pdf' | 'json'
 
 export interface IAction {
     id: string
-    parentId?: string
     entity: 'menu' | 'articles' | 'news'
     action: 'add' | 'update' | 'delete'
     payload: {
@@ -101,4 +100,12 @@ export interface IAction {
     keywords?: string[]
     timestamp: number
     lastUpdateTimestamp?: number
+}
+
+export interface IPreviewFile {
+    name: string
+    ext: string
+    htmlString?: string
+    objectUrl?: string
+    base64?: string
 }
