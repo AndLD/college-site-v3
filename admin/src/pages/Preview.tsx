@@ -30,7 +30,7 @@ function Preview() {
 
     const { actionId }: { actionId: string } = useParams()
 
-    const [action, setAction] = useState(useQuery())
+    const [action, setAction] = useState<IAction | null>(useQuery())
 
     const [previewFile, setPreviewFile] = useState<IPreviewFile>()
 
@@ -134,7 +134,6 @@ function Preview() {
         }
 
         // TODO: Download only missed file types
-
         // const options: {
         //     [key: string]: [
         //         AllowedFileExtension,
@@ -181,9 +180,17 @@ function Preview() {
                 Preview
                 {previewFile ? null : <Spin style={{ marginLeft: 20 }} size="large" />}
             </Title>
+            {action ? (
+                <div>
+                    <div>Action [{action.id}]</div>
+                    {Object.keys(action.payload).map((key) => (
+                        <div>{key[0] + key.slice(1)}</div>
+                    ))}
+                </div>
+            ) : null}
             <Tooltip title="Download">
                 <Button
-                    style={{ margin: '0 0 0 10px' }}
+                    style={{ margin: '0 0 0 0px' }}
                     type="primary"
                     disabled={!previewFile}
                     loading={isDownloadBtnLoading}
@@ -192,7 +199,6 @@ function Preview() {
                     onClick={() => downloadActionFiles(actionId)}
                 ></Button>
             </Tooltip>
-            <div>{}</div>
             <Divider />
             {previewFile ? (
                 <div>

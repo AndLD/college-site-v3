@@ -1,4 +1,4 @@
-import { Request, Response, Router } from 'express'
+import { Response, Router } from 'express'
 import { controller } from '../../controller/controller'
 import multer from 'multer'
 import { googleDriveService } from '../../services/googleDrive'
@@ -67,8 +67,6 @@ export default Router()
                 error: '"ids" query param is missed!'
             })
 
-        console.log(ids)
-
         ids = await articlesService.replaceOldIds(ids)
 
         const options:
@@ -82,8 +80,6 @@ export default Router()
               }
             | undefined =
             req.headers['download-options'] && JSON.parse(req.headers['download-options'])
-
-        console.log(ids, options)
 
         const filenames = await googleDriveService.downloadFiles(ids, 'articles', options)
 
@@ -131,9 +127,11 @@ export default Router()
         if (body.oldId) {
             // TODO: Rename the variable :)
             const sameOldIdArticleIds = await articlesService.checkOldIdUsage(body.oldId)
-            return res.status(400).json({
-                error: `"oldId" is used by articles [${sameOldIdArticleIds.join(', ')}]`
-            })
+            if (sameOldIdArticleIds.length) {
+                return res.status(400).json({
+                    error: `"oldId" is used by articles [${sameOldIdArticleIds.join(', ')}]`
+                })
+            }
         }
 
         try {
@@ -225,9 +223,11 @@ export default Router()
         if (body.oldId) {
             // TODO: Rename the variable :)
             const sameOldIdArticleIds = await articlesService.checkOldIdUsage(body.oldId)
-            return res.status(400).json({
-                error: `"oldId" is used by articles [${sameOldIdArticleIds.join(', ')}]`
-            })
+            if (sameOldIdArticleIds.length) {
+                return res.status(400).json({
+                    error: `"oldId" is used by articles [${sameOldIdArticleIds.join(', ')}]`
+                })
+            }
         }
 
         const articleMetadataUpdate: IArticleUpdate = {
