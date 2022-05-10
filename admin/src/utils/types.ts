@@ -109,3 +109,10 @@ export interface IPreviewFile {
     objectUrl?: string
     base64?: string
 }
+
+export interface IColumn {
+    title: string
+    dataIndex: string
+    render?: (value: any) => any
+    width?: number
+}

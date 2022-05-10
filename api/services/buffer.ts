@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { getLogger } from '../utils/logger'
+import { AllowedFileExtension, Options } from '../utils/types'
 
 const logger = getLogger('services/buffer')
 
@@ -68,7 +69,7 @@ function getWriteStream(fileMetadata: {
     fileExtension: string
     size: number
 }) {
-    _download(fileMetadata)
+    recordDownload({ name: fileMetadata.name, size: fileMetadata.size })
 
     return fs.createWriteStream(path.join(bufferFolderPath, fileMetadata.name))
 }
@@ -77,23 +78,18 @@ function getFilesList() {
     return fs.readdirSync(bufferFolderPath)
 }
 
-function _download({
-    name: filename,
-    size
-}: {
-    id: string
-    name: string
-    fileExtension: string
-    size: number
-}) {
+function recordDownload({ name: filename, size }: { name: string; size?: number }) {
     if (bufferMetadata[filename]) {
         bufferMetadata[filename].lastDownloadTimestamp = Date.now()
         bufferMetadata[filename].requestsTotal++
+        if (bufferMetadata[filename].size && size) {
+            bufferMetadata[filename].size = size
+        }
     } else {
         bufferMetadata[filename] = {
             lastDownloadTimestamp: Date.now(),
             requestsTotal: 1,
-            size
+            size: size || 0
         }
     }
 }
@@ -120,8 +116,8 @@ function _clearBuffer() {
     logger.info(`Buffer cleared. Deleted ${deleted.length} records [${deleted.join(', ')}]`)
 }
 
-function getBufferMetadata(filename: string) {
-    return bufferMetadata[filename]
+function getBufferMetadata(filename?: string) {
+    return filename ? bufferMetadata[filename] : bufferMetadata
 }
 
 function doesFileAvailable(filename: string) {
@@ -133,6 +129,32 @@ function doesFileAvailable(filename: string) {
     }
 }
 
+function getBufferAvailableOptions(requiredFilenames: string, requiredExtensions?: Options) {
+    const bufferOptions: Options = {}
+
+    for (const requiredFilename of requiredFilenames) {
+        const foundExtensions: AllowedFileExtension[] = []
+
+        for (const key in bufferMetadata) {
+            const index = key.lastIndexOf('.')
+            const filename = key.slice(0, index)
+            const ext = key.slice(index + 1) as AllowedFileExtension
+
+            if (
+                filename === requiredFilename &&
+                ((requiredExtensions && requiredExtensions[filename]?.includes(ext)) ||
+                    (!requiredExtensions && ['docx', 'pdf', 'html', 'json'].includes(ext)))
+            ) {
+                foundExtensions.push(ext)
+            }
+        }
+
+        bufferOptions[requiredFilename] = foundExtensions
+    }
+
+    return bufferOptions
+}
+
 _initBufferMetadata()
 
 export const bufferService = {
@@ -141,5 +163,7 @@ export const bufferService = {
     getWriteStream,
     getFilesList,
     getBufferMetadata,
-    doesFileAvailable
+    doesFileAvailable,
+    getBufferAvailableOptions,
+    recordDownload
 }

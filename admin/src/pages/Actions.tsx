@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux'
 import { useEffect, useState } from 'react'
 import AdminLayout from '../components/AdminLayout'
 import ActionsTableControls from '../components/Actions/ActionsTableControls'
-import { ArticleData, IAction } from '../utils/types'
+import { ArticleData, IAction, IColumn } from '../utils/types'
 import { privateRoutes } from '../utils/constants'
 import { errorNotification, successNotification, warningNotification } from '../utils/notifications'
 import { DeleteTwoTone, EditTwoTone, FileAddTwoTone, WarningTwoTone } from '@ant-design/icons'
@@ -12,13 +12,6 @@ import { Link } from 'react-router-dom'
 import Search from 'antd/lib/input/Search'
 
 const { Title } = Typography
-
-interface IColumn {
-    title: string
-    dataIndex: string
-    render?: (value: any) => any
-    width?: number
-}
 
 interface IWarnings {
     [key: string]: string[]
@@ -199,7 +192,7 @@ function Actions() {
                 column.render = (tags: string[]) =>
                     tags.map((tag: string, index) => <Tag key={'tag' + index}>{tag}</Tag>)
             }
-            if (key.includes('timestamp') || key.includes('Timestamp')) {
+            if (key.toLowerCase().includes('timestamp')) {
                 column.render = (value: number) => value && new Date(value).toLocaleString()
             } else if (key === 'data') {
                 column.width = 70
@@ -253,10 +246,15 @@ function Actions() {
                 columns={columns}
                 dataSource={data}
                 pagination={false}
-                rowKey={(record: any) => Date.now()}
+                rowKey={() => Date.now()}
                 bordered
             />
         )
+    }
+
+    function onPrewiewLinkClick(prewiewAction: IAction) {
+        // dispatch(setPrewiewAction(prewiewAction))
+        localStorage.setItem('prewiewAction', JSON.stringify(prewiewAction))
     }
 
     return (
@@ -343,7 +341,8 @@ function Actions() {
                             <>
                                 {row.payload.data && row.status === 'pending' ? (
                                     <Link
-                                        to={`/admin/preview/${value}?action=${JSON.stringify(row)}`}
+                                        onClick={() => onPrewiewLinkClick(row)}
+                                        to={`/admin/preview/${value}`}
                                     >
                                         {value}
                                     </Link>

@@ -46,12 +46,7 @@ async function getFilesMetadataByDocIds(
     docIds: string[],
     entity: 'articles' | 'news',
     options?: {
-        [key: string]: [
-            AllowedFileExtension,
-            AllowedFileExtension?,
-            AllowedFileExtension?,
-            AllowedFileExtension?
-        ]
+        [key: string]: AllowedFileExtension[]
     }
 ) {
     const folderId = _getFolderIdByEntity(entity)
@@ -79,7 +74,7 @@ async function getFilesMetadataByDocIds(
                 id,
                 name,
                 fileExtension,
-                size
+                size: parseInt(size)
             } as { id: string; name: string; fileExtension: AllowedFileExtension; size: number })
     )
 }
@@ -88,24 +83,23 @@ async function downloadFiles(
     docIds: string[],
     entity: 'articles' | 'news',
     options?: {
-        [key: string]: [
-            AllowedFileExtension,
-            AllowedFileExtension?,
-            AllowedFileExtension?,
-            AllowedFileExtension?
-        ]
+        [key: string]: AllowedFileExtension[]
     }
 ) {
-    const filesMetadata = await getFilesMetadataByDocIds(docIds, entity, options)
+    const fileMetadatas = await getFilesMetadataByDocIds(docIds, entity, options)
 
-    const filenames = []
+    const promises: Promise<string | null>[] = []
 
-    for (const fileMetadata of filesMetadata) {
-        const filename = await _downloadFile(fileMetadata)
-        if (filename) {
-            filenames.push(filename)
-        }
+    for (const fileMetadata of fileMetadatas) {
+        promises.push(_downloadFile(fileMetadata))
     }
+
+    const filenames = (await Promise.all(promises)).filter((filename) => {
+        if (filename === null) {
+            return false
+        }
+        return true
+    }) as string[]
 
     return filenames.map((filename) => ({
         path: `${bufferFolderPath}/${filename}`,
@@ -194,12 +188,7 @@ async function updateFilename(
     newFilename: string,
     entity: 'articles' | 'news',
     options?: {
-        [key: string]: [
-            AllowedFileExtension,
-            AllowedFileExtension?,
-            AllowedFileExtension?,
-            AllowedFileExtension?
-        ]
+        [key: string]: AllowedFileExtension[]
     },
     fileId?: string
 ) {

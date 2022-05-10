@@ -1,57 +1,69 @@
 import AdminLayout from '../components/AdminLayout'
-import { Button, Divider, Spin, Tooltip, Typography } from 'antd'
+import { Badge, Button, Divider, Spin, Table, Tag, Tooltip, Typography } from 'antd'
 import { useSelector } from 'react-redux'
 import { useEffect, useState } from 'react'
-import { useLocation, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import { privateRoutes } from '../utils/constants'
-import { AllowedFileExtension, IAction, IPreviewFile } from '../utils/types'
+import { AllowedFileExtension, ArticleData, IAction, IColumn, IPreviewFile } from '../utils/types'
 import { errorNotification } from '../utils/notifications'
 import { ArrowDownOutlined } from '@ant-design/icons'
 
 const { Title } = Typography
-
-function useQuery() {
-    const { search } = useLocation()
-
-    // TODO: Find parameter "action" among array of all parameters, not from the first parameter
-
-    if (!search.includes('?action=')) {
-        return null
-    }
-
-    const action: IAction = JSON.parse(search.split('?action=')[1].split('&')[0])
-
-    return action
-}
 
 function Preview() {
     const token = useSelector((state: any) => state.app.token)
 
     const { actionId }: { actionId: string } = useParams()
 
-    const [action, setAction] = useState<IAction | null>(useQuery())
+    const [action, setAction] = useState<IAction | null>()
 
     const [previewFile, setPreviewFile] = useState<IPreviewFile>()
 
+    const [isActionMetadataLoading, setIsActionMetadataLoading] = useState<boolean>(false)
     const [isDownloadBtnLoading, setIsDownloadBtnLoading] = useState<boolean>(false)
 
     useEffect(() => {
         document.title = 'Admin Preview'
 
-        fetchActionFile(actionId)
+        const actionFromLocalStorageJson = localStorage.getItem('prewiewAction')
+        const actionFromLocalStorage =
+            actionFromLocalStorageJson && JSON.parse(actionFromLocalStorageJson)
+
+        if (!actionFromLocalStorage || actionFromLocalStorage.id !== actionId) {
+            fetchActionMetadata(actionId)
+        } else {
+            setAction(actionFromLocalStorage)
+        }
     }, [])
+
+    useEffect(() => {
+        if (action) {
+            fetchActionFile(actionId)
+        }
+    }, [action])
+
+    function fetchActionMetadata(actionId: string) {
+        setIsActionMetadataLoading(true)
+        axios(`${privateRoutes.ACTION}/${actionId}`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+            .then((res: AxiosResponse) => {
+                setAction(res.data.result)
+            })
+            .catch((err: AxiosError) => errorNotification(err.message))
+            .finally(() => setIsActionMetadataLoading(false))
+    }
 
     function fetchActionFile(actionId: string) {
         const options: {
-            [key: string]: [
-                AllowedFileExtension,
-                AllowedFileExtension?,
-                AllowedFileExtension?,
-                AllowedFileExtension?
-            ]
+            [key: string]: AllowedFileExtension[]
         } = {
-            [actionId + '_pending']: ['html', 'pdf']
+            [actionId + '_pending']: [
+                action?.payload?.data?.docx || action?.payload?.data?.html ? 'html' : 'pdf'
+            ]
         }
 
         axios(`${privateRoutes.ARTICLE}/download`, {
@@ -91,6 +103,7 @@ function Preview() {
                             ext
                         })
                     })
+                    // TODO: Remove "return"?
                     return
                 } else if (ext === 'pdf') {
                     blobToBase64(data).then((base64) => {
@@ -133,27 +146,19 @@ function Preview() {
             return
         }
 
-        // TODO: Download only missed file types
-        // const options: {
-        //     [key: string]: [
-        //         AllowedFileExtension,
-        //         AllowedFileExtension?,
-        //         AllowedFileExtension?,
-        //         AllowedFileExtension?
-        //     ]
-        // } = {
-        //     [actionId + '_pending']: []
-        // }
-
         setIsDownloadBtnLoading(true)
+
+        const options: { [key: string]: AllowedFileExtension[] } = {
+            [actionId + '_pending']: ['docx', 'html']
+        }
 
         axios(`${privateRoutes.ARTICLE}/download`, {
             params: {
                 ids: actionId + '_pending'
             },
             headers: {
-                Authorization: `Bearer ${token}`
-                // 'download-options': JSON.stringify(options)
+                Authorization: `Bearer ${token}`,
+                'download-options': JSON.stringify(options)
             },
             responseType: 'blob'
         })
@@ -174,31 +179,112 @@ function Preview() {
             .finally(() => setIsDownloadBtnLoading(false))
     }
 
+    // TODO: move method to utils (this is "expandedRowRender" method from pages/Actions.tsx)
+    const getActionPayloadTable = ({
+        payload,
+        payloadIds
+    }: {
+        payload: { [key: string]: any }
+        payloadIds: string[]
+    }) => {
+        const columns: IColumn[] = []
+
+        for (const key in payload) {
+            const column: IColumn = {
+                title: key[0].toUpperCase() + key.slice(1),
+                dataIndex: key
+            }
+
+            if (key === 'tags') {
+                column.render = (tags: string[]) =>
+                    tags.map((tag: string, index) => <Tag key={'tag' + index}>{tag}</Tag>)
+            }
+            if (key.toLowerCase().includes('timestamp')) {
+                column.render = (value: number) => value && new Date(value).toLocaleString()
+            } else if (key === 'data') {
+                column.width = 100
+                // TODO: Take function representating the ArticleData to utils because it dublicates lots of times among the project
+                column.render = (data?: ArticleData) => {
+                    if (data)
+                        return (
+                            <div>
+                                <div>
+                                    <Badge color={data.html ? 'green' : 'red'} /> html
+                                </div>
+                                <div>
+                                    <Badge color={data.docx ? 'green' : 'red'} /> docx
+                                </div>
+                                <div>
+                                    <Badge color={data.pdf ? 'green' : 'red'} /> pdf
+                                </div>
+                                <div>
+                                    <Badge color={data.json ? 'green' : 'red'} /> json
+                                </div>
+                            </div>
+                        )
+                }
+            }
+
+            columns.push(column)
+        }
+
+        if (payloadIds.length) {
+            const column: IColumn = {
+                title: 'ID' + (payloadIds.length > 1 ? 's' : ''),
+                dataIndex: 'payloadIds',
+                render: (payloadIds: string[]) => {
+                    return payloadIds.map((payloadId, index) => (
+                        <Tag key={'payloadId' + index}>{payloadId}</Tag>
+                    ))
+                }
+            }
+
+            columns.push(column)
+        }
+
+        columns.sort((a, b) => {
+            if (a.title > b.title) return 1
+            return -1
+        })
+
+        const data = [{ ...payload, payloadIds }]
+
+        return (
+            <Table
+                columns={columns}
+                dataSource={data}
+                pagination={false}
+                rowKey={() => Date.now()}
+                loading={isActionMetadataLoading}
+                bordered
+                style={{ marginTop: 15 }}
+            />
+        )
+    }
+
     return (
         <AdminLayout currentPage={`preview/${actionId}`}>
             <Title level={1}>
                 Preview
                 {previewFile ? null : <Spin style={{ marginLeft: 20 }} size="large" />}
             </Title>
-            {action ? (
-                <div>
-                    <div>Action [{action.id}]</div>
-                    {Object.keys(action.payload).map((key) => (
-                        <div>{key[0] + key.slice(1)}</div>
-                    ))}
-                </div>
-            ) : null}
+            <span>{`Action [${actionId}]`}</span>
             <Tooltip title="Download">
                 <Button
-                    style={{ margin: '0 0 0 0px' }}
+                    style={{ margin: '0 0 0 10px' }}
                     type="primary"
                     disabled={!previewFile}
                     loading={isDownloadBtnLoading}
                     icon={<ArrowDownOutlined />}
-                    // loading={}
                     onClick={() => downloadActionFiles(actionId)}
                 ></Button>
             </Tooltip>
+            {action
+                ? getActionPayloadTable({
+                      payload: action.payload,
+                      payloadIds: action.payloadIds
+                  })
+                : null}
             <Divider />
             {previewFile ? (
                 <div>

@@ -141,3 +141,7 @@ export type FileData = {
     body: Buffer
     size: number
 }
+
+export type Options = {
+    [key: string]: AllowedFileExtension[]
+}

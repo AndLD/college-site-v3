@@ -5,21 +5,18 @@ import {
     MenuUnfoldOutlined,
     MenuFoldOutlined,
     UserOutlined,
-    LogoutOutlined,
-    SafetyCertificateOutlined
+    LogoutOutlined
 } from '@ant-design/icons'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { setMenuCollapsed } from '../../store/actions'
 import UserAvatar from './AdminHeader/UserAvatar'
-import Text from 'antd/lib/typography/Text'
 
 const { Header } = Layout
 
 export default function AdminHeader() {
     const dispatch = useDispatch()
 
-    const user = useSelector((state: any) => state.app.user)
     const collapsed = useSelector((state: any) => state.app.menu.collapsed)
 
     return (

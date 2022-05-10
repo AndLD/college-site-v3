@@ -184,7 +184,7 @@ function ArticlesActionModal({ selectedRowsState }: { selectedRowsState: [IArtic
                 Authorization: `Bearer ${token}`
             }
         })
-            .then(async (res: AxiosResponse) => {
+            .then((res: AxiosResponse) => {
                 const { oldId, title, description, tags, publicTimestamp } = res.data.result
 
                 form.setFieldsValue({

@@ -8,7 +8,13 @@ import {
     IArticlePut,
     IArticleUpdate
 } from '../../utils/interfaces/articles/articles'
-import { AllowedFileExtension, AllowedFileType, FileData, IAction } from '../../utils/types'
+import {
+    AllowedFileExtension,
+    AllowedFileType,
+    FileData,
+    IAction,
+    Options
+} from '../../utils/types'
 import JSZip from 'jszip'
 import fs from 'fs'
 import { bufferFolderPath, bufferService } from '../../services/buffer'
@@ -19,6 +25,7 @@ import { actionsService } from '../../services/actions'
 import { allowedFileTypes } from '../../utils/constants'
 import { firebase } from '../../configs/firebase-config'
 import { getAllCompatibleInputForString } from '../../utils/functions'
+import { bufferUtils } from '../../utils/buffer'
 
 const logger = getLogger('routes/private/articles')
 
@@ -60,6 +67,8 @@ export default Router()
 
     // Download articles
     .get('/download', async (req: any, res: Response) => {
+        res.set('Access-Control-Expose-Headers', 'Content-Disposition')
+
         let ids = req.query.ids && req.query.ids.split(',')
 
         if (!ids)
@@ -69,48 +78,74 @@ export default Router()
 
         ids = await articlesService.replaceOldIds(ids)
 
-        const options:
-            | {
-                  [key: string]: [
-                      AllowedFileExtension,
-                      AllowedFileExtension?,
-                      AllowedFileExtension?,
-                      AllowedFileExtension?
-                  ]
-              }
-            | undefined =
+        const options: Options | undefined =
             req.headers['download-options'] && JSON.parse(req.headers['download-options'])
 
-        const filenames = await googleDriveService.downloadFiles(ids, 'articles', options)
+        const bufferOptions =
+            (options && bufferService.getBufferAvailableOptions(ids, options)) || undefined
 
-        if (!filenames.length) {
-            return res.sendStatus(500)
-        }
+        const substractedOptions =
+            (options && bufferOptions && bufferUtils.substractOptions(options, bufferOptions)) ||
+            undefined
 
-        res.set('Access-Control-Expose-Headers', 'Content-Disposition')
+        const filenames: {
+            path: string
+            name: string
+        }[] = []
 
-        if (filenames.length === 1) {
-            res.download(filenames[0].path)
-        } else {
-            const zip = new JSZip()
+        for (const id in bufferOptions) {
+            for (const bufferOption of bufferOptions[id]) {
+                const filename = `${id}.${bufferOption}`
 
-            for (const filename of filenames) {
-                zip.file(filename.name, fs.readFileSync(filename.path))
-            }
-
-            const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' })
-            const zipName = `${uuidv4()}.zip`
-
-            bufferService.addFile(zipName, zipBuffer)
-
-            res.download(`${bufferFolderPath}/${zipName}`, (err) => {
-                if (err) {
-                    logger.error('Error sending file: ', err)
+                if (substractedOptions && !substractedOptions[id]?.includes(bufferOption)) {
+                    bufferService.recordDownload({ name: filename })
                 }
 
-                bufferService.deleteFile(zipName)
-            })
+                filenames.push({
+                    path: `${bufferFolderPath}/${filename}`,
+                    name: filename
+                })
+            }
         }
+
+        if (substractedOptions && Object.keys(substractedOptions).length) {
+            const downloadedFilenames = await googleDriveService.downloadFiles(
+                ids,
+                'articles',
+                substractedOptions
+            )
+
+            if (!downloadedFilenames.length) {
+                return res.sendStatus(500)
+            }
+
+            filenames.push(...downloadedFilenames)
+        }
+
+        // If we have single file we send it to download
+        if (filenames.length === 1) {
+            return res.download(filenames[0].path)
+        }
+
+        // Else we create an archive, fill it with our files and send to download
+        const zip = new JSZip()
+
+        for (const filename of filenames) {
+            zip.file(filename.name, fs.readFileSync(filename.path))
+        }
+
+        const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' })
+        const zipName = `${uuidv4()}.zip`
+
+        bufferService.addFile(zipName, zipBuffer)
+
+        res.download(`${bufferFolderPath}/${zipName}`, (err) => {
+            if (err) {
+                logger.error('Error sending file: ', err)
+            }
+
+            bufferService.deleteFile(zipName)
+        })
     })
 
     // TODO: Add validation middleware

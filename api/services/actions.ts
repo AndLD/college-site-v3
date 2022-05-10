@@ -97,6 +97,8 @@ async function updateActions(actionIds: string[], newStatus: ActionStatus, email
                                 'articles',
                                 { [`${actionMetadata.id}_pending`]: ['html'] }
                             )
+
+                            // TODO: Update filename in the buffer if it exists
                         } else {
                             const ext = Object.keys(articleData)[0] as AllowedFileExtension
 
@@ -106,6 +108,8 @@ async function updateActions(actionIds: string[], newStatus: ActionStatus, email
                                 'articles',
                                 { [`${actionMetadata.id}_pending`]: [ext] }
                             )
+
+                            // TODO: Update filename in the buffer if it exists
                         }
                     } else if (actionMetadata.action === 'update') {
                         const docId = actionMetadata.payloadIds[0]
@@ -129,10 +133,14 @@ async function updateActions(actionIds: string[], newStatus: ActionStatus, email
                                     { [fileMetadata.name]: [fileMetadata.fileExtension] },
                                     fileMetadata.id
                                 )
+
+                                // TODO: Update filename in the buffer if it exists
                             }
                         }
                     } else if (actionMetadata.action === 'delete') {
                         await articlesService.deleteArticles(actionMetadata.payloadIds)
+
+                        // TODO: Remove file from the buffer if it exists
                     }
                 }
             } else if (

@@ -15,12 +15,7 @@ export default Router()
             })
 
         const options: {
-            [key: string]: [
-                AllowedFileExtension,
-                AllowedFileExtension?,
-                AllowedFileExtension?,
-                AllowedFileExtension?
-            ]
+            [key: string]: AllowedFileExtension[]
         } = JSON.parse(req.headers['download-options'])
 
         const filenames = await googleDriveService.downloadFiles([], 'articles', options)

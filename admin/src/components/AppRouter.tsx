@@ -13,7 +13,7 @@ const AppRouter = () => {
     const user = useSelector((state: any) => state.app.user)
     const [routes, setRoutes] = useState(publicRoutes)
 
-    const [currentPage] = useState(window.localStorage.getItem('currentPage'))
+    const [currentPage] = useState(localStorage.getItem('currentPage'))
 
     useEffect(() => {
         if (auth === true && user && user.status !== 'admin' && user.status !== 'moderator') {
@@ -45,9 +45,7 @@ const AppRouter = () => {
                             ? '/forbidden'
                             : auth //&& user
                             ? `/admin/${
-                                  currentPage === 'Dashboard' || !currentPage
-                                      ? ''
-                                      : currentPage.toLowerCase()
+                                  currentPage === 'Dashboard' || !currentPage ? '' : currentPage
                               }`
                             : !auth
                             ? '/auth'

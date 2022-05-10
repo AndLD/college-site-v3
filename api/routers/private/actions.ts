@@ -24,6 +24,9 @@ export default Router()
         })
     })
 
+    // Action getting by id
+    .get('/:id', hasModeratorStatus, controller)
+
     .post('/approve', hasAdminStatus, async (req: any, res: Response) => {
         const ids = req.query.ids && req.query.ids.split(',')
 
