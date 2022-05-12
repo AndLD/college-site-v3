@@ -324,11 +324,6 @@ function parseFilters({
     if (!queryParams.filters) return [[], null]
 
     try {
-        /* Фильтр - это массив из трех элементов: 
-        1 - ключ в базе данных (строка)
-        2 - оператор (строка: логические операторы, 'contains', 'in', 'like')
-        3 - значение (число / булевое / строка / массив строк)
-        */
         const filters: Filter[] | ArrayContainsFilter[] = decodeURI(queryParams.filters)
             .split(':')
             .map((filter: string) => {

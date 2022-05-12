@@ -10,10 +10,9 @@ export const appSettingsController = tryCatch(async function (req: Request, res:
         return res.status(parseReqError.code).json({
             error: parseReqError.msg
         })
-    const { method, obj, email } = reqData as {
+    const { method, obj } = reqData as {
         method: HttpMethod
         obj: Any
-        email: string
     }
 
     if (method !== 'GET' && method !== 'PUT')

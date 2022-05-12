@@ -92,6 +92,9 @@ function recordDownload({ name: filename, size }: { name: string; size?: number 
             size: size || 0
         }
     }
+    logger.info(
+        `New download recorded for file [${filename}]: ${JSON.stringify(bufferMetadata[filename])}`
+    )
 }
 
 function _clearBuffer() {

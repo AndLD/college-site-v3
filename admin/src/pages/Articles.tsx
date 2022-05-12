@@ -66,7 +66,7 @@ function Articles() {
     const [isTableLoading, setIsTableLoading] = useState<boolean>(false)
 
     const [searchValue, setSearchValue] = useState<string>()
-    const [filteredValue, setFilteredValue] = useState<any>()
+    // const [filteredValue, setFilteredValue] = useState<any>()
 
     const [selectedRows, setSelectedRows] = useState([])
 
@@ -195,13 +195,13 @@ function Articles() {
                 <div style={{ flex: 1 }}>
                     <Search
                         style={{ marginBottom: 20 }}
-                        placeholder="Search by title"
+                        placeholder="Search by title, description, tags, ID, old ID"
                         loading={isTableLoading}
                         value={searchValue}
                         onChange={(event) => {
                             const text = event.target.value
                             setSearchValue(text)
-                            setFilteredValue(null)
+                            // setFilteredValue(null)
                             fetchArticles(
                                 pagination,
                                 text ? `keywords,contains,${text.toLowerCase()}` : undefined
@@ -329,7 +329,7 @@ function Articles() {
                 loading={isTableLoading}
                 scroll={{ x: 1500 }}
                 onChange={(pagination: TablePaginationConfig, filters: any, sorter: any) => {
-                    setFilteredValue(filters)
+                    // setFilteredValue(filters)
                     const f = filters?.status && `status,in,${filters.status.join('.')}`
 
                     const sortOrder =

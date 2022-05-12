@@ -149,7 +149,11 @@ function Preview() {
         setIsDownloadBtnLoading(true)
 
         const options: { [key: string]: AllowedFileExtension[] } = {
-            [actionId + '_pending']: ['docx', 'html']
+            [actionId + '_pending']:
+                (!action?.payload?.data?.docx && action?.payload?.data?.html) ||
+                action?.payload?.data?.html
+                    ? ['html']
+                    : ['docx', 'html']
         }
 
         axios(`${privateRoutes.ARTICLE}/download`, {

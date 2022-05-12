@@ -26,6 +26,7 @@ import { allowedFileTypes } from '../../utils/constants'
 import { firebase } from '../../configs/firebase-config'
 import { getAllCompatibleInputForString } from '../../utils/functions'
 import { bufferUtils } from '../../utils/buffer'
+import { appSettingsService } from '../../services/appSettings'
 
 const logger = getLogger('routes/private/articles')
 
@@ -148,6 +149,9 @@ export default Router()
         })
     })
 
+    // Article getting by id
+    .get('/:id', controller)
+
     // TODO: Add validation middleware
     // Article adding
     .post('/', upload.single('file'), async (req: any, res: Response) => {
@@ -213,8 +217,13 @@ export default Router()
             timestamp
         }
 
-        // TODO: Remove it after debug
-        actionMetadata.status = 'pending'
+        // If action auto approve disabled for current admin
+        if (
+            user.status === 'admin' &&
+            !appSettingsService.get().actionAutoApproveEnabledForAdmins?.includes(user.email)
+        ) {
+            actionMetadata.status = 'pending'
+        }
 
         try {
             await actionsService.addAction(actionId, actionMetadata, file)
@@ -309,8 +318,13 @@ export default Router()
             timestamp: Date.now()
         }
 
-        // TODO: Remove it after debug
-        actionMetadata.status = 'pending'
+        // If action auto approve disabled for current admin
+        if (
+            user.status === 'admin' &&
+            !appSettingsService.get().actionAutoApproveEnabledForAdmins?.includes(user.email)
+        ) {
+            actionMetadata.status = 'pending'
+        }
 
         try {
             await actionsService.addAction(actionId, actionMetadata, file)
@@ -371,8 +385,13 @@ export default Router()
             timestamp: Date.now()
         }
 
-        // TODO: Remove it after debug
-        actionMetadata.status = 'pending'
+        // If action auto approve disabled for current admin
+        if (
+            user.status === 'admin' &&
+            !appSettingsService.get().actionAutoApproveEnabledForAdmins?.includes(user.email)
+        ) {
+            actionMetadata.status = 'pending'
+        }
 
         try {
             await actionsService.addAction(actionId, actionMetadata)
@@ -395,6 +414,3 @@ export default Router()
             result: null
         })
     })
-
-    // Article getting by id
-    .get('/:id', controller)

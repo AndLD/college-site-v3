@@ -7,11 +7,13 @@ import * as t from "ts-interface-checker";
 export const IAppSettings = t.iface([], {
   "selectedMenuId": t.union("string", "null"),
   "pinnedNewsIds": t.array("string"),
+  "actionAutoApproveEnabledForAdmins": t.array("string"),
 });
 
 export const IAppSettingsPut = t.iface([], {
   "selectedMenuId": t.opt(t.union("string", "null")),
   "pinnedNewsIds": t.opt(t.array("string")),
+  "actionAutoApproveEnabledForAdmins": t.opt("string"),
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

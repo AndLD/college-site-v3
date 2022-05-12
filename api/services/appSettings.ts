@@ -19,7 +19,21 @@ function set(newSettings: any) {
     try {
         const settings = get()
         for (const key in newSettings) {
-            settings[key] = newSettings[key]
+            if (key === 'actionAutoApproveEnabledForAdmins') {
+                if (settings[key]) {
+                    if (settings[key].includes(newSettings[key])) {
+                        settings[key] = settings[key].filter(
+                            (email: string) => email !== newSettings[key]
+                        )
+                    } else {
+                        settings[key].push(newSettings[key])
+                    }
+                } else {
+                    settings[key] = [newSettings[key]]
+                }
+            } else {
+                settings[key] = newSettings[key]
+            }
         }
         fs.writeFileSync(appSettingsPath, JSON.stringify(settings))
 

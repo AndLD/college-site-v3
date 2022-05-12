@@ -1,4 +1,4 @@
-import { Badge, Table, Tag, Tooltip, Typography } from 'antd'
+import { Badge, DatePicker, Table, Tag, Tooltip, Typography } from 'antd'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import { useSelector } from 'react-redux'
 import { useEffect, useState } from 'react'
@@ -10,6 +10,7 @@ import { errorNotification, successNotification, warningNotification } from '../
 import { DeleteTwoTone, EditTwoTone, FileAddTwoTone, WarningTwoTone } from '@ant-design/icons'
 import { Link } from 'react-router-dom'
 import Search from 'antd/lib/input/Search'
+import moment from 'moment'
 
 const { Title } = Typography
 
@@ -20,25 +21,6 @@ interface IWarnings {
 function Actions() {
     const token = useSelector((state: any) => state.app.token)
     const userStatus = useSelector((state: any) => state.app.user.status)
-
-    // const mockData: IAction[] = [
-    //     {
-    //         id: '1',
-    //         // parentId: '1',
-    //         entity: 'articles',
-    //         action: 'add',
-    //         payload: {
-    //             id: '1',
-    //             data: {
-    //                 html: true
-    //             }
-    //         },
-    //         status: 'pending',
-    //         user: 'nil10035@gmail.com',
-    //         timestamp: Date.now()
-    //         // lastUpdateTimestamp: Date.now()
-    //     }
-    // ]
 
     useEffect(() => {
         document.title = 'Admin Actions'
@@ -85,13 +67,19 @@ function Actions() {
         setWarnings(warnings)
     }, [tableData])
 
+    const [tableLoading, setTableLoading] = useState<boolean>(false)
+
     const [pagination, setPagination] = useState({
         current: 1,
         pageSize: 20
     })
-    const [tableLoading, setTableLoading] = useState<boolean>(false)
-
-    const [searchValue, setSearchValue] = useState<string>()
+    const [searchValue, setSearchValue] = useState<string>('')
+    const [dateRangeValue, setDateRangeValue] = useState<[number, number] | null>(null)
+    useEffect(() => {
+        fetchActions(pagination, combineFilters(), sort || 'timestamp,desc')
+    }, [dateRangeValue])
+    const [statusFilter, setStatusFilter] = useState<string | null>(null)
+    const [sort, setSort] = useState<string | undefined>()
 
     const [selectedRows, setSelectedRows] = useState([])
 
@@ -140,7 +128,7 @@ function Actions() {
             }
         })
             .then((res: AxiosResponse) => {
-                fetchActions(pagination, undefined, 'timestamp,desc')
+                fetchActions(pagination, combineFilters(), sort || 'timestamp,desc')
 
                 const updateActionIds: string[] = res.data.result
 
@@ -253,18 +241,63 @@ function Actions() {
     }
 
     function onPrewiewLinkClick(prewiewAction: IAction) {
-        // dispatch(setPrewiewAction(prewiewAction))
         localStorage.setItem('prewiewAction', JSON.stringify(prewiewAction))
+    }
+
+    function convertDateRangeValueToFilters() {
+        const result: string[] = []
+
+        if (dateRangeValue) {
+            const [startTimestamp, endTimestamp] = dateRangeValue
+            result.push(`timestamp,>=,${startTimestamp}`, `timestamp,<=,${endTimestamp}`)
+        }
+
+        return result
+    }
+
+    function combineFilters(status?: string[] | null, newSearchValue?: string | null) {
+        let filtersString: string | undefined
+
+        const filterComponents = []
+
+        filterComponents.push(...convertDateRangeValueToFilters())
+
+        let tableFilter = statusFilter
+        if (status && status.join('.') !== tableFilter) {
+            const newStatusFilter = `status,in,${status.join('.')}`
+
+            setStatusFilter(newStatusFilter)
+            filterComponents.push(newStatusFilter)
+        } else if (tableFilter) {
+            if (status === null) {
+                setStatusFilter(null)
+            } else {
+                filterComponents.push(tableFilter)
+            }
+        }
+
+        const search =
+            newSearchValue === '' || (newSearchValue && newSearchValue.length >= 0)
+                ? newSearchValue
+                : searchValue
+        if (search) {
+            filterComponents.push(`keywords,contains,${search.toLowerCase()}`)
+        }
+
+        if (filterComponents.length) {
+            filtersString = filterComponents.join(':')
+        }
+
+        return filtersString
     }
 
     return (
         <AdminLayout currentPage="Actions">
             <Title level={1}>Actions</Title>
             <div style={{ display: 'flex' }}>
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 3 }}>
                     <Search
-                        style={{ marginBottom: 20 }}
-                        placeholder="Search by title"
+                        placeholder="Search by ID, payload ID"
                         loading={tableLoading}
                         value={searchValue}
                         onChange={(event) => {
@@ -272,12 +305,51 @@ function Actions() {
                             setSearchValue(text)
                             fetchActions(
                                 pagination,
-                                text ? `keywords,contains,${text.toLowerCase()}` : undefined,
-                                'timestamp,desc'
+                                combineFilters(undefined, text),
+                                sort || 'timestamp,desc'
                             )
                         }}
                         enterButton
                     />
+                </div>
+                <div style={{ flex: 1, marginLeft: 10, minWidth: 250 }}>
+                    <Tooltip title="Filter actions by date range">
+                        <DatePicker.RangePicker
+                            value={
+                                (dateRangeValue && [
+                                    moment(dateRangeValue[0]),
+                                    moment(dateRangeValue[1])
+                                ]) ||
+                                null
+                            }
+                            // onFocus={() => {
+                            //     if (!dateRangeValue) {
+                            //         const timestamp = Date.now()
+                            //         setDateRangeValue([timestamp, timestamp])
+                            //     }
+                            // }}
+                            format="DD/MM/YYYY"
+                            onChange={(rangeValue: any) => {
+                                if (rangeValue) {
+                                    const startTimestamp = new Date(
+                                        (rangeValue[0] as moment.Moment).startOf('day').format()
+                                    ).valueOf()
+                                    const endTimestamp = new Date(
+                                        (rangeValue[1] as moment.Moment).endOf('day').format()
+                                    ).valueOf()
+
+                                    setDateRangeValue([startTimestamp, endTimestamp])
+                                } else {
+                                    setDateRangeValue(null)
+                                }
+                            }}
+                            disabledDate={(current) => {
+                                const customDate =
+                                    moment()[current > moment() ? 'startOf' : 'endOf']('day')
+                                return current && current > moment(customDate).endOf('day')
+                            }}
+                        />
+                    </Tooltip>
                 </div>
                 {userStatus === 'admin' ? (
                     <ActionsTableControls
@@ -337,20 +409,22 @@ function Actions() {
                         title: 'ID',
                         dataIndex: 'id',
                         width: 200,
-                        render: (value: string, row: IAction) => (
-                            <>
-                                {row.payload.data && row.status === 'pending' ? (
-                                    <Link
-                                        onClick={() => onPrewiewLinkClick(row)}
-                                        to={`/admin/preview/${value}`}
-                                    >
-                                        {value}
-                                    </Link>
-                                ) : (
-                                    value
-                                )}
-                            </>
-                        )
+                        render: (value: string, row: IAction) => {
+                            return (
+                                <>
+                                    {row.payload.data && row.status === 'pending' ? (
+                                        <Link
+                                            onClick={() => onPrewiewLinkClick(row)}
+                                            to={`/admin/preview/${value}`}
+                                        >
+                                            {value}
+                                        </Link>
+                                    ) : (
+                                        value
+                                    )}
+                                </>
+                            )
+                        }
                     },
                     {
                         title: 'Status',
@@ -422,8 +496,8 @@ function Actions() {
                 rowKey={(record: any) => record.id}
                 pagination={pagination}
                 loading={tableLoading}
-                onChange={(pagination: any, filters: any, sorter: any) => {
-                    const f = filters?.status && `status,in,${filters.status.join('.')}`
+                onChange={(pagination: any, { status }: { status?: string[] }, sorter: any) => {
+                    const filtersString: string | undefined = combineFilters(status || null)
 
                     const sorterOrder =
                         sorter.order === 'ascend'
@@ -431,10 +505,11 @@ function Actions() {
                             : sorter.order === 'descend'
                             ? 'desc'
                             : undefined
-                    const order = sorterOrder && `${sorter.field},${sorterOrder}`
+                    const tableSort = sorterOrder && `${sorter.field},${sorterOrder}`
 
-                    setSearchValue('')
-                    fetchActions(pagination, f, order)
+                    setSort(tableSort || sort)
+
+                    fetchActions(pagination, filtersString, tableSort || sort)
                 }}
             />
         </AdminLayout>
