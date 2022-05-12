@@ -14,7 +14,14 @@ function AdminLayout({ children, currentPage }: any) {
     const collapsed = useSelector((state: any) => state.app.menu.collapsed)
 
     useEffect(() => {
-        localStorage.setItem('currentPage', currentPage || 'Dashboard')
+        localStorage.setItem(
+            'currentPage',
+            currentPage
+                ? !currentPage.includes('preview')
+                    ? currentPage.toLowerCase()
+                    : currentPage
+                : 'Dashboard'
+        )
     }, [])
 
     return (

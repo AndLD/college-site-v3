@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux'
 import { useEffect, useState } from 'react'
 import AdminLayout from '../components/AdminLayout'
 import { errorNotification } from '../utils/notifications'
+import { privateRoute } from '../utils/constants'
 
 const { Title } = Typography
 
@@ -12,24 +13,23 @@ function Dashboard() {
     const [statistics, setStatistics] = useState(null)
 
     useEffect(() => {
-        let isMounted = true
+        // let isMounted = true
         document.title = 'Admin Dashboard'
 
-        token &&
-            axios('http://localhost:8080/api/private/statistics', {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
+        axios(`${privateRoute}/statistics`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+            .then((res: AxiosResponse) => {
+                // if (isMounted) {
+                setStatistics(res.data)
+                // }
             })
-                .then((res: AxiosResponse) => {
-                    if (isMounted) {
-                        setStatistics(res.data)
-                    }
-                })
-                .catch((err: AxiosError) => errorNotification(err.message))
-        return () => {
-            isMounted = false
-        }
+            .catch((err: AxiosError) => errorNotification(err.message))
+        // return () => {
+        //     isMounted = false
+        // }
     }, [])
 
     return (

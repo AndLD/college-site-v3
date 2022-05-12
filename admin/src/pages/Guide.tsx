@@ -8,15 +8,9 @@ const { Title } = Typography
 
 function Guide() {
     const token = useSelector((state: any) => state.app.token)
-    // const [state, setState] = useState(null)
 
     useEffect(() => {
-        let isMounted = true
         document.title = 'Admin Guide'
-
-        return () => {
-            isMounted = false
-        }
     }, [])
 
     return (

@@ -4,9 +4,9 @@ import Dragger from 'antd/lib/upload/Dragger'
 import { UploadFile } from 'antd/lib/upload/interface'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import moment from 'moment'
-import { SetStateAction, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { setActionModalVisibility, setTableSelectedRows } from '../../store/actions'
+import { setActionModalVisibility } from '../../store/actions'
 import { privateRoutes } from '../../utils/constants'
 import {
     errorNotification,
@@ -26,24 +26,19 @@ const allowedFileTypes = [
 function ArticlesActionModal({ selectedRowsState }: { selectedRowsState: [IArticle[], any] }) {
     const dispatch = useDispatch()
     const token = useSelector((state: any) => state.app.token)
-
     const actionSuccessCallback = useSelector((state: any) => state.app.actionSuccessCallback)
-
     // 'Add' | 'Update'
     const action = useSelector((state: any) => state.app.action)
     const actionModalVisibility = useSelector((state: any) => state.app.actionModalVisibility)
-
-    // Выбранные строки таблицы
-    // const tableSelectedRows = useSelector((state: any) => state.app.tableSelectedRows)
     const [selectedRows, setSelectedRows] = selectedRowsState
-
     const [warnings, setWarnings] = useState<IAction[]>([])
-
     const [fetchedArticle, setFetchedArticle] = useState<IArticle>()
-
     // const [isDraggerEnabled, setIsDraggerEnabled] = useState<boolean>(true)
-
     const [tabs, setTabs] = useState<JSX.Element[]>([])
+    const [forms, setForms] = useState<FormInstance[]>([])
+    const [updateForm] = useState<FormInstance>(Form.useForm()[0])
+    const [fileList, setFileList] = useState<UploadFile<any>[]>([])
+    const [isActionModalBtnLoading, setIsActionModalBtnLoading] = useState<boolean>(false)
 
     const initialForms = [
         Form.useForm()[0],
@@ -58,14 +53,6 @@ function ArticlesActionModal({ selectedRowsState }: { selectedRowsState: [IArtic
         Form.useForm()[0]
     ]
 
-    const [forms, setForms] = useState<FormInstance[]>([])
-
-    const [updateForm] = useState<FormInstance>(Form.useForm()[0])
-
-    const [fileList, setFileList] = useState<UploadFile<any>[]>([])
-
-    const [isActionModalBtnLoading, setIsActionModalBtnLoading] = useState<boolean>(false)
-
     useEffect(() => {
         if (fileList.length > (action === 'Add' ? 10 : 1))
             throw 'File list should have 0 to 10 files!'
@@ -78,6 +65,22 @@ function ArticlesActionModal({ selectedRowsState }: { selectedRowsState: [IArtic
             setTabs(newTabs)
         }
     }, [fileList])
+
+    useEffect(() => {
+        if (actionModalVisibility) {
+            // setIsDraggerEnabled(true)
+            setWarnings([])
+            setTabs([])
+            setFileList([])
+            setForms([...initialForms])
+            forms.forEach((form) => form.resetFields())
+        }
+
+        if (actionModalVisibility && action === 'Update' && selectedRows[0].id) {
+            fetchArticleById(selectedRows[0].id, updateForm)
+            fetchConflictsById(selectedRows[0].id)
+        }
+    }, [actionModalVisibility])
 
     async function onAdd(bodies: any, fileList: UploadFile<any>[]) {
         setIsActionModalBtnLoading(true)
@@ -209,7 +212,7 @@ function ArticlesActionModal({ selectedRowsState }: { selectedRowsState: [IArtic
                 Authorization: `Bearer ${token}`
             }
         })
-            .then(async (res: AxiosResponse) => {
+            .then((res: AxiosResponse) => {
                 setWarnings(
                     res.data.result.map(
                         (conflict: IAction) => `${conflict.action.toUpperCase()} ${conflict.id}`
@@ -218,22 +221,6 @@ function ArticlesActionModal({ selectedRowsState }: { selectedRowsState: [IArtic
             })
             .catch((err: AxiosError) => errorNotification(err.message))
     }
-
-    useEffect(() => {
-        if (actionModalVisibility) {
-            // setIsDraggerEnabled(true)
-            setWarnings([])
-            setTabs([])
-            setFileList([])
-            setForms([...initialForms])
-            forms.forEach((form) => form.resetFields())
-        }
-
-        if (actionModalVisibility && action === 'Update' && selectedRows[0].id) {
-            fetchArticleById(selectedRows[0].id, updateForm)
-            fetchConflictsById(selectedRows[0].id)
-        }
-    }, [actionModalVisibility])
 
     function copyFileNameToTitle() {
         if (action === 'Add') {

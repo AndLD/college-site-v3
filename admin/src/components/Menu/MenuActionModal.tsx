@@ -59,6 +59,77 @@ function MenuActionModal() {
 
     const [draggerFileList, setDraggerFileList] = useState<UploadFile<any>[]>([])
 
+    useEffect(() => {
+        if (actionModalVisibility) {
+            form.resetFields()
+
+            setFetchedMenu(undefined)
+
+            setMenuJson('[]')
+            setMenuJsonErrorMessage(undefined)
+
+            setMenuTreeDataUpdates([])
+            setTabsActiveKey('2')
+
+            setDraggerFileList([])
+
+            setIsMenuTreeDataAutoUpdateEnabled(true)
+            setIsMenuJsonAutoUpdateEnabled(false)
+        }
+
+        if (actionModalVisibility && action === 'Update') {
+            tableSelectedRows[0]?.id && fetchMenuById(tableSelectedRows[0]?.id)
+        }
+    }, [actionModalVisibility])
+
+    useEffect(() => {
+        if (isMenuTreeDataAutoUpdateEnabled) {
+            try {
+                var menu = JSON.parse(menuJson)
+            } catch (e: any) {
+                setMenuJsonErrorMessage('Invalid JSON.')
+            }
+
+            if (menu) {
+                const configuredMenu = configMenu(
+                    menu,
+                    [menuTreeDataUpdates, setMenuTreeDataUpdates],
+                    () => {
+                        setMenuJsonErrorMessage('JSON input does not match the menu structure.')
+                    }
+                )
+
+                if (configuredMenu) {
+                    setMenuTreeData(configuredMenu)
+
+                    setMenuJsonErrorMessage(undefined)
+                }
+            }
+        }
+    }, [menuJson])
+
+    useEffect(() => {
+        if (isMenuJsonAutoUpdateEnabled) {
+            const deconfiguredMenu = deconfigMenu(menuTreeData)
+
+            if (deconfiguredMenu) {
+                setMenuJson(JSON.stringify(deconfiguredMenu, null, '\t'))
+            }
+        }
+    }, [menuTreeData])
+
+    useEffect(() => {
+        if (actionModalVisibility) {
+            if (tabsActiveKey == '1') {
+                setIsMenuTreeDataAutoUpdateEnabled(false)
+                setIsMenuJsonAutoUpdateEnabled(true)
+            } else if (tabsActiveKey == '2' || tabsActiveKey == '3') {
+                setIsMenuTreeDataAutoUpdateEnabled(true)
+                setIsMenuJsonAutoUpdateEnabled(false)
+            }
+        }
+    }, [tabsActiveKey])
+
     const menuFormItems = [
         <Form.Item key={1} name="description" label="Description">
             <Input placeholder="Enter menu block description" />
@@ -187,77 +258,6 @@ function MenuActionModal() {
             })
             .catch((err: AxiosError) => errorNotification(err.message))
     }
-
-    useEffect(() => {
-        if (actionModalVisibility) {
-            form.resetFields()
-
-            setFetchedMenu(undefined)
-
-            setMenuJson('[]')
-            setMenuJsonErrorMessage(undefined)
-
-            setMenuTreeDataUpdates([])
-            setTabsActiveKey('2')
-
-            setDraggerFileList([])
-
-            setIsMenuTreeDataAutoUpdateEnabled(true)
-            setIsMenuJsonAutoUpdateEnabled(false)
-        }
-
-        if (actionModalVisibility && action === 'Update') {
-            tableSelectedRows[0]?.id && fetchMenuById(tableSelectedRows[0]?.id)
-        }
-    }, [actionModalVisibility])
-
-    useEffect(() => {
-        if (isMenuTreeDataAutoUpdateEnabled) {
-            try {
-                var menu = JSON.parse(menuJson)
-            } catch (e: any) {
-                setMenuJsonErrorMessage('Invalid JSON.')
-            }
-
-            if (menu) {
-                const configuredMenu = configMenu(
-                    menu,
-                    [menuTreeDataUpdates, setMenuTreeDataUpdates],
-                    () => {
-                        setMenuJsonErrorMessage('JSON input does not match the menu structure.')
-                    }
-                )
-
-                if (configuredMenu) {
-                    setMenuTreeData(configuredMenu)
-
-                    setMenuJsonErrorMessage(undefined)
-                }
-            }
-        }
-    }, [menuJson])
-
-    useEffect(() => {
-        if (isMenuJsonAutoUpdateEnabled) {
-            const deconfiguredMenu = deconfigMenu(menuTreeData)
-
-            if (deconfiguredMenu) {
-                setMenuJson(JSON.stringify(deconfiguredMenu, null, '\t'))
-            }
-        }
-    }, [menuTreeData])
-
-    useEffect(() => {
-        if (actionModalVisibility) {
-            if (tabsActiveKey == '1') {
-                setIsMenuTreeDataAutoUpdateEnabled(false)
-                setIsMenuJsonAutoUpdateEnabled(true)
-            } else if (tabsActiveKey == '2' || tabsActiveKey == '3') {
-                setIsMenuTreeDataAutoUpdateEnabled(true)
-                setIsMenuJsonAutoUpdateEnabled(false)
-            }
-        }
-    }, [tabsActiveKey])
 
     return (
         <Modal

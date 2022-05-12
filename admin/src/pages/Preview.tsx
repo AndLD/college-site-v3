@@ -8,25 +8,23 @@ import { privateRoutes } from '../utils/constants'
 import { AllowedFileExtension, ArticleData, IAction, IColumn, IPreviewFile } from '../utils/types'
 import { errorNotification } from '../utils/notifications'
 import { ArrowDownOutlined } from '@ant-design/icons'
+import { actionsUtils } from '../utils/actions'
+import { previewUtils as previewUtils } from '../utils/preview'
 
 const { Title } = Typography
 
 function Preview() {
     const token = useSelector((state: any) => state.app.token)
-
     const { actionId }: { actionId: string } = useParams()
-
     const [action, setAction] = useState<IAction | null>()
-
     const [previewFile, setPreviewFile] = useState<IPreviewFile>()
-
     const [isActionMetadataLoading, setIsActionMetadataLoading] = useState<boolean>(false)
     const [isDownloadBtnLoading, setIsDownloadBtnLoading] = useState<boolean>(false)
 
     useEffect(() => {
         document.title = 'Admin Preview'
 
-        const actionFromLocalStorageJson = localStorage.getItem('prewiewAction')
+        const actionFromLocalStorageJson = localStorage.getItem('previewAction')
         const actionFromLocalStorage =
             actionFromLocalStorageJson && JSON.parse(actionFromLocalStorageJson)
 
@@ -103,10 +101,8 @@ function Preview() {
                             ext
                         })
                     })
-                    // TODO: Remove "return"?
-                    return
                 } else if (ext === 'pdf') {
-                    blobToBase64(data).then((base64) => {
+                    previewUtils.blobToBase64(data).then((base64) => {
                         setPreviewFile({
                             name,
                             objectUrl: window.URL.createObjectURL(data),
@@ -119,35 +115,20 @@ function Preview() {
             .catch((err: AxiosError) => errorNotification(err.message))
     }
 
-    function blobToBase64(blob: Blob) {
-        return new Promise((resolve, _) => {
-            const reader = new FileReader()
-            reader.onloadend = () => resolve(reader.result)
-            reader.readAsDataURL(blob)
-        })
-    }
-
-    function showDownloadDialog(filename: string, objectUrl: string) {
-        const url = objectUrl
-        const link = document.createElement('a')
-        link.href = url
-        link.setAttribute('download', filename)
-        document.body.appendChild(link)
-        link.click()
-    }
-
     function downloadActionFiles(actionId: string) {
         if (!previewFile) {
             return
         }
 
         if (previewFile.ext === 'pdf' && previewFile.objectUrl) {
-            showDownloadDialog(`${previewFile.name}.${previewFile.ext}`, previewFile.objectUrl)
+            previewUtils.showDownloadDialog(
+                `${previewFile.name}.${previewFile.ext}`,
+                previewFile.objectUrl
+            )
             return
         }
 
         setIsDownloadBtnLoading(true)
-
         const options: { [key: string]: AllowedFileExtension[] } = {
             [actionId + '_pending']:
                 (!action?.payload?.data?.docx && action?.payload?.data?.html) ||
@@ -177,93 +158,10 @@ function Preview() {
 
                 const data = new Blob([res.data])
 
-                showDownloadDialog(filename, window.URL.createObjectURL(data))
+                previewUtils.showDownloadDialog(filename, window.URL.createObjectURL(data))
             })
             .catch((err: AxiosError) => errorNotification(err.message))
             .finally(() => setIsDownloadBtnLoading(false))
-    }
-
-    // TODO: move method to utils (this is "expandedRowRender" method from pages/Actions.tsx)
-    const getActionPayloadTable = ({
-        payload,
-        payloadIds
-    }: {
-        payload: { [key: string]: any }
-        payloadIds: string[]
-    }) => {
-        const columns: IColumn[] = []
-
-        for (const key in payload) {
-            const column: IColumn = {
-                title: key[0].toUpperCase() + key.slice(1),
-                dataIndex: key
-            }
-
-            if (key === 'tags') {
-                column.render = (tags: string[]) =>
-                    tags.map((tag: string, index) => <Tag key={'tag' + index}>{tag}</Tag>)
-            }
-            if (key.toLowerCase().includes('timestamp')) {
-                column.render = (value: number) => value && new Date(value).toLocaleString()
-            } else if (key === 'data') {
-                column.width = 100
-                // TODO: Take function representating the ArticleData to utils because it dublicates lots of times among the project
-                column.render = (data?: ArticleData) => {
-                    if (data)
-                        return (
-                            <div>
-                                <div>
-                                    <Badge color={data.html ? 'green' : 'red'} /> html
-                                </div>
-                                <div>
-                                    <Badge color={data.docx ? 'green' : 'red'} /> docx
-                                </div>
-                                <div>
-                                    <Badge color={data.pdf ? 'green' : 'red'} /> pdf
-                                </div>
-                                <div>
-                                    <Badge color={data.json ? 'green' : 'red'} /> json
-                                </div>
-                            </div>
-                        )
-                }
-            }
-
-            columns.push(column)
-        }
-
-        if (payloadIds.length) {
-            const column: IColumn = {
-                title: 'ID' + (payloadIds.length > 1 ? 's' : ''),
-                dataIndex: 'payloadIds',
-                render: (payloadIds: string[]) => {
-                    return payloadIds.map((payloadId, index) => (
-                        <Tag key={'payloadId' + index}>{payloadId}</Tag>
-                    ))
-                }
-            }
-
-            columns.push(column)
-        }
-
-        columns.sort((a, b) => {
-            if (a.title > b.title) return 1
-            return -1
-        })
-
-        const data = [{ ...payload, payloadIds }]
-
-        return (
-            <Table
-                columns={columns}
-                dataSource={data}
-                pagination={false}
-                rowKey={() => Date.now()}
-                loading={isActionMetadataLoading}
-                bordered
-                style={{ marginTop: 15 }}
-            />
-        )
     }
 
     return (
@@ -284,7 +182,7 @@ function Preview() {
                 ></Button>
             </Tooltip>
             {action
-                ? getActionPayloadTable({
+                ? actionsUtils.getActionPayloadTable({
                       payload: action.payload,
                       payloadIds: action.payloadIds
                   })

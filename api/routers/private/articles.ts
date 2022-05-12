@@ -109,6 +109,10 @@ export default Router()
             }
         }
 
+        console.log('options', options)
+        console.log('bufferOptions', bufferOptions)
+        console.log('substractedOptions', substractedOptions)
+
         if (substractedOptions && Object.keys(substractedOptions).length) {
             const downloadedFilenames = await googleDriveService.downloadFiles(
                 ids,
@@ -123,9 +127,13 @@ export default Router()
             filenames.push(...downloadedFilenames)
         }
 
+        console.log('filenames', filenames)
+
         // If we have single file we send it to download
         if (filenames.length === 1) {
             return res.download(filenames[0].path)
+        } else if (filenames.length === 0) {
+            return res.sendStatus(404)
         }
 
         // Else we create an archive, fill it with our files and send to download

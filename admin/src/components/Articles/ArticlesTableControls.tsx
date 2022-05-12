@@ -1,28 +1,33 @@
 import { ArrowDownOutlined } from '@ant-design/icons'
 import { Button, Popconfirm } from 'antd'
+import { useContext } from 'react'
 import { useDispatch } from 'react-redux'
+import { ArticlesContext } from '../../contexts'
 import { setAction, setActionModalVisibility, setActionSuccessCallback } from '../../store/actions'
 import { Action } from '../../utils/types'
 
-export default function ArticlesTableControls({
-    selectedRows,
-    deleteArticles,
-    isDeleteBtnLoading,
-    actionSuccessCallback,
-    downloadArticles
-}: {
-    selectedRows: any
-    deleteArticles: () => void
-    isDeleteBtnLoading: boolean
-    actionSuccessCallback: () => void
-    downloadArticles: () => void
-}) {
+export default function ArticlesTableControls() {
     const dispatch = useDispatch()
+
+    const [pagination, setPagination] = useContext(ArticlesContext).paginationState
+    const [isDeleteBtnLoading, setIsDeleteBtnLoading] =
+        useContext(ArticlesContext).isDeleteBtnLoadingState
+    const [isDownloadBtnLoading, setIsDownloadBtnLoading] =
+        useContext(ArticlesContext).isDownloadBtnLoadingState
+    const [selectedRows, setSelectedRows] = useContext(ArticlesContext).selectedRowsState
+    const fetchArticles = useContext(ArticlesContext).fetchArticles
+    const deleteArticles = useContext(ArticlesContext).deleteArticles
+    const downloadArticles = useContext(ArticlesContext).downloadArticles
 
     function showActionModal(newAction: Action) {
         dispatch(setAction(newAction))
         dispatch(setActionModalVisibility(true))
-        dispatch(setActionSuccessCallback(actionSuccessCallback))
+        dispatch(
+            setActionSuccessCallback(() => {
+                fetchArticles(pagination)
+                setSelectedRows([])
+            })
+        )
     }
 
     return (
@@ -64,7 +69,7 @@ export default function ArticlesTableControls({
                 type="primary"
                 disabled={selectedRows.length === 0}
                 icon={<ArrowDownOutlined />}
-                // loading={}
+                loading={isDownloadBtnLoading}
                 onClick={() => downloadArticles()}
             ></Button>
         </div>

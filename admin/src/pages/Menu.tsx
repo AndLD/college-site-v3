@@ -11,6 +11,7 @@ import { privateRoutes, publicRoutes } from '../utils/constants'
 import '../styles/Menu.scss'
 import { useSelector } from 'react-redux'
 import MenuActionModal from '../components/Menu/MenuActionModal'
+import MenuTabs from '../components/Menu/MenuTabs'
 
 const { Title } = Typography
 
@@ -19,12 +20,15 @@ const { TabPane } = Tabs
 function Menu() {
     const token = useSelector((state: any) => state.app.token)
     const userStatus = useSelector((state: any) => state.app.user.status)
-
     const [isMounted, setIsMounted] = useState(true)
-
     const [treeLoading, setTreeLoading] = useState(false)
-
     const [selectedMenu, setSelectedMenu] = useState<IMenuBlock | undefined>()
+    const [tableData, setTableData] = useState([])
+    const [pagination, setPagination] = useState({
+        current: 1,
+        pageSize: 20
+    })
+    const [isTableLoading, setIsTableLoading] = useState(false)
 
     function fetchSelectedMenu() {
         setTreeLoading(true)
@@ -32,7 +36,6 @@ function Menu() {
             .then((res: AxiosResponse) => {
                 if (isMounted) {
                     const menu = res.data.result
-                    setTreeLoading(false)
 
                     if (!menu) {
                         warningNotification('No selected menu found!')
@@ -41,17 +44,11 @@ function Menu() {
                 }
             })
             .catch((err: AxiosError) => errorNotification(err.message))
+            .finally(() => setTreeLoading(false))
     }
 
-    const [tableData, setTableData] = useState([])
-    const [pagination, setPagination] = useState({
-        current: 1,
-        pageSize: 20
-    })
-    const [tableLoading, setTableLoading] = useState(false)
-
     function fetchMenu(pagination: any, order?: string) {
-        setTableLoading(true)
+        setIsTableLoading(true)
         axios(privateRoutes.MENU, {
             params: {
                 page: pagination.current,
@@ -66,7 +63,7 @@ function Menu() {
             .then((res: AxiosResponse) => {
                 if (!res.data.meta?.pagination) throw new Error('No pagination obtained')
                 setTableData(res.data.result)
-                setTableLoading(false)
+                setIsTableLoading(false)
                 setPagination({
                     ...pagination,
                     total: res.data.meta.pagination.total
@@ -98,23 +95,11 @@ function Menu() {
                     fetchSelectedMenu,
                     tableDataState: [tableData, setTableData],
                     paginationState: [pagination, setPagination],
-                    tableLoadingState: [tableLoading, setTableLoading],
+                    isTableLoadingState: [isTableLoading, setIsTableLoading],
                     fetchMenu
                 }}
             >
-                <Tabs
-                    onChange={(activeKey: string) =>
-                        localStorage.setItem('defaultActiveKey', activeKey)
-                    }
-                    defaultActiveKey={localStorage.getItem('defaultActiveKey') || undefined}
-                >
-                    <TabPane tab="Selected menu" key={1}>
-                        <SelectedMenu />
-                    </TabPane>
-                    <TabPane tab="Menu table" key={2}>
-                        <MenuTable />
-                    </TabPane>
-                </Tabs>
+                <MenuTabs />
             </MenuContext.Provider>
         </AdminLayout>
     )
