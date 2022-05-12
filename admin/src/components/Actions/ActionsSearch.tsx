@@ -1,5 +1,5 @@
 import Search from 'antd/lib/input/Search'
-import { useContext } from 'react'
+import { useContext, useState } from 'react'
 import { ActionsContext } from '../../contexts'
 import { actionsUtils } from '../../utils/actions'
 
@@ -11,6 +11,7 @@ function ActionsSearch() {
     const [statusFilter, setStatusFilter] = useContext(ActionsContext).statusFilterState
     const [sort, setSort] = useContext(ActionsContext).sortState
     const fetchActions = useContext(ActionsContext).fetchActions
+    const [delayedSearch, setDeleyedSearch] = useState<NodeJS.Timeout>()
 
     return (
         <Search
@@ -21,15 +22,24 @@ function ActionsSearch() {
             onChange={(event) => {
                 const text = event.target.value
                 setSearchValue(text)
-                fetchActions(
-                    pagination,
-                    actionsUtils.combineFilters({
-                        newSearchValue: text,
-                        dateRangeValue,
-                        searchValue,
-                        statusFilterState: [statusFilter, setStatusFilter]
-                    }),
-                    sort || 'timestamp,desc'
+
+                if (delayedSearch) {
+                    clearTimeout(delayedSearch)
+                }
+
+                setDeleyedSearch(
+                    setTimeout(() => {
+                        fetchActions(
+                            pagination,
+                            actionsUtils.combineFilters({
+                                newSearchValue: text,
+                                dateRangeValue,
+                                searchValue,
+                                statusFilterState: [statusFilter, setStatusFilter]
+                            }),
+                            sort || 'timestamp,desc'
+                        )
+                    }, 500)
                 )
             }}
             enterButton

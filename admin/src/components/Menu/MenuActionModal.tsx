@@ -24,39 +24,27 @@ function MenuActionModal() {
 
     const dispatch = useDispatch()
     const token = useSelector((state: any) => state.app.token)
-
     // 'Add' | 'Update'
     const action = useSelector((state: any) => state.app.action)
     const actionModalVisibility = useSelector((state: any) => state.app.actionModalVisibility)
     const actionSuccessCallback = useSelector((state: any) => state.app.actionSuccessCallback)
-
-    // Выбранные строки таблицы
     const tableSelectedRows = useSelector((state: any) => state.app.tableSelectedRows)
-
-    // Инстанс формы Ant Design
     const [form] = Form.useForm()
-
-    // Текущая открытая вкладка
+    // Current opened tab
     const [tabsActiveKey, setTabsActiveKey] = useState<string>('1')
-
     const [fetchedMenu, setFetchedMenu] = useState<IMenuBlock>()
-
-    // Текст json в textarea
+    //  Textarea text (JSON)
     const [menuJson, setMenuJson] = useState<string>('[]')
-
     const [menuJsonErrorMessage, setMenuJsonErrorMessage] = useState<string | undefined>()
-
-    // Массив элементов меню в интерфесе
+    // Menu elements array for displaying in the interface
     const [menuTreeData, setMenuTreeData] = useState<IMenuElementOfTree[]>([])
-    // Массив обновлений меню в интерфейсе
+    // Menu updates array of the interface
     const [menuTreeDataUpdates, setMenuTreeDataUpdates] = useState<IMenuBlockUpdate[]>([])
-
-    // Является ли меню в интерфейсе автоматически обновляемым
+    // Is menu from interface auto updatable
     const [isMenuTreeDataAutoUpdateEnabled, setIsMenuTreeDataAutoUpdateEnabled] =
         useState<boolean>(true)
-    // Является ли json в textarea автоматически обновляемым
+    // Is JSON in textarea auto updatable
     const [isMenuJsonAutoUpdateEnabled, setIsMenuJsonAutoUpdateEnabled] = useState<boolean>(false)
-
     const [draggerFileList, setDraggerFileList] = useState<UploadFile<any>[]>([])
 
     useEffect(() => {
@@ -138,7 +126,6 @@ function MenuActionModal() {
             key={2}
             onChange={(activeKey: string) => setTabsActiveKey(activeKey)}
             activeKey={tabsActiveKey}
-            // defaultActiveKey={'1'}
         >
             <Tabs.TabPane tab="Menu tree" key={1} style={{ overflow: 'scroll' }}>
                 <MenuTree
@@ -197,7 +184,6 @@ function MenuActionModal() {
         </Tabs>,
         // Пустой компонент Form.Item, value которого задается программно из другого компонента
         <Form.Item
-            // style={{ display: 'none' }}
             key={3}
             name="menu"
             rules={[
@@ -210,6 +196,27 @@ function MenuActionModal() {
             <div></div>
         </Form.Item>
     ]
+
+    function fetchMenuById(id: string) {
+        axios(`${privateRoutes.MENU}/${id}`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+            .then((res: AxiosResponse) => {
+                const description = res.data.result.description
+                const menu = res.data.result.menu
+
+                form.setFieldsValue({
+                    description,
+                    menu
+                })
+
+                setFetchedMenu(res.data.result)
+                setMenuJson(JSON.stringify(menu, null, '\t'))
+            })
+            .catch((err: AxiosError) => errorNotification(err.message))
+    }
 
     function onAction(body: any) {
         if (currentPage) {
@@ -238,25 +245,53 @@ function MenuActionModal() {
         }
     }
 
-    function fetchMenuById(id: string) {
-        axios(`${privateRoutes.MENU}/${id}`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        })
-            .then((res: AxiosResponse) => {
-                const description = res.data.result.description
-                const menu = res.data.result.menu
+    function okModalBtn() {
+        try {
+            var menu = JSON.parse(menuJson)
+        } catch (e: any) {
+            setMenuJsonErrorMessage('Invalid JSON.')
+        }
 
-                form.setFieldsValue({
-                    description,
-                    menu
-                })
+        if (menu.length) {
+            form.setFieldsValue({ menu })
+        }
 
-                setFetchedMenu(res.data.result)
-                setMenuJson(JSON.stringify(menu, null, '\t'))
+        form.validateFields()
+            .then((values: any) => {
+                const actionBody: any = {}
+                if (action === 'Add' || (action === 'Update' && fetchedMenu)) {
+                    for (const key in values) {
+                        if (
+                            action === 'Add' ||
+                            (action === 'Update' &&
+                                fetchedMenu &&
+                                (typeof fetchedMenu[key as keyof IMenuBlock] === 'object'
+                                    ? JSON.stringify(fetchedMenu[key as keyof IMenuBlock]) !=
+                                      JSON.stringify(values[key])
+                                    : fetchedMenu[key as keyof IMenuBlock] != values[key]))
+                        ) {
+                            actionBody[key] = values[key]
+                        }
+                    }
+                }
+
+                if (Object.keys(actionBody).length) {
+                    onAction(actionBody)
+                } else
+                    warningNotification(
+                        action === 'Add'
+                            ? 'Fill the fields!'
+                            : action === 'Update'
+                            ? 'No updates detected'
+                            : 'Unable to perform the action'
+                    )
             })
-            .catch((err: AxiosError) => errorNotification(err.message))
+            .catch(() => {
+                notification.error({
+                    message: 'Validation error',
+                    description: 'Invalid form data!'
+                })
+            })
     }
 
     return (
@@ -271,56 +306,7 @@ function MenuActionModal() {
 
                 form.resetFields()
             }}
-            onOk={() => {
-                try {
-                    var menu = JSON.parse(menuJson)
-                } catch (e: any) {
-                    setMenuJsonErrorMessage('Invalid JSON.')
-                }
-
-                if (menu.length) {
-                    form.setFieldsValue({ menu })
-                }
-
-                form.validateFields()
-                    .then((values: any) => {
-                        const actionBody: any = {}
-                        if (action === 'Add' || (action === 'Update' && fetchedMenu)) {
-                            for (const key in values) {
-                                if (
-                                    // form.isFieldTouched(key) &&
-                                    action === 'Add' ||
-                                    (action === 'Update' &&
-                                        fetchedMenu &&
-                                        (typeof fetchedMenu[key as keyof IMenuBlock] === 'object'
-                                            ? JSON.stringify(
-                                                  fetchedMenu[key as keyof IMenuBlock]
-                                              ) != JSON.stringify(values[key])
-                                            : fetchedMenu[key as keyof IMenuBlock] != values[key]))
-                                ) {
-                                    actionBody[key] = values[key]
-                                }
-                            }
-                        }
-
-                        if (Object.keys(actionBody).length) {
-                            onAction(actionBody)
-                        } else
-                            warningNotification(
-                                action === 'Add'
-                                    ? 'Fill the fields!'
-                                    : action === 'Update'
-                                    ? 'No updates detected'
-                                    : 'Unable to perform the action'
-                            )
-                    })
-                    .catch(() => {
-                        notification.error({
-                            message: 'Validation error',
-                            description: 'Invalid form data!'
-                        })
-                    })
-            }}
+            onOk={okModalBtn}
         >
             <Form form={form} layout="vertical" initialValues={{}}>
                 {menuFormItems}
