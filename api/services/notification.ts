@@ -31,15 +31,24 @@ function _sendMessage(message: string) {
 function sendNewActionNotification(actionId: string, actionMetadata: IAction) {
     let message: string = `New action [${actionId}]`
 
-    if (actionMetadata.entity === 'articles') {
-        message = `Action [${actionId}]: Article${
-            actionMetadata.payloadIds.length > 1 ? 's' : ''
-        } [${
-            actionMetadata.action === 'add'
-                ? actionMetadata.payload.title
-                : actionMetadata.payloadIds.join(', ')
-        }] requested to ${actionMetadata.action.toUpperCase()} by User [${actionMetadata.user}]`
+    let entityName: string = '⚠️ UNKNOWN ENTITY'
+
+    switch (actionMetadata.entity) {
+        case 'articles':
+            entityName = '📝 Article'
+            break
+        case 'news':
+            entityName = '📅 News'
+            break
     }
+
+    message = `Action [${actionId}]: ${entityName}${
+        actionMetadata.payloadIds.length > 1 ? 's' : ''
+    } [${
+        actionMetadata.action === 'add'
+            ? actionMetadata.payload.title
+            : actionMetadata.payloadIds.join(', ')
+    }] requested to ${actionMetadata.action.toUpperCase()} by User [${actionMetadata.user}]`
 
     _sendMessage(message)
 }

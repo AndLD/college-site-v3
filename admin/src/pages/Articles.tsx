@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import AdminLayout from '../components/AdminLayout'
 import { privateRoutes } from '../utils/constants'
 import { errorNotification, successNotification } from '../utils/notifications'
-import { AllowedFileExtension, IArticle } from '../utils/types'
+import { ArticlesAllowedFileExtension, IArticle } from '../utils/types'
 import ArticlesTableControls from '../components/Articles/ArticlesTableControls'
 import ArticlesActionModal from '../components/Articles/ArticlesActionModal'
 import { ArticlesContext } from '../contexts'
@@ -16,7 +16,6 @@ const { Title } = Typography
 
 function Articles() {
     const token = useSelector((state: any) => state.app.token)
-
     const [tableData, setTableData] = useState<IArticle[]>([])
     const [pagination, setPagination] = useState({
         current: 1,
@@ -31,7 +30,7 @@ function Articles() {
     useEffect(() => {
         document.title = 'Admin Articles'
 
-        fetchArticles(pagination)
+        fetchArticles(pagination, undefined, 'timestamp,desc')
     }, [])
 
     function fetchArticles(pagination: any, filters?: string, order?: string) {
@@ -82,7 +81,7 @@ function Articles() {
                 successNotification(msg)
 
                 if (!actionId) {
-                    fetchArticles(pagination)
+                    fetchArticles(pagination, undefined, 'timestamp,desc')
                 }
 
                 setSelectedRows([])
@@ -97,7 +96,7 @@ function Articles() {
         setIsDownloadBtnLoading(true)
 
         const options: {
-            [key: string]: AllowedFileExtension[]
+            [key: string]: ArticlesAllowedFileExtension[]
         } = {}
         const ids = selectedRows
             .map((elem: any) => {

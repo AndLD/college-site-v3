@@ -1,10 +1,16 @@
 import { google } from 'googleapis'
 import { getLogger } from '../utils/logger'
 import key from '../configs/service-account.json'
-import { environment, googleDrive, innerErrors } from '../utils/constants'
+import {
+    defaultArticleOptions,
+    defaultNewsOptions,
+    environment,
+    googleDrive,
+    innerErrors
+} from '../utils/constants'
 import { Readable } from 'stream'
 import { bufferFolderPath, bufferService } from './buffer'
-import { AllowedFileExtension, Filter } from '../utils/types'
+import { ArticlesAllowedFileExtension, Filter, NewsAllowedFileExtension } from '../utils/types'
 import { firebase } from '../configs/firebase-config'
 import { articlesService } from './articles'
 import { notificationService } from './notification'
@@ -25,7 +31,6 @@ jwtToken.authorize((err: any) => {
 })
 
 // TODO: Wrap each function of googleDrive service with try-catch
-
 function _getFolderIdByEntity(entity: 'articles' | 'news') {
     if (environment === 'dev') {
         if (entity === 'articles') {
@@ -46,14 +51,17 @@ async function getFilesMetadataByDocIds(
     docIds: string[],
     entity: 'articles' | 'news',
     options?: {
-        [key: string]: AllowedFileExtension[]
+        [key: string]: (ArticlesAllowedFileExtension | NewsAllowedFileExtension)[]
     }
 ) {
     const folderId = _getFolderIdByEntity(entity)
 
     const nameCondition = docIds
         .map((docId) =>
-            ((options && options[docId]) || ['html', 'docx', 'pdf', 'json'])
+            (
+                (options && options[docId]) ||
+                (entity === 'articles' ? defaultArticleOptions : defaultNewsOptions)
+            )
                 .map((ext) => `name="${docId}.${ext}"`)
                 .join(' or ')
         )
@@ -75,7 +83,12 @@ async function getFilesMetadataByDocIds(
                 name,
                 fileExtension,
                 size: parseInt(size)
-            } as { id: string; name: string; fileExtension: AllowedFileExtension; size: number })
+            } as {
+                id: string
+                name: string
+                fileExtension: ArticlesAllowedFileExtension
+                size: number
+            })
     )
 }
 
@@ -83,7 +96,7 @@ async function downloadFiles(
     docIds: string[],
     entity: 'articles' | 'news',
     options?: {
-        [key: string]: AllowedFileExtension[]
+        [key: string]: (ArticlesAllowedFileExtension | NewsAllowedFileExtension)[]
     }
 ) {
     const fileMetadatas = await getFilesMetadataByDocIds(docIds, entity, options)
@@ -154,13 +167,14 @@ async function _downloadFile(fileMetadata: {
 
 async function uploadFile(
     filename: string,
-    file: { ext: string; mimetype: string; body: Buffer; size: number }
+    file: { ext: string; mimetype: string; body: Buffer; size: number },
+    entity: 'articles' | 'news'
 ) {
     const response = await drive.files.create({
         auth: jwtToken,
         resource: {
             name: `${filename}.${file.ext}`,
-            parents: [googleDrive.testArticlesFolderId]
+            parents: [_getFolderIdByEntity(entity)]
         },
         media: {
             mimeType: file.mimetype,
@@ -188,7 +202,7 @@ async function updateFilename(
     newFilename: string,
     entity: 'articles' | 'news',
     options?: {
-        [key: string]: AllowedFileExtension[]
+        [key: string]: ArticlesAllowedFileExtension[]
     },
     fileId?: string
 ) {
@@ -203,10 +217,16 @@ async function updateFilename(
     })
 }
 
-async function deleteFiles(docIds: string[], entity: 'articles' | 'news') {
+async function deleteFiles(
+    docIds: string[],
+    entity: 'articles' | 'news',
+    options?: {
+        [key: string]: (ArticlesAllowedFileExtension | NewsAllowedFileExtension)[]
+    }
+) {
     const promises = []
 
-    const fileMetadatas = await getFilesMetadataByDocIds(docIds, entity)
+    const fileMetadatas = await getFilesMetadataByDocIds(docIds, entity, options)
 
     for (const fileMetadata of fileMetadatas) {
         const promise = drive.files.delete({

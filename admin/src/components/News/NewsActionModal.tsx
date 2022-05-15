@@ -1,7 +1,7 @@
 import { InboxOutlined, WarningTwoTone } from '@ant-design/icons'
 import { Modal, Form, notification, Tabs, FormInstance, Tooltip } from 'antd'
 import Dragger from 'antd/lib/upload/Dragger'
-import { UploadFile } from 'antd/lib/upload/interface'
+import { UploadFile, RcFile } from 'antd/lib/upload/interface'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import moment from 'moment'
 import { useEffect, useState } from 'react'
@@ -13,17 +13,20 @@ import {
     successNotification,
     warningNotification
 } from '../../utils/notifications'
-import { IAction, IArticle, IArticlePost, IArticlePut } from '../../utils/types'
-import ArticleForm from './ArticleForm'
+import { IAction, INews, INewsPost, INewsPut } from '../../utils/types'
+import NewsForm from './NewsForm'
 
-const allowedFileTypes = [
-    'text/html',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/pdf',
-    'application/json'
-]
+const allowedFileTypes = {
+    html: 'text/html',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    png: 'image/png'
+}
 
-function ArticlesActionModal({ selectedRowsState }: { selectedRowsState: [IArticle[], any] }) {
+// interface UploadFileWithBuffer extends RcFile {
+//     arrayBuffer?: ArrayBuffer
+// }
+
+function NewsActionModal({ selectedRowsState }: { selectedRowsState: [INews[], any] }) {
     const dispatch = useDispatch()
     const token = useSelector((state: any) => state.app.token)
     const actionSuccessCallback = useSelector((state: any) => state.app.actionSuccessCallback)
@@ -32,121 +35,48 @@ function ArticlesActionModal({ selectedRowsState }: { selectedRowsState: [IArtic
     const actionModalVisibility = useSelector((state: any) => state.app.actionModalVisibility)
     const [selectedRows, setSelectedRows] = selectedRowsState
     const [warnings, setWarnings] = useState<IAction[]>([])
-    const [fetchedArticle, setFetchedArticle] = useState<IArticle>()
+    const [fetchedNews, setFetchedNews] = useState<INews>()
     // const [isDraggerEnabled, setIsDraggerEnabled] = useState<boolean>(true)
-    const [tabs, setTabs] = useState<JSX.Element[]>([])
-    const [forms, setForms] = useState<FormInstance[]>([])
+    const [addForm, setAddForm] = useState<FormInstance>(Form.useForm()[0])
     const [updateForm] = useState<FormInstance>(Form.useForm()[0])
-    const [fileList, setFileList] = useState<UploadFile<any>[]>([])
+    const [fileList, setFileList] = useState<RcFile[]>([])
     const [isActionModalBtnLoading, setIsActionModalBtnLoading] = useState<boolean>(false)
-
-    const initialForms = [
-        Form.useForm()[0],
-        Form.useForm()[0],
-        Form.useForm()[0],
-        Form.useForm()[0],
-        Form.useForm()[0],
-        Form.useForm()[0],
-        Form.useForm()[0],
-        Form.useForm()[0],
-        Form.useForm()[0],
-        Form.useForm()[0]
-    ]
-
-    useEffect(() => {
-        if (fileList.length > (action === 'Add' ? 10 : 1))
-            throw 'File list should have 0 to 10 files!'
-        if (action === 'Add') {
-            const newTabs: JSX.Element[] = fileList.map((file, i) => (
-                <Tabs.TabPane tab={file.name} key={i} forceRender={true}>
-                    <ArticleForm form={forms[i]} />
-                </Tabs.TabPane>
-            ))
-            setTabs(newTabs)
-        }
-    }, [fileList])
 
     useEffect(() => {
         if (actionModalVisibility) {
             // setIsDraggerEnabled(true)
             setWarnings([])
-            setTabs([])
             setFileList([])
-            setForms([...initialForms])
-            forms.forEach((form) => form.resetFields())
+            addForm.resetFields()
         }
 
         if (actionModalVisibility && action === 'Update' && selectedRows[0].id) {
-            fetchArticleById(selectedRows[0].id, updateForm)
+            fetchNewsById(selectedRows[0].id, updateForm)
             fetchConflictsById(selectedRows[0].id)
         }
     }, [actionModalVisibility])
 
-    async function onAdd(bodies: any, fileList: UploadFile<any>[]) {
-        setIsActionModalBtnLoading(true)
-        const promises: Promise<any>[] = []
-
-        for (let i = 0; i < fileList.length; i++) {
-            const formData = new FormData()
-
-            if (!fileList[i].originFileObj) {
-                return warningNotification('Each file should have a content!')
-            }
-
-            const buffer = await fileList[i].originFileObj?.arrayBuffer()
-            if (buffer) {
-                formData.append('json', JSON.stringify(bodies[i]))
-                formData.append('file', new Blob([buffer]), fileList[i].name)
-                promises.push(makeRequest(formData, bodies[i].title))
-            }
-        }
-
-        Promise.all(promises).then(() => {
-            dispatch(setActionModalVisibility(false))
-            setIsActionModalBtnLoading(false)
-
-            actionSuccessCallback()
-        })
-
-        async function makeRequest(formData: FormData, articleTitle: string) {
-            await axios(privateRoutes.ARTICLE, {
-                method: 'POST',
-                data: formData,
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'multipart/form-data'
-                }
-            })
-                .then((res: AxiosResponse) => {
-                    const actionId = res.data.result?.actionId
-                    const msg = actionId
-                        ? `Request ['${actionId}'] to add article '${articleTitle}' was successfully sent`
-                        : `Article '${articleTitle}' was successfully added`
-                    successNotification(msg)
-                })
-                .catch((err: AxiosError) =>
-                    errorNotification(
-                        `Error trying to add article '${articleTitle}': ${err.message}`
-                    )
-                )
-        }
-    }
-
-    async function onUpdate(body: any, file?: UploadFile) {
-        setIsActionModalBtnLoading(true)
+    async function onAdd(body: any) {
+        const file: RcFile | undefined = getNewsFileFromList()
+        const image: RcFile | undefined = getNewsImageFromList()
 
         const formData = new FormData()
 
         formData.append('json', JSON.stringify(body))
 
-        if (file) {
-            if (!file.originFileObj) {
-                return warningNotification('File should have a content!')
-            }
+        if (!file) {
+            return errorNotification('File not found!')
+        }
 
-            const buffer = await file.originFileObj.arrayBuffer()
+        let buffer = await file.arrayBuffer()
+        if (buffer) {
+            formData.append('file', new Blob([buffer]), file.name)
+        }
+
+        if (image) {
+            buffer = await image.arrayBuffer()
             if (buffer) {
-                formData.append('file', new Blob([buffer]), file.name)
+                formData.append('image', new Blob([buffer]), image.name)
             }
         }
 
@@ -157,8 +87,63 @@ function ArticlesActionModal({ selectedRowsState }: { selectedRowsState: [IArtic
 
         actionSuccessCallback()
 
-        async function makeRequest(formData: FormData, articleTitle?: string) {
-            await axios(`${privateRoutes.ARTICLE}/${selectedRows[0].id}`, {
+        async function makeRequest(formData: FormData, newsTitle: string) {
+            setIsActionModalBtnLoading(true)
+            await axios(privateRoutes.NEWS, {
+                method: 'POST',
+                data: formData,
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data'
+                }
+            })
+                .then((res: AxiosResponse) => {
+                    const actionId = res.data.result?.actionId
+                    const msg = actionId
+                        ? `Request ['${actionId}'] to add news '${newsTitle}' was successfully sent`
+                        : `News '${newsTitle}' was successfully added`
+                    successNotification(msg)
+                })
+                .catch((err: AxiosError) =>
+                    errorNotification(`Error trying to add news '${newsTitle}': ${err.message}`)
+                )
+                .finally(() => setIsActionModalBtnLoading(false))
+        }
+    }
+
+    async function onUpdate(body: any) {
+        const file: RcFile | undefined = getNewsFileFromList()
+        const image: RcFile | undefined = getNewsImageFromList()
+
+        setIsActionModalBtnLoading(true)
+
+        const formData = new FormData()
+
+        formData.append('json', JSON.stringify(body))
+
+        if (file) {
+            const buffer = await file.arrayBuffer()
+            if (buffer) {
+                formData.append('file', new Blob([buffer]), file.name)
+            }
+        }
+
+        if (image) {
+            const buffer = await image.arrayBuffer()
+            if (buffer) {
+                formData.append('image', new Blob([buffer]), image.name)
+            }
+        }
+
+        await makeRequest(formData, body.title)
+
+        dispatch(setActionModalVisibility(false))
+        setIsActionModalBtnLoading(false)
+
+        actionSuccessCallback()
+
+        async function makeRequest(formData: FormData, newsTitle?: string) {
+            await axios(`${privateRoutes.NEWS}/${selectedRows[0].id}`, {
                 method: 'PUT',
                 data: formData,
                 headers: {
@@ -169,40 +154,38 @@ function ArticlesActionModal({ selectedRowsState }: { selectedRowsState: [IArtic
                 .then((res: AxiosResponse) => {
                     const actionId = res.data.result?.actionId
                     const msg = actionId
-                        ? `Request ['${actionId}'] to update article ['${
-                              articleTitle || selectedRows[0].id
+                        ? `Request ['${actionId}'] to update news ['${
+                              newsTitle || selectedRows[0].id
                           }'] was successfully sent`
-                        : `Article ['${
-                              articleTitle || selectedRows[0].id
-                          }'] was successfully updated`
+                        : `News ['${newsTitle || selectedRows[0].id}'] was successfully updated`
                     successNotification(msg)
                 })
                 .catch((err: AxiosError) =>
-                    errorNotification(
-                        `Error trying to update article '${articleTitle}': ${err.message}`
-                    )
+                    errorNotification(`Error trying to update news '${newsTitle}': ${err.message}`)
                 )
         }
     }
 
-    function fetchArticleById(id: string, form: FormInstance) {
-        axios(`${privateRoutes.ARTICLE}/${id}`, {
+    function fetchNewsById(id: string, form: FormInstance) {
+        axios(`${privateRoutes.NEWS}/${id}`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
         })
             .then((res: AxiosResponse) => {
-                const { oldId, title, description, tags, publicTimestamp } = res.data.result
+                const { oldId, title, description, tags, publicTimestamp, inlineMainImage } =
+                    res.data.result
 
                 form.setFieldsValue({
                     oldId,
                     title,
                     description,
                     tags,
-                    publicTimestamp: moment(publicTimestamp)
+                    publicTimestamp: moment(publicTimestamp),
+                    inlineMainImage
                 })
 
-                setFetchedArticle(res.data.result)
+                setFetchedNews(res.data.result)
             })
             .catch((err: AxiosError) => errorNotification(err.message))
     }
@@ -210,7 +193,7 @@ function ArticlesActionModal({ selectedRowsState }: { selectedRowsState: [IArtic
     function fetchConflictsById(id: string) {
         axios(`${privateRoutes.ACTION}/conflicts`, {
             params: {
-                article_id: id
+                news_id: id
             },
             headers: {
                 Authorization: `Bearer ${token}`
@@ -226,56 +209,74 @@ function ArticlesActionModal({ selectedRowsState }: { selectedRowsState: [IArtic
             .catch((err: AxiosError) => errorNotification(err.message))
     }
 
-    function copyFileNameToTitle() {
-        if (action === 'Add') {
-            for (let i = 0; i < fileList.length; i++) {
-                forms[i].setFieldsValue({
-                    title: fileList[i].name.slice(0, fileList[i].name.lastIndexOf('.'))
-                })
+    function getNewsFileFromList() {
+        for (const file of fileList) {
+            const splitted = file.name.split('.')
+            const ext = splitted[splitted.length - 1]
+
+            if (ext === 'docx' || ext === 'html') {
+                return file
             }
+        }
+    }
+
+    function getNewsImageFromList() {
+        for (const file of fileList) {
+            const splitted = file.name.split('.')
+            const ext = splitted[splitted.length - 1]
+
+            if (ext === 'png') {
+                return file
+            }
+        }
+    }
+
+    function copyFileNameToTitle() {
+        const file: UploadFile<any> | undefined = getNewsFileFromList()
+
+        if (!file) {
+            return
+        }
+
+        if (action === 'Add') {
+            addForm.setFieldsValue({
+                title: file.name.slice(0, file.name.lastIndexOf('.'))
+            })
         } else {
             updateForm.setFieldsValue({
-                title: fileList[0].name.slice(0, fileList[0].name.lastIndexOf('.'))
+                title: file.name.slice(0, file.name.lastIndexOf('.'))
             })
         }
     }
 
     function addOkModalBtn() {
-        const validationPromises: Promise<IArticlePost>[] = []
+        addForm
+            .validateFields()
+            .then((values: INewsPost) => {
+                if (!values) {
+                    return
+                }
 
-        for (let i = 0; i < fileList.length; i++) {
-            validationPromises.push(forms[i].validateFields())
-        }
+                const actionBody: any = {}
 
-        Promise.all(validationPromises)
-            .then((valueArrays: IArticlePost[]) => {
-                const actionBodies: any[] = []
-
-                valueArrays.forEach((values) => {
-                    if (!values) {
-                        return
+                for (const key in values) {
+                    if (key === 'publicTimestamp') {
+                        if (values['publicTimestamp'])
+                            actionBody['publicTimestamp'] = Date.parse(
+                                values['publicTimestamp'].toString()
+                            )
+                    } else if (values[key as keyof INewsPost]) {
+                        actionBody[key] = values[key as keyof INewsPost]
                     }
+                }
 
-                    const actionBody: any = {}
+                if (Object.keys(actionBody).length) {
+                    onAdd(actionBody)
+                    return
+                }
 
-                    for (const key in values) {
-                        if (key === 'publicTimestamp') {
-                            if (values['publicTimestamp'])
-                                actionBody['publicTimestamp'] = Date.parse(
-                                    values['publicTimestamp'].toString()
-                                )
-                        } else actionBody[key] = values[key as keyof IArticlePost]
-                    }
-
-                    if (Object.keys(actionBody).length) {
-                        actionBodies.push(actionBody)
-                    } else {
-                        warningNotification('Fill the fields!')
-                        return
-                    }
-                })
-
-                onAdd(actionBodies, fileList)
+                warningNotification('Fill the fields!')
+                return
             })
             .catch(() => {
                 notification.error({
@@ -288,36 +289,36 @@ function ArticlesActionModal({ selectedRowsState }: { selectedRowsState: [IArtic
     function updateOkModalBtn() {
         updateForm
             .validateFields()
-            .then((values: IArticlePut) => {
+            .then((values: INewsPut) => {
                 if (!values) {
                     return
                 }
 
                 const actionBody: any = {}
 
-                if (action === 'Update' && fetchedArticle) {
+                if (action === 'Update' && fetchedNews) {
                     for (const key in values) {
                         if (
                             action === 'Update' &&
-                            fetchedArticle &&
-                            (typeof fetchedArticle[key as keyof IArticlePut] === 'object'
-                                ? JSON.stringify(fetchedArticle[key as keyof IArticlePut]) !=
-                                  JSON.stringify(values[key as keyof IArticlePut])
-                                : fetchedArticle[key as keyof IArticlePut] !=
-                                  values[key as keyof IArticlePut])
+                            fetchedNews &&
+                            (typeof fetchedNews[key as keyof INewsPut] === 'object'
+                                ? JSON.stringify(fetchedNews[key as keyof INewsPut]) !=
+                                  JSON.stringify(values[key as keyof INewsPut])
+                                : fetchedNews[key as keyof INewsPut] !=
+                                  values[key as keyof INewsPut])
                         ) {
                             if (key === 'publicTimestamp') {
                                 if (values['publicTimestamp'])
                                     actionBody['publicTimestamp'] = Date.parse(
                                         values['publicTimestamp'].toString()
                                     )
-                            } else actionBody[key] = values[key as keyof IArticlePut]
+                            } else actionBody[key] = values[key as keyof INewsPut]
                         }
                     }
                 }
 
                 if (Object.keys(actionBody).length || fileList.length) {
-                    onUpdate(actionBody, fileList[0] || null)
+                    onUpdate(actionBody)
                 } else {
                     warningNotification('No updates detected')
                     return
@@ -366,9 +367,8 @@ function ArticlesActionModal({ selectedRowsState }: { selectedRowsState: [IArtic
                 dispatch(setActionModalVisibility(false))
 
                 // setIsDraggerEnabled(true)
-                setTabs([])
                 if (action === 'Add') {
-                    forms.forEach((form) => form.resetFields())
+                    addForm.resetFields()
                 } else {
                     updateForm.resetFields()
                     setSelectedRows([])
@@ -376,46 +376,59 @@ function ArticlesActionModal({ selectedRowsState }: { selectedRowsState: [IArtic
             }}
             onOk={action === 'Add' ? addOkModalBtn : updateOkModalBtn}
         >
-            {action === 'Add' ? <Tabs>{tabs}</Tabs> : <ArticleForm form={updateForm} />}
+            <NewsForm form={action === 'Add' ? addForm : updateForm} />
             <Dragger
                 key={'dragger'}
                 multiple={true}
-                accept={'.html,.docx,.pdf,.json'}
-                maxCount={action === 'Add' ? 10 : 1}
+                accept={'.html,.docx,.png'}
+                maxCount={2}
                 fileList={fileList}
                 // disabled={!isDraggerEbabled}
-                customRequest={({ onSuccess }: any) => onSuccess()}
-                onChange={(info) => {
-                    for (const file of info.fileList) {
-                        if (file.status === 'done') {
-                            // TODO: Fix referring
-                            if (info.file.type && !allowedFileTypes.includes(info.file.type)) {
-                                warningNotification(
-                                    'You should choose *.html, *.docx, *.pdf or *.json file!'
-                                )
-                                return
-                            }
-                        }
+                beforeUpload={async (file, currentFileList) => {
+                    if (currentFileList.length < fileList.length) {
+                        setFileList(currentFileList)
+                        return false
                     }
-                    setFileList(info.fileList)
+
+                    if (file.type && !Object.values(allowedFileTypes).includes(file.type)) {
+                        warningNotification('You should choose *.html, *.docx or *.png file!')
+                        return false
+                    }
+
+                    const fileTypes = fileList.map((file) => file.type)
+
+                    if (
+                        fileTypes.includes(file.type) ||
+                        (file.type === allowedFileTypes.docx &&
+                            fileTypes.includes(allowedFileTypes.html)) ||
+                        (file.type === allowedFileTypes.html &&
+                            fileTypes.includes(allowedFileTypes.docx))
+                    ) {
+                        warningNotification(
+                            'You should choose no more than one document and one image'
+                        )
+                        return false
+                    }
+
+                    setFileList([...fileList, file])
+
+                    return false
                 }}
             >
                 <p className="ant-upload-drag-icon">
                     <InboxOutlined />
                 </p>
                 <p className="ant-upload-text">Click or drag files to this area to upload</p>
-                <p className="ant-upload-hint">*.html, *.docx, *.pdf, *.json</p>
-                <p className="ant-upload-hint">{action === 'Add' ? '10 files' : '1 file'} max</p>
+                <p className="ant-upload-hint">*.html, *.docx, *.png</p>
+                <p className="ant-upload-hint">2 files max</p>
             </Dragger>
             {fileList.length ? (
                 <div style={{ marginTop: 20, textAlign: 'left' }}>
-                    <a onClick={copyFileNameToTitle}>
-                        {action === 'Add' ? 'Copy file names to titles' : 'Copy file name to title'}
-                    </a>
+                    <a onClick={copyFileNameToTitle}>Copy file name to title</a>
                 </div>
             ) : null}
         </Modal>
     )
 }
 
-export default ArticlesActionModal
+export default NewsActionModal

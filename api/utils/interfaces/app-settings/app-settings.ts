@@ -6,6 +6,6 @@ export interface IAppSettings {
 
 export interface IAppSettingsPut {
     selectedMenuId?: string | null
-    pinnedNewsIds?: string[]
+    pinnedNewsIds?: string
     actionAutoApproveEnabledForAdmins?: string
 }

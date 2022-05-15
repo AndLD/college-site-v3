@@ -52,11 +52,31 @@ export interface IArticle {
     lastUpdateTimestamp?: number
 }
 
+export interface INews {
+    id: string
+    oldId?: number
+    title: string
+    data: ArticleData
+    description?: string
+    tags?: string[]
+    // keywords?: string[]
+    publicTimestamp: number
+    timestamp: number
+    lastUpdateTimestamp?: number
+    inlineMainImage?: boolean
+}
+
 export type ArticleData = {
     html?: boolean
     docx?: boolean
     pdf?: boolean
     json?: boolean
+}
+
+export type NewsData = {
+    html?: boolean
+    docx?: boolean
+    png?: boolean
 }
 
 export interface IArticlePost {
@@ -75,6 +95,24 @@ export interface IArticlePut {
     publicTimestamp?: number
 }
 
+export interface INewsPost {
+    oldId?: number
+    title: string
+    description?: string
+    tags?: string[]
+    publicTimestamp?: number
+    inlineMainImage?: boolean
+}
+
+export interface INewsPut {
+    oldId?: number
+    title?: string
+    description?: string
+    tags?: string[]
+    publicTimestamp?: number
+    inlineMainImage?: boolean
+}
+
 export type UserStatus = 'admin' | 'moderator' | 'banned' | 'unconfirmed'
 
 export interface ITokenData {
@@ -85,11 +123,13 @@ export interface ITokenData {
     auth_time: number
 }
 
-export type AllowedFileExtension = 'docx' | 'html' | 'pdf' | 'json'
+export type ArticlesAllowedFileExtension = 'docx' | 'html' | 'pdf' | 'json'
+
+export type NewsAllowedFileExtension = 'docx' | 'html' | 'png'
 
 export interface IAction {
     id: string
-    entity: 'menu' | 'articles' | 'news'
+    entity: 'articles' | 'news'
     action: 'add' | 'update' | 'delete'
     payload: {
         [key: string]: any

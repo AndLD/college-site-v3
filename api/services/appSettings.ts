@@ -19,7 +19,7 @@ function set(newSettings: any) {
     try {
         const settings = get()
         for (const key in newSettings) {
-            if (key === 'actionAutoApproveEnabledForAdmins') {
+            if (key === 'actionAutoApproveEnabledForAdmins' || key === 'pinnedNewsIds') {
                 if (settings[key]) {
                     if (settings[key].includes(newSettings[key])) {
                         settings[key] = settings[key].filter(

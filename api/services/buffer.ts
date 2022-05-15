@@ -1,7 +1,8 @@
 import fs from 'fs'
 import path from 'path'
+import { defaultArticleOptions, defaultNewsOptions } from '../utils/constants'
 import { getLogger } from '../utils/logger'
-import { AllowedFileExtension, Options } from '../utils/types'
+import { ArticlesAllowedFileExtension, Options } from '../utils/types'
 
 const logger = getLogger('services/buffer')
 
@@ -132,21 +133,29 @@ function doesFileAvailable(filename: string) {
     }
 }
 
-function getBufferAvailableOptions(requiredFilenames: string, requiredExtensions?: Options) {
+function getBufferAvailableOptions(
+    entity: 'articles' | 'news',
+    requiredFilenames: string,
+    requiredExtensions?: Options
+) {
     const bufferOptions: Options = {}
 
     for (const requiredFilename of requiredFilenames) {
-        const foundExtensions: AllowedFileExtension[] = []
+        const foundExtensions: ArticlesAllowedFileExtension[] = []
 
         for (const key in bufferMetadata) {
             const index = key.lastIndexOf('.')
             const filename = key.slice(0, index)
-            const ext = key.slice(index + 1) as AllowedFileExtension
+            const ext = key.slice(index + 1) as ArticlesAllowedFileExtension
 
             if (
                 filename === requiredFilename &&
                 ((requiredExtensions && requiredExtensions[filename]?.includes(ext)) ||
-                    (!requiredExtensions && ['docx', 'pdf', 'html', 'json'].includes(ext)))
+                    (!requiredExtensions &&
+                        (entity === 'articles'
+                            ? defaultArticleOptions
+                            : defaultNewsOptions
+                        ).includes(ext)))
             ) {
                 foundExtensions.push(ext)
             }

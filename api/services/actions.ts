@@ -1,12 +1,13 @@
 import { model } from '../model/model'
 import {
     ActionStatus,
-    AllowedFileExtension,
+    ArticlesAllowedFileExtension,
     Error,
-    FileData,
+    ArticleFileData,
     Filter,
     IAction,
-    ModelResult
+    ModelResult,
+    NewsFileData
 } from '../utils/types'
 import { getLogger } from '../utils/logger'
 import { articlesService } from './articles'
@@ -14,12 +15,18 @@ import { googleDriveService } from './googleDrive'
 import { IArticle } from '../utils/interfaces/articles/articles'
 import { notificationService } from './notification'
 import { firebase } from '../configs/firebase-config'
+import { newsService } from './news'
 
 const actionsCollection = 'actions'
 
 const logger = getLogger('services/actions')
 
-async function addAction(actionId: string, actionMetadata: IAction, file?: FileData) {
+async function addAction(
+    actionId: string,
+    actionMetadata: IAction,
+    file?: ArticleFileData | NewsFileData,
+    image?: NewsFileData
+) {
     // Wright action metadata to database
     const [modelResult, modelError] = (await model({
         action: 'add',
@@ -39,11 +46,12 @@ async function addAction(actionId: string, actionMetadata: IAction, file?: FileD
     }
 
     if (file && actionMetadata.status === 'pending') {
-        if (
-            (actionMetadata.action === 'add' || actionMetadata.action === 'update') &&
-            actionMetadata.entity === 'articles'
-        ) {
-            await _addPendedArticle(actionId, file)
+        if (actionMetadata.action === 'add' || actionMetadata.action === 'update') {
+            if (actionMetadata.entity === 'articles') {
+                await _addPendedArticle(actionId, file as ArticleFileData)
+            } else if (actionMetadata.entity === 'news') {
+                await _addPendedNews(actionId, file as NewsFileData, image)
+            }
         }
     }
 
@@ -100,7 +108,7 @@ async function updateActions(actionIds: string[], newStatus: ActionStatus, email
 
                             // TODO: Update filename in the buffer if it exists
                         } else {
-                            const ext = Object.keys(articleData)[0] as AllowedFileExtension
+                            const ext = Object.keys(articleData)[0] as ArticlesAllowedFileExtension
 
                             await googleDriveService.updateFilename(
                                 `${actionMetadata.id}_pending`,
@@ -141,6 +149,11 @@ async function updateActions(actionIds: string[], newStatus: ActionStatus, email
                         await articlesService.deleteArticles(actionMetadata.payloadIds)
 
                         // TODO: Remove file from the buffer if it exists
+                    }
+                } else if (actionMetadata.entity === 'news') {
+                    if (actionMetadata.action === 'add') {
+                    } else if (actionMetadata.action === 'update') {
+                    } else if (actionMetadata.action === 'delete') {
                     }
                 }
             } else if (
@@ -214,11 +227,27 @@ async function _updateActionMetadata(actionId: string, newStatus: ActionStatus, 
     return actionMetadata
 }
 
-async function _addPendedArticle(actionId: string, file: FileData) {
+async function _addPendedArticle(actionId: string, file: ArticleFileData) {
     await articlesService.addFileToGoogleDriveFlow(actionId, file, `${actionId}_pending`)
 }
 
-async function getConflicts({ actionId, articleId }: { actionId?: string; articleId?: string }) {
+async function _addPendedNews(actionId: string, file: NewsFileData, image?: NewsFileData) {
+    await newsService.addFileToGoogleDriveFlow(actionId, file, `${actionId}_pending`)
+
+    if (image) {
+        await newsService.addFileToGoogleDriveFlow(actionId, image, `${actionId}_pending`)
+    }
+}
+
+async function getConflicts({
+    actionId,
+    articleId,
+    newsId
+}: {
+    actionId?: string
+    articleId?: string
+    newsId?: string
+}) {
     type ActionConflictsWhereCondition = (
         | ['payloadIds', 'array-contains-any', string[]]
         | ['payloadIds', 'array-contains', string]
@@ -241,10 +270,8 @@ async function getConflicts({ actionId, articleId }: { actionId?: string; articl
             [firebase.documentId.toString(), '!=', actionId],
             ['payloadIds', 'array-contains-any', ids]
         )
-    } else if (articleId) {
-        where.push(['payloadIds', 'array-contains', articleId])
-    } else {
-        throw '"actionId" or "articleId" missed'
+    } else if (articleId || newsId) {
+        where.push(['payloadIds', 'array-contains', (articleId || newsId) as string])
     }
 
     const conflicts = await _getMetadatas(where)

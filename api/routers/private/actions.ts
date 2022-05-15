@@ -10,14 +10,20 @@ export default Router()
     .get('/conflicts', hasModeratorStatus, async (req: any, res: Response) => {
         const actionId = req.query.action_id
         const articleId = req.query.article_id
+        const newsId = req.query.news_id
 
-        if (!actionId && !articleId) {
+        if (
+            (!actionId && !articleId && !newsId) ||
+            (articleId && newsId) ||
+            (actionId && articleId) ||
+            (actionId && newsId)
+        ) {
             return res.status(400).json({
-                error: 'One query param should be specified: ["action_id", "article_id"]'
+                error: 'One query param should be specified: ["action_id", "article_id", "news_id"]'
             })
         }
 
-        const conflicts = await actionsService.getConflicts(actionId ? { actionId } : { articleId })
+        const conflicts = await actionsService.getConflicts({ actionId, articleId, newsId })
 
         res.json({
             result: conflicts

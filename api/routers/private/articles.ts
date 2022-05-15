@@ -5,13 +5,14 @@ import { googleDriveService } from '../../services/googleDrive'
 import {
     ArticleData,
     IArticle,
+    IArticlePost,
     IArticlePut,
     IArticleUpdate
 } from '../../utils/interfaces/articles/articles'
 import {
-    AllowedFileExtension,
-    AllowedFileType,
-    FileData,
+    ArticlesAllowedFileExtension,
+    ArticlesAllowedFileType,
+    ArticleFileData,
     IAction,
     Options
 } from '../../utils/types'
@@ -22,7 +23,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { getLogger } from '../../utils/logger'
 import { articlesService } from '../../services/articles'
 import { actionsService } from '../../services/actions'
-import { allowedFileTypes } from '../../utils/constants'
+import { articlesAllowedFileTypes } from '../../utils/constants'
 import { firebase } from '../../configs/firebase-config'
 import { getAllCompatibleInputForString } from '../../utils/functions'
 import { bufferUtils } from '../../utils/buffer'
@@ -32,31 +33,25 @@ const logger = getLogger('routes/private/articles')
 
 const upload = multer()
 
-interface IArticlePost {
-    oldId?: number
-    title: string
-    description?: string
-    tags?: string[]
-    publicTimestamp?: number
-}
-
 interface IRequestFile {
     originalname: string
     buffer: Buffer
     size: number
 }
 
-function processFile(file: IRequestFile): FileData {
+function processFile(file: IRequestFile): ArticleFileData {
     const nameSplittedByDot = file.originalname.split('.')
     const ext = nameSplittedByDot[nameSplittedByDot.length - 1]
 
     if (!ext) throw 'No file extension!'
 
-    if (!Object.keys(allowedFileTypes).includes(ext)) throw 'Bad file extension!'
+    if (!Object.keys(articlesAllowedFileTypes).includes(ext)) throw 'Bad file extension!'
 
     return {
         ext,
-        mimetype: allowedFileTypes[ext as AllowedFileExtension] as AllowedFileType,
+        mimetype: articlesAllowedFileTypes[
+            ext as ArticlesAllowedFileExtension
+        ] as ArticlesAllowedFileType,
         body: file.buffer,
         size: file.size
     }
@@ -83,7 +78,8 @@ export default Router()
             req.headers['download-options'] && JSON.parse(req.headers['download-options'])
 
         const bufferOptions =
-            (options && bufferService.getBufferAvailableOptions(ids, options)) || undefined
+            (options && bufferService.getBufferAvailableOptions('articles', ids, options)) ||
+            undefined
 
         const substractedOptions =
             (options && bufferOptions && bufferUtils.substractOptions(options, bufferOptions)) ||
@@ -109,10 +105,6 @@ export default Router()
             }
         }
 
-        console.log('options', options)
-        console.log('bufferOptions', bufferOptions)
-        console.log('substractedOptions', substractedOptions)
-
         if (substractedOptions && Object.keys(substractedOptions).length) {
             const downloadedFilenames = await googleDriveService.downloadFiles(
                 ids,
@@ -126,8 +118,6 @@ export default Router()
 
             filenames.push(...downloadedFilenames)
         }
-
-        console.log('filenames', filenames)
 
         // If we have single file we send it to download
         if (filenames.length === 1) {
@@ -195,8 +185,8 @@ export default Router()
         }
 
         const data: ArticleData = {}
-        data[file.ext as AllowedFileExtension] = true
-        if (file.mimetype === allowedFileTypes.docx) {
+        data[file.ext as ArticlesAllowedFileExtension] = true
+        if (file.mimetype === articlesAllowedFileTypes.docx) {
             data.html = true
         }
 
@@ -303,7 +293,7 @@ export default Router()
                 json: false
             }
             data[file.ext] = true
-            if (file.mimetype === allowedFileTypes.docx) {
+            if (file.mimetype === articlesAllowedFileTypes.docx) {
                 data.html = true
             }
 

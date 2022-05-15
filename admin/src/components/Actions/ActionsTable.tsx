@@ -28,7 +28,10 @@ function ActionsTable() {
     return (
         <Table
             dataSource={tableData}
-            expandable={{ expandedRowRender: actionsUtils.getActionPayloadTable }}
+            expandable={{
+                expandedRowRender: (row: IAction) =>
+                    actionsUtils.getActionPayloadTable(row, row.entity)
+            }}
             columns={[
                 {
                     align: 'center',

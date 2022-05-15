@@ -1,11 +1,9 @@
-import { Response } from 'express'
-import { firebase } from '../configs/firebase-config'
 import { model } from '../model/model'
-import { allowedFileTypes, innerErrors } from '../utils/constants'
+import { articlesAllowedFileTypes, innerErrors } from '../utils/constants'
 import { convertDocxToHtml, getAllCompatibleInputForString } from '../utils/functions'
 import { IArticle, IArticleUpdate } from '../utils/interfaces/articles/articles'
 import { getLogger } from '../utils/logger'
-import { Error, FileData, Filter, ModelResult } from '../utils/types'
+import { Error, ArticleFileData, Filter, ModelResult } from '../utils/types'
 import { googleDriveService } from './googleDrive'
 import { notificationService } from './notification'
 
@@ -13,7 +11,7 @@ const logger = getLogger('services/articles')
 
 const articlesCollection = 'articles'
 
-async function addArticle(docId: string, articleMetadata: IArticle, file: FileData) {
+async function addArticle(docId: string, articleMetadata: IArticle, file: ArticleFileData) {
     await addMetadataToDBFlow(docId, articleMetadata)
 
     await addFileToGoogleDriveFlow(docId, file)
@@ -85,7 +83,9 @@ async function addFileToGoogleDrive(
     filename?: string
 ) {
     // Upload file to Google Drive
-    const result = (await googleDriveService.uploadFile(filename || docId, file)) as { id: string }
+    const result = (await googleDriveService.uploadFile(filename || docId, file, 'articles')) as {
+        id: string
+    }
     if (!result?.id) {
         // If file was not stored to Google Drive, delete record from DB
         await _deleteMetadatasFromDB(
@@ -109,7 +109,7 @@ async function addFileToGoogleDriveFlow(
     await addFileToGoogleDrive(docId, file, filename)
 
     // If we try to add DOCX then we should also convert this to HTML and add to Google Drive
-    if (file.mimetype === allowedFileTypes.docx) {
+    if (file.mimetype === articlesAllowedFileTypes.docx) {
         try {
             var html = (await convertDocxToHtml(file.body))?.value
             if (!html) throw 'Result of convertion DOCX to HTML is empty'
@@ -135,7 +135,7 @@ async function addFileToGoogleDriveFlow(
             body: htmlBuffer,
             size: htmlBuffer.length,
             ext: 'html',
-            mimetype: allowedFileTypes.html
+            mimetype: articlesAllowedFileTypes.html
         }
 
         // Upload html file to Google Drive
@@ -146,7 +146,7 @@ async function addFileToGoogleDriveFlow(
 async function updateArticle(
     docId: string,
     articleMetadataUpdate: IArticleUpdate,
-    file?: FileData
+    file?: ArticleFileData
 ) {
     await updateMetadataToDBFlow(docId, articleMetadataUpdate)
 
@@ -257,7 +257,7 @@ async function _getMetadatasFromDB({ where, docIds }: { where?: Filter[]; docIds
     return modelResult.mainResult as IArticle[]
 }
 
-async function updateFileToGoogleDriveFlow(docId: string, file: FileData) {
+async function updateFileToGoogleDriveFlow(docId: string, file: ArticleFileData) {
     await googleDriveService.deleteFiles([docId], 'articles')
 
     await addFileToGoogleDriveFlow(docId, file)

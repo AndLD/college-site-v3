@@ -22,6 +22,7 @@ export async function isAuthorized(req: any, res: Response, next: NextFunction) 
             where: [['email', '==', req.user.email]],
             action: 'get'
         })
+
         if (findUserError) {
             return res.status(findUserError.code).json({
                 error: findUserError.msg

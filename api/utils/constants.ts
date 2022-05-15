@@ -42,9 +42,18 @@ export const googleDrive = {
     testNewsFolderId: process.env.GOOGLE_DRIVE_TEST_NEWS_FOLDER_ID
 }
 
-export const allowedFileTypes = {
+export const articlesAllowedFileTypes = {
     html: 'text/html',
     docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     pdf: 'application/pdf',
     json: 'application/json'
 }
+
+export const newsAllowedFileTypes = {
+    html: 'text/html',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    png: 'image/png'
+}
+
+export const defaultArticleOptions = ['html', 'docx', 'pdf', 'json']
+export const defaultNewsOptions = ['html', 'docx', 'png']

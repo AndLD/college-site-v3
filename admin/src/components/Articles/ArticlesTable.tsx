@@ -64,7 +64,8 @@ function ArticlesTable() {
                     align: 'center',
                     render: (value: number) => value && new Date(value).toLocaleString(),
                     sorter: (row1: any, row2: any) => row1.timestamp - row2.timestamp,
-                    sortDirections: ['descend']
+                    sortDirections: ['descend'],
+                    defaultSortOrder: 'descend'
                 },
                 {
                     title: 'Last update timestamp',
@@ -93,9 +94,10 @@ function ArticlesTable() {
                                     <div>
                                         <Badge color={data.pdf ? 'green' : 'red'} /> pdf
                                     </div>
-                                    <div>
+                                    {/* TODO: Remove everything binded with 'json' filetype in articles and news */}
+                                    {/* <div>
                                         <Badge color={data.json ? 'green' : 'red'} /> json
-                                    </div>
+                                    </div> */}
                                 </div>
                             )
                     },

@@ -8,6 +8,7 @@ export const privateRoutes = {
     USER: `${privateRoute}/user`,
     AUTHORIZED_USER: `${privateRoute}/user/authorized`,
     ARTICLE: `${privateRoute}/article`,
+    NEWS: `${privateRoute}/news`,
     ACTION: `${privateRoute}/action`
 }
 

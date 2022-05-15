@@ -109,7 +109,9 @@ export type UserStatus = 'admin' | 'moderator' | 'banned' | 'unconfirmed'
 
 export type MyFile = { mimetype: string; buffer: Buffer; size: number }
 
-export type AllowedFileExtension = 'docx' | 'html' | 'pdf' | 'json'
+export type ArticlesAllowedFileExtension = 'docx' | 'html' | 'pdf' | 'json'
+
+export type NewsAllowedFileExtension = 'docx' | 'html' | 'png'
 
 export interface IAction {
     id?: string
@@ -129,19 +131,31 @@ export interface IAction {
 
 export type ActionStatus = 'pending' | 'approved' | 'declined'
 
-export type AllowedFileType =
+export type ArticlesAllowedFileType =
     | 'text/html'
     | 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     | 'application/pdf'
     | 'application/json'
 
-export type FileData = {
+export type NewsAllowedFileType =
+    | 'text/html'
+    | 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    | 'image/png'
+
+export type ArticleFileData = {
     ext: string
-    mimetype: AllowedFileType
+    mimetype: ArticlesAllowedFileType
+    body: Buffer
+    size: number
+}
+
+export type NewsFileData = {
+    ext: string
+    mimetype: NewsAllowedFileType
     body: Buffer
     size: number
 }
 
 export type Options = {
-    [key: string]: AllowedFileExtension[]
+    [key: string]: ArticlesAllowedFileExtension[]
 }

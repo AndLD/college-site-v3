@@ -12,7 +12,7 @@ export const IAppSettings = t.iface([], {
 
 export const IAppSettingsPut = t.iface([], {
   "selectedMenuId": t.opt(t.union("string", "null")),
-  "pinnedNewsIds": t.opt(t.array("string")),
+  "pinnedNewsIds": t.opt("string"),
   "actionAutoApproveEnabledForAdmins": t.opt("string"),
 });
 

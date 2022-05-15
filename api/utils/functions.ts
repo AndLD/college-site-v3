@@ -94,8 +94,7 @@ export function getAllCompatibleInputForString(str: string) {
 
 export async function convertDocxToHtml(docxBuffer: Buffer) {
     try {
-        const html = await mammoth.convertToHtml({ buffer: docxBuffer })
-        return html
+        return await mammoth.convertToHtml({ buffer: docxBuffer })
     } catch (e) {
         logger.error('Failed to convert DOCX to HTML with error:', e)
     }

@@ -1,6 +1,6 @@
 import { Badge, Table, Tag } from 'antd'
 import { Dispatch, SetStateAction } from 'react'
-import { ArticleData, IColumn } from './types'
+import { ArticleData, IColumn, NewsData } from './types'
 
 function defineStatus(value: string) {
     switch (value) {
@@ -26,15 +26,18 @@ function convertDateRangeValueToFilters(dateRangeValue: [number, number]) {
     return result
 }
 
-function getActionPayloadTable({
-    payload,
-    payloadIds
-}: {
-    payload: {
-        [key: string]: any
-    }
-    payloadIds: string[]
-}) {
+function getActionPayloadTable(
+    {
+        payload,
+        payloadIds
+    }: {
+        payload: {
+            [key: string]: any
+        }
+        payloadIds: string[]
+    },
+    entity: 'articles' | 'news'
+) {
     const columns: IColumn[] = []
 
     for (const key in payload) {
@@ -51,7 +54,7 @@ function getActionPayloadTable({
             column.render = (value: number) => value && new Date(value).toLocaleString()
         } else if (key === 'data') {
             column.width = 70
-            column.render = (data?: ArticleData) => {
+            column.render = (data?: ArticleData | NewsData) => {
                 if (data)
                     return (
                         <div>
@@ -61,12 +64,21 @@ function getActionPayloadTable({
                             <div>
                                 <Badge color={data.docx ? 'green' : 'red'} /> docx
                             </div>
-                            <div>
-                                <Badge color={data.pdf ? 'green' : 'red'} /> pdf
-                            </div>
-                            <div>
+                            {entity === 'articles' ? (
+                                <div>
+                                    <Badge color={(data as ArticleData).pdf ? 'green' : 'red'} />{' '}
+                                    pdf
+                                </div>
+                            ) : null}
+                            {/* TODO: Remove everything binded with 'json' filetype in articles and news */}
+                            {/* <div>
                                 <Badge color={data.json ? 'green' : 'red'} /> json
-                            </div>
+                            </div> */}
+                            {entity === 'news' ? (
+                                <div>
+                                    <Badge color={(data as NewsData).png ? 'green' : 'red'} /> png
+                                </div>
+                            ) : null}
                         </div>
                     )
             }

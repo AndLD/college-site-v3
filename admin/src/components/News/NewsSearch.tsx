@@ -1,12 +1,12 @@
 import Search from 'antd/lib/input/Search'
 import { useContext, useState } from 'react'
-import { ArticlesContext } from '../../contexts'
+import { NewsContext } from '../../contexts'
 
-function ArticlesSearch() {
-    const [isTableLoading, setIsTableLoading] = useContext(ArticlesContext).isTableLoadingState
-    const [pagination, setPagination] = useContext(ArticlesContext).paginationState
-    const [searchValue, setSearchValue] = useContext(ArticlesContext).searchValueState
-    const fetchArticles = useContext(ArticlesContext).fetchArticles
+function NewsSearch() {
+    const [isTableLoading, setIsTableLoading] = useContext(NewsContext).isTableLoadingState
+    const [pagination, setPagination] = useContext(NewsContext).paginationState
+    const [searchValue, setSearchValue] = useContext(NewsContext).searchValueState
+    const fetchNews = useContext(NewsContext).fetchNews
     const [delayedSearch, setDeleyedSearch] = useState<NodeJS.Timeout>()
 
     return (
@@ -25,7 +25,7 @@ function ArticlesSearch() {
 
                 setDeleyedSearch(
                     setTimeout(() => {
-                        fetchArticles(
+                        fetchNews(
                             pagination,
                             text ? `keywords,contains,${text.toLowerCase()}` : undefined,
                             'timestamp,desc'
@@ -38,4 +38,4 @@ function ArticlesSearch() {
     )
 }
 
-export default ArticlesSearch
+export default NewsSearch

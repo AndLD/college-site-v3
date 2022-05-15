@@ -5,7 +5,13 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import { privateRoutes } from '../utils/constants'
-import { AllowedFileExtension, ArticleData, IAction, IColumn, IPreviewFile } from '../utils/types'
+import {
+    ArticlesAllowedFileExtension,
+    ArticleData,
+    IAction,
+    IColumn,
+    IPreviewFile
+} from '../utils/types'
 import { errorNotification } from '../utils/notifications'
 import { ArrowDownOutlined } from '@ant-design/icons'
 import { actionsUtils } from '../utils/actions'
@@ -57,7 +63,7 @@ function Preview() {
 
     function fetchActionFile(actionId: string) {
         const options: {
-            [key: string]: AllowedFileExtension[]
+            [key: string]: ArticlesAllowedFileExtension[]
         } = {
             [actionId + '_pending']: [
                 action?.payload?.data?.docx || action?.payload?.data?.html ? 'html' : 'pdf'
@@ -129,7 +135,7 @@ function Preview() {
         }
 
         setIsDownloadBtnLoading(true)
-        const options: { [key: string]: AllowedFileExtension[] } = {
+        const options: { [key: string]: ArticlesAllowedFileExtension[] } = {
             [actionId + '_pending']:
                 (!action?.payload?.data?.docx && action?.payload?.data?.html) ||
                 action?.payload?.data?.html
@@ -182,10 +188,13 @@ function Preview() {
                 ></Button>
             </Tooltip>
             {action
-                ? actionsUtils.getActionPayloadTable({
-                      payload: action.payload,
-                      payloadIds: action.payloadIds
-                  })
+                ? actionsUtils.getActionPayloadTable(
+                      {
+                          payload: action.payload,
+                          payloadIds: action.payloadIds
+                      },
+                      action.entity
+                  )
                 : null}
             <Divider />
             {previewFile ? (

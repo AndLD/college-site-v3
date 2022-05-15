@@ -10,6 +10,7 @@ import { Request, Response, Router } from 'express'
 import appSettingsPrivateRouter from './routers/private/app-settings'
 import articlesPublicRouter from './routers/public/articles'
 import articlesPrivateRouter from './routers/private/articles'
+import newsPrivateRouter from './routers/private/news'
 import actionsPrivateRouter from './routers/private/actions'
 
 const logger = getLogger('index')
@@ -48,6 +49,7 @@ privateRouter.use(
     setReqEntity(entities.ARTICLES),
     articlesPrivateRouter
 )
+privateRouter.use('/news', hasModeratorStatus, setReqEntity(entities.NEWS), newsPrivateRouter)
 // Actions
 privateRouter.use('/action', setReqEntity(entities.ACTIONS), actionsPrivateRouter)
 
