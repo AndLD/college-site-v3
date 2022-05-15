@@ -104,7 +104,7 @@ export default Router()
             )
 
             if (!downloadedFilenames.length) {
-                return res.sendStatus(500)
+                return res.sendStatus(404)
             }
 
             filenames.push(...downloadedFilenames)

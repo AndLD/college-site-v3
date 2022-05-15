@@ -53,7 +53,7 @@ function getActionPayloadTable(
         if (key.toLowerCase().includes('timestamp')) {
             column.render = (value: number) => value && new Date(value).toLocaleString()
         } else if (key === 'data') {
-            column.width = 70
+            column.width = 100
             column.render = (data?: ArticleData | NewsData) => {
                 if (data)
                     return (

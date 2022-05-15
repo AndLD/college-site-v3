@@ -167,6 +167,17 @@ function getBufferAvailableOptions(
     return bufferOptions
 }
 
+function getTotalSize() {
+    let size = 0
+
+    for (const filename in bufferMetadata) {
+        size += bufferMetadata[filename].size
+    }
+
+    // return MB
+    return parseFloat((size / 1024 / 1024).toFixed(2))
+}
+
 _initBufferMetadata()
 
 export const bufferService = {
@@ -177,5 +188,6 @@ export const bufferService = {
     getBufferMetadata,
     doesFileAvailable,
     getBufferAvailableOptions,
-    recordDownload
+    recordDownload,
+    getTotalSize
 }

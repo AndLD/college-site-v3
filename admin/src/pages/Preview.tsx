@@ -1,5 +1,5 @@
 import AdminLayout from '../components/AdminLayout'
-import { Badge, Button, Divider, Spin, Table, Tag, Tooltip, Typography } from 'antd'
+import { Badge, Button, Divider, Empty, Spin, Table, Tag, Tooltip, Typography } from 'antd'
 import { useSelector } from 'react-redux'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
@@ -10,9 +10,10 @@ import {
     ArticleData,
     IAction,
     IColumn,
-    IPreviewFile
+    IPreviewFile,
+    NewsAllowedFileExtension
 } from '../utils/types'
-import { errorNotification } from '../utils/notifications'
+import { errorNotification, warningNotification } from '../utils/notifications'
 import { ArrowDownOutlined } from '@ant-design/icons'
 import { actionsUtils } from '../utils/actions'
 import { previewUtils as previewUtils } from '../utils/preview'
@@ -23,6 +24,7 @@ function Preview() {
     const token = useSelector((state: any) => state.app.token)
     const { actionId }: { actionId: string } = useParams()
     const [action, setAction] = useState<IAction | null>()
+    const [previewImage, setPreviewImage] = useState<IPreviewFile>()
     const [previewFile, setPreviewFile] = useState<IPreviewFile>()
     const [isActionMetadataLoading, setIsActionMetadataLoading] = useState<boolean>(false)
     const [isDownloadBtnLoading, setIsDownloadBtnLoading] = useState<boolean>(false)
@@ -43,7 +45,17 @@ function Preview() {
 
     useEffect(() => {
         if (action) {
-            fetchActionFile(actionId)
+            // TODO: Combine downloading file & image into one request
+            fetchActionFile(actionId, {
+                [actionId + '_pending']: [
+                    action?.payload?.data?.docx || action?.payload?.data?.html ? 'html' : 'pdf'
+                ]
+            })
+            if (action.entity === 'news') {
+                fetchActionFile(actionId, {
+                    [actionId + '_pending']: ['png']
+                })
+            }
         }
     }, [action])
 
@@ -61,16 +73,15 @@ function Preview() {
             .finally(() => setIsActionMetadataLoading(false))
     }
 
-    function fetchActionFile(actionId: string) {
-        const options: {
-            [key: string]: ArticlesAllowedFileExtension[]
-        } = {
-            [actionId + '_pending']: [
-                action?.payload?.data?.docx || action?.payload?.data?.html ? 'html' : 'pdf'
-            ]
+    function fetchActionFile(
+        actionId: string,
+        options: {
+            [key: string]: (ArticlesAllowedFileExtension | NewsAllowedFileExtension)[]
         }
+    ) {
+        const route = action?.entity === 'articles' ? privateRoutes.ARTICLE : privateRoutes.NEWS
 
-        axios(`${privateRoutes.ARTICLE}/download`, {
+        axios(`${route}/download`, {
             params: {
                 ids: actionId + '_pending'
             },
@@ -95,7 +106,7 @@ function Preview() {
                 const name = filename.slice(0, filename.lastIndexOf('.'))
                 const ext = filename.slice(filename.lastIndexOf('.') + 1)
 
-                if (ext !== 'html' && ext !== 'pdf') {
+                if (ext !== 'html' && ext !== 'pdf' && ext !== 'png') {
                     throw new Error(`Unsupported "${ext}" file obtained`)
                 }
 
@@ -116,9 +127,26 @@ function Preview() {
                             ext
                         })
                     })
+                } else if (ext === 'png') {
+                    previewUtils.blobToBase64(data).then((base64) => {
+                        setPreviewImage({
+                            name,
+                            base64: (base64 as string).split('base64,')[1],
+                            ext
+                        })
+                    })
                 }
             })
-            .catch((err: AxiosError) => errorNotification(err.message))
+            .catch((err: AxiosError) => {
+                if (
+                    err.message === 'Request failed with status code 404' &&
+                    Object.values(options)[0].includes('png')
+                ) {
+                    return
+                }
+
+                errorNotification(err.message)
+            })
     }
 
     function downloadActionFiles(actionId: string) {
@@ -173,13 +201,13 @@ function Preview() {
     return (
         <AdminLayout currentPage={`preview/${actionId}`}>
             <Title level={1}>
-                Preview
+                Preview of {action?.entity === 'articles' ? 'article' : 'news'}
                 {previewFile ? null : <Spin style={{ marginLeft: 20 }} size="large" />}
             </Title>
             <span>{`Action [${actionId}]`}</span>
             <Tooltip title="Download">
                 <Button
-                    style={{ margin: '0 0 0 10px' }}
+                    style={{ margin: '0 0 15px 10px' }}
                     type="primary"
                     disabled={!previewFile}
                     loading={isDownloadBtnLoading}
@@ -197,6 +225,28 @@ function Preview() {
                   )
                 : null}
             <Divider />
+            {action?.entity === 'news' ? (
+                <>
+                    <Tooltip title="Main Image">
+                        {previewImage ? (
+                            <div
+                                style={{
+                                    textAlign: 'center'
+                                }}
+                            >
+                                <img
+                                    src={'data:image/png;base64,' + previewImage.base64}
+                                    alt="Preview news main image"
+                                    style={{ width: '30%' }}
+                                />
+                            </div>
+                        ) : (
+                            <Empty />
+                        )}
+                    </Tooltip>
+                    <Divider />
+                </>
+            ) : null}
             {previewFile ? (
                 <div>
                     {previewFile.ext === 'html' && previewFile.htmlString ? (

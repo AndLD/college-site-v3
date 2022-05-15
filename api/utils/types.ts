@@ -157,5 +157,5 @@ export type NewsFileData = {
 }
 
 export type Options = {
-    [key: string]: ArticlesAllowedFileExtension[]
+    [key: string]: (ArticlesAllowedFileExtension | NewsAllowedFileExtension)[]
 }

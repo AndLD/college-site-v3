@@ -238,7 +238,7 @@ const makeBatchedDeletes = ({
 }
 
 // Count documents of a collection
-const getCollectionLength = async (collection: string) => {
+export const getCollectionLength = async (collection: string) => {
     return (await db.collection(collection).listDocuments())?.length
 }
 

@@ -1,5 +1,7 @@
 import { Error } from './types'
 
+export const startTimestamp = Date.now()
+
 export const environment = process.env.ENVIRONMENT || 'dev'
 
 export const errors: {
