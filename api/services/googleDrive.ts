@@ -76,20 +76,12 @@ async function getFilesMetadataByDocIds(
 
     if (!fileMetadatas?.length) return []
 
-    return fileMetadatas.map(
-        ({ id, name, fileExtension, size }: any) =>
-            ({
-                id,
-                name,
-                fileExtension,
-                size: parseInt(size)
-            } as {
-                id: string
-                name: string
-                fileExtension: ArticlesAllowedFileExtension
-                size: number
-            })
-    )
+    return fileMetadatas.map(({ id, name, fileExtension, size }: any) => ({
+        id,
+        name,
+        fileExtension,
+        size: parseInt(size)
+    }))
 }
 
 async function downloadFiles(
@@ -202,7 +194,7 @@ async function updateFilename(
     newFilename: string,
     entity: 'articles' | 'news',
     options?: {
-        [key: string]: ArticlesAllowedFileExtension[]
+        [key: string]: (ArticlesAllowedFileExtension | NewsAllowedFileExtension)[]
     },
     fileId?: string
 ) {

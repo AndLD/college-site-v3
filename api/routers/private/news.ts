@@ -339,7 +339,7 @@ export default Router()
             }
 
             try {
-                await actionsService.addAction(actionId, actionMetadata, file)
+                await actionsService.addAction(actionId, actionMetadata, file, image)
 
                 if (actionMetadata.status === 'pending') {
                     return res.json({

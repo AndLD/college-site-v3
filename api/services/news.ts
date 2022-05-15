@@ -217,7 +217,10 @@ async function updateMetadataToDBFlow(docId: string, newsMetadataUpdate: INewsUp
 
     const mainResult = await _updateMetadataToDB(docId, newsMetadataUpdate)
 
-    return mainResult.id
+    return {
+        docBeforeUpdate: newsMetadata,
+        docAfterUpdate: mainResult
+    }
 }
 
 async function _updateMetadataToDB(docId: string, obj: INewsUpdate) {

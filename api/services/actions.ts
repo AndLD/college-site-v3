@@ -7,15 +7,17 @@ import {
     Filter,
     IAction,
     ModelResult,
-    NewsFileData
+    NewsFileData,
+    NewsAllowedFileExtension
 } from '../utils/types'
 import { getLogger } from '../utils/logger'
 import { articlesService } from './articles'
 import { googleDriveService } from './googleDrive'
-import { IArticle } from '../utils/interfaces/articles/articles'
+import { ArticleData, IArticle } from '../utils/interfaces/articles/articles'
 import { notificationService } from './notification'
 import { firebase } from '../configs/firebase-config'
 import { newsService } from './news'
+import { INews, NewsData } from '../utils/interfaces/news/news'
 
 const actionsCollection = 'actions'
 
@@ -45,12 +47,12 @@ async function addAction(
         throw 'Action was not stored to database! Body: ' + JSON.stringify(actionMetadata)
     }
 
-    if (file && actionMetadata.status === 'pending') {
+    if ((file || image) && actionMetadata.status === 'pending') {
         if (actionMetadata.action === 'add' || actionMetadata.action === 'update') {
             if (actionMetadata.entity === 'articles') {
                 await _addPendedArticle(actionId, file as ArticleFileData)
             } else if (actionMetadata.entity === 'news') {
-                await _addPendedNews(actionId, file as NewsFileData, image)
+                await _addPendedNews(actionId, file as NewsFileData | undefined, image)
             }
         }
     }
@@ -91,7 +93,7 @@ async function updateActions(actionIds: string[], newStatus: ActionStatus, email
                             docId,
                             actionMetadata.payload as IArticle
                         )
-                        const articleData = actionMetadata.payload.data
+                        const articleData: ArticleData = actionMetadata.payload.data
                         if (articleData.docx) {
                             await googleDriveService.updateFilename(
                                 `${actionMetadata.id}_pending`,
@@ -105,8 +107,6 @@ async function updateActions(actionIds: string[], newStatus: ActionStatus, email
                                 'articles',
                                 { [`${actionMetadata.id}_pending`]: ['html'] }
                             )
-
-                            // TODO: Update filename in the buffer if it exists
                         } else {
                             const ext = Object.keys(articleData)[0] as ArticlesAllowedFileExtension
 
@@ -116,8 +116,6 @@ async function updateActions(actionIds: string[], newStatus: ActionStatus, email
                                 'articles',
                                 { [`${actionMetadata.id}_pending`]: [ext] }
                             )
-
-                            // TODO: Update filename in the buffer if it exists
                         }
                     } else if (actionMetadata.action === 'update') {
                         const docId = actionMetadata.payloadIds[0]
@@ -152,8 +150,94 @@ async function updateActions(actionIds: string[], newStatus: ActionStatus, email
                     }
                 } else if (actionMetadata.entity === 'news') {
                     if (actionMetadata.action === 'add') {
+                        const docId = actionMetadata.payloadIds[0]
+
+                        await newsService.addMetadataToDBFlow(
+                            docId,
+                            actionMetadata.payload as INews
+                        )
+                        const newsData: NewsData = actionMetadata.payload.data
+                        if (newsData.docx) {
+                            await googleDriveService.updateFilename(
+                                `${actionMetadata.id}_pending`,
+                                `${docId}.docx`,
+                                'news',
+                                { [`${actionMetadata.id}_pending`]: ['docx'] }
+                            )
+                            await googleDriveService.updateFilename(
+                                `${actionMetadata.id}_pending`,
+                                `${docId}.html`,
+                                'news',
+                                { [`${actionMetadata.id}_pending`]: ['html'] }
+                            )
+                        } else if (newsData.html) {
+                            await googleDriveService.updateFilename(
+                                `${actionMetadata.id}_pending`,
+                                `${docId}.html`,
+                                'news',
+                                { [`${actionMetadata.id}_pending`]: ['html'] }
+                            )
+                        }
+
+                        if (newsData.png) {
+                            await googleDriveService.updateFilename(
+                                `${actionMetadata.id}_pending`,
+                                `${docId}.png`,
+                                'news',
+                                { [`${actionMetadata.id}_pending`]: ['png'] }
+                            )
+                        }
                     } else if (actionMetadata.action === 'update') {
+                        const docId = actionMetadata.payloadIds[0]
+
+                        const { docBeforeUpdate: newsMetadata } =
+                            await newsService.updateMetadataToDBFlow(docId, actionMetadata.payload)
+
+                        const fileMetadatas = await googleDriveService.getFilesMetadataByDocIds(
+                            [actionMetadata.id + '_pending'],
+                            'news'
+                        )
+
+                        const areFilesUpdated = fileMetadatas.length
+
+                        if (areFilesUpdated) {
+                            const updatedFileExtensions: NewsAllowedFileExtension[] =
+                                fileMetadatas.map((fileMetadata) => fileMetadata.fileExtension)
+
+                            const fileExtensionsToDelete: NewsAllowedFileExtension[] = []
+
+                            // If we have docx, we should also delete html
+                            if (
+                                updatedFileExtensions.includes('docx') ||
+                                (newsMetadata.data.docx && !updatedFileExtensions.includes('docx'))
+                            ) {
+                                fileExtensionsToDelete.push('docx', 'html')
+                            }
+
+                            if (updatedFileExtensions.includes('png')) {
+                                fileExtensionsToDelete.push('png')
+                            }
+
+                            await googleDriveService.deleteFiles([docId], 'news', {
+                                [docId]: fileExtensionsToDelete
+                            })
+
+                            for (const fileMetadata of fileMetadatas) {
+                                await googleDriveService.updateFilename(
+                                    `${actionMetadata.id}_pending`,
+                                    `${docId}.${fileMetadata.fileExtension}`,
+                                    'news',
+                                    { [fileMetadata.name]: [fileMetadata.fileExtension] },
+                                    fileMetadata.id
+                                )
+
+                                // TODO: Update filename in the buffer if it exists
+                            }
+                        }
                     } else if (actionMetadata.action === 'delete') {
+                        await newsService.deleteNews(actionMetadata.payloadIds)
+
+                        // TODO: Remove file from the buffer if it exists
                     }
                 }
             } else if (
@@ -231,8 +315,10 @@ async function _addPendedArticle(actionId: string, file: ArticleFileData) {
     await articlesService.addFileToGoogleDriveFlow(actionId, file, `${actionId}_pending`)
 }
 
-async function _addPendedNews(actionId: string, file: NewsFileData, image?: NewsFileData) {
-    await newsService.addFileToGoogleDriveFlow(actionId, file, `${actionId}_pending`)
+async function _addPendedNews(actionId: string, file?: NewsFileData, image?: NewsFileData) {
+    if (file) {
+        await newsService.addFileToGoogleDriveFlow(actionId, file, `${actionId}_pending`)
+    }
 
     if (image) {
         await newsService.addFileToGoogleDriveFlow(actionId, image, `${actionId}_pending`)
