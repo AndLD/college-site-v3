@@ -3,5 +3,11 @@ import { controller } from '../../controller/controller'
 import { setReqProp, setReqQueryProp } from '../../middlewares/decorators'
 
 export default Router()
-    // Получение активного блока меню
-    .get('/', setReqQueryProp('settings', 'id,==,selectedMenuId'), setReqProp('singleResult', true), controller)
+    // TODO: Implement mainResult filtering and return only 'menu' field from result
+    // Selected menu block getting
+    .get(
+        '/',
+        setReqQueryProp('settings', 'id,==,selectedMenuId'),
+        setReqProp('singleResult', true),
+        controller
+    )

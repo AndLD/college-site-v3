@@ -1,0 +1,51 @@
+@import 'variables.scss';
+
+#MENU {
+    display: flex;
+
+    margin-bottom: 1%;
+
+    text-align: center;
+
+    font-size: $menuElem;
+    @media screen and (min-width: 1900px) {
+        font-size: 1.05vw;
+    }
+    color: white;
+    font-weight: bold;
+
+    cursor: pointer;
+
+    li {
+        flex: 1;
+        position: relative;
+
+        background-color: $menuColor;
+
+        padding-top: 1vw;
+        padding-bottom: 1vw;
+
+        list-style-type: none;
+
+        transition: all linear 0.2s;
+
+        a {
+            color: white;
+            width: 100%;
+            height: 100%;
+        }
+
+        &:hover {
+            background-color: $menuFocusedColor;
+
+            .drop-menu {
+                top: 100%;
+                left: 0;
+
+                visibility: visible;
+
+                opacity: 1;
+            }
+        }
+    }
+}

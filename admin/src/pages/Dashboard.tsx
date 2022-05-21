@@ -33,7 +33,6 @@ function Dashboard() {
     const [statistics, setStatistics] = useState<IStatistics>()
 
     useEffect(() => {
-        // let isMounted = true
         document.title = 'Admin Dashboard'
 
         axios(`${privateRoute}/statistics`, {
