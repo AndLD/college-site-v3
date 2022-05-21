@@ -1,17 +1,41 @@
 import type { NextPage } from 'next'
 import PublicLayout from '../components/PublicLayout'
-import Slider from '../components/Slider'
+import Slider from 'react-simple-image-slider'
 import { menuService } from '../services/menu'
 import { IMenuElement } from '../utils/types'
 import style from '../styles/Index.module.scss'
+import { useEffect, useRef, useState } from 'react'
 
 const MainPage: NextPage = ({ menu }: any) => {
+    const [slides, setSlides] = useState([
+        '/images/index/slider/1.jpeg',
+        '/images/index/slider/2.jpeg',
+        '/images/index/slider/3.jpeg',
+        '/images/index/slider/4.jpeg'
+    ])
+
+    const sliderWrapperRef = useRef<any>(null)
+    const [sliderWidth, setSliderWidth] = useState(0)
+
+    useEffect(() => {
+        setSliderWidth(sliderWrapperRef.current.offsetWidth)
+    }, [])
+
     return (
         <PublicLayout menu={menu}>
             <div id={style['sky-section']}>
                 <div className={style['flex']}>
-                    <section className={style['flex-child-2']}>
-                        <Slider />
+                    <section ref={sliderWrapperRef} className={style['flex-child-2']}>
+                        <Slider
+                            width={sliderWidth}
+                            height={'30vw'}
+                            images={slides}
+                            showBullets={true}
+                            showNavs={true}
+                            autoPlay={true}
+                            autoPlayDelay={3}
+                            // useGPURender={true}
+                        />
                     </section>
                     <div className={`${style['flex-child-1']} ${style['info-block']}`}>
                         <div id={style['offer']}>Запрошуємо на навчання!</div>

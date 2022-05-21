@@ -2,6 +2,14 @@ import { MutableRefObject, useEffect, useRef, useState } from 'react'
 import style from '../styles/Slider.module.scss'
 import { Slide } from '../utils/types'
 
+let step = 0
+// let slides = [
+//     { src: '/images/index/slider/1.jpeg', left: 0 },
+//     { src: '/images/index/slider/2.jpeg', left: 0 },
+//     { src: '/images/index/slider/3.jpeg', left: 0 },
+//     { src: '/images/index/slider/4.jpeg', left: 0 }
+// ]
+
 function Slider() {
     const sliderWrapperRef: MutableRefObject<any> = useRef(null)
     const pointsWrapperRef: MutableRefObject<any> = useRef(null)
@@ -14,10 +22,7 @@ function Slider() {
         { src: '/images/index/slider/4.jpeg', left: 0 }
     ])
 
-    const [step, setStep] = useState(0)
-
-    // Индекс (позиция) точки, на которую нажал пользователь
-    const [orderPosition, setOrderPosition] = useState<number>(0)
+    // const [step, setStep] = useState(0)
 
     // TODO: Remove
     const [pointsLeft, setPointsLeft] = useState<number>(0)
@@ -30,32 +35,7 @@ function Slider() {
 
         // Получаем ширину одного слайда
         setSlideWidth(parseInt(sliderWrapperRef.current.offsetWidth))
-
-        // Определяем начальную позицию (первый шаг)
-        // setStep(0)
-
-        // setInterval(() => {
-        //     start(-1)
-        // }, 3000)
     }, [])
-
-    useEffect(() => {
-        if (orderPosition && slides) {
-            // Повторяем функцию проворота (старта) до тех пор, пока шаг не будет равняться заказанной позиции
-            if (step !== orderPosition) {
-                const repeat = setInterval(() => {
-                    if (step === orderPosition) {
-                        clearInterval(repeat)
-                        return
-                    } else if (step > orderPosition) {
-                        start(1)
-                    } else if (step < orderPosition) {
-                        start(-1)
-                    }
-                }, 100)
-            }
-        }
-    }, [orderPosition])
 
     useEffect(() => {
         if (!slideWidth) {
@@ -71,20 +51,27 @@ function Slider() {
         }
 
         setSlides(newSlides)
+
+        // setTimeout(() => {
+        //     start(1, Array.from(slides))
+
+        //     setTimeout(() => {
+        //         start(1, Array.from(slides))
+        //     }, 3000)
+        // }, 3000)
     }, [slideWidth])
 
     // Перерисовка элемента: удаления с одного края и добавление к другому.
     function redraw(side: number, newSlides: Slide[]) {
-        // Если "сторона" (направление) прокрутки - лево (1)
         if (side == 1) {
+            // Если "сторона" (направление) прокрутки - лево (1)
             // Присваиваем ему позицию на шаг раньше первого
             newSlides[newSlides.length - 1].left = newSlides[0].left - slideWidth
 
             newSlides.unshift(newSlides[newSlides.length - 1])
             newSlides.pop()
-
-            // Иначе если "сторона" прокрутки - право (-1)
         } else if (side == -1) {
+            // Иначе если "сторона" прокрутки - право (-1)
             // Присваиваем ему позицию на шаг дальше последнего
             newSlides[0].left = newSlides[newSlides.length - 1].left + slideWidth
 
@@ -92,20 +79,21 @@ function Slider() {
             newSlides.shift()
         }
 
-        setSlides(newSlides)
+        return newSlides
     }
 
     // Главная функция
-    function start(side: number) {
+    function start(side: number, newSlides: Slide[]) {
         console.log('start', side)
-        const newSlides = [...slides]
         // Сдвигаем их на один шаг (на ширину одного слайда) по выбранному направлению
         for (let i = 0; i < newSlides.length; i++) {
-            newSlides[i].left += side * slideWidth
+            newSlides[i].left = newSlides[i].left + side * slideWidth
         }
 
+        console.log('newSlides', newSlides)
+
         // Перерисовываем края дорожки
-        redraw(side, newSlides)
+        newSlides = redraw(side, newSlides)
 
         // Смещаем шаг
         let newStep = step - side
@@ -116,14 +104,28 @@ function Slider() {
             newStep = slides.length - 1
         }
 
-        setStep(newStep)
+        // setStep(newStep)
+        step = newStep
+        setTimeout(() => setSlides(newSlides), 500)
     }
 
     useEffect(() => console.log(slides), [slides])
 
     // При нажатии на одну из точек управления
     function onPointClick(orderPosition: number) {
-        setOrderPosition(orderPosition)
+        // Повторяем функцию проворота (старта) до тех пор, пока шаг не будет равняться заказанной позиции
+        if (step !== orderPosition) {
+            const repeat = setInterval(() => {
+                if (step === orderPosition) {
+                    clearInterval(repeat)
+                    return
+                } else if (step > orderPosition) {
+                    start(1, [...slides])
+                } else if (step < orderPosition) {
+                    start(-1, [...slides])
+                }
+            }, 100)
+        }
     }
 
     return (
@@ -146,7 +148,7 @@ function Slider() {
             <div
                 className={`${style['slider-button']} ${style['slider-button-left']}`}
                 onClick={() => {
-                    start(1)
+                    start(1, [...slides])
                 }}
                 style={{
                     display: 'flex',
@@ -158,7 +160,7 @@ function Slider() {
             <div
                 className={`${style['slider-button']} ${style['slider-button-right']}`}
                 onClick={() => {
-                    start(-1)
+                    start(-1, [...slides])
                 }}
                 style={{
                     display: 'flex',
