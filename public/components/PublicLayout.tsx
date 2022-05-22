@@ -1,11 +1,19 @@
 import { PublicLayoutContext } from '../contexts'
-import { IMenuBlock } from '../utils/types'
+import { IMenuElement, INewsCombined } from '../utils/types'
 import Footer from './Footer'
 import Header from './Header'
 import Menu from './Menu-v2'
 import UsefulLinks from './UsefulLinks'
 
-function PublicLayout({ children, menu }: { children: any; menu?: IMenuBlock }) {
+function PublicLayout({
+    children,
+    menu,
+    news
+}: {
+    children: any
+    menu?: IMenuElement[]
+    news?: INewsCombined[]
+}) {
     return (
         <div id="public-layout-container">
             <Header />
@@ -17,7 +25,14 @@ function PublicLayout({ children, menu }: { children: any; menu?: IMenuBlock }) 
                 <Menu />
             </PublicLayoutContext.Provider>
             <UsefulLinks />
-            <div>{children}</div>
+            <PublicLayoutContext.Provider
+                value={{
+                    news
+                }}
+            >
+                <div>{children}</div>
+            </PublicLayoutContext.Provider>
+
             <Footer />
         </div>
     )

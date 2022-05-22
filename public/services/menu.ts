@@ -1,15 +1,20 @@
 import axios from 'axios'
+import { publicRoutes } from '../utils/constants'
 import { menuUtils } from '../utils/menu'
 import { IMenuElement } from '../utils/types'
 
 async function fetchMenu() {
-    const response: any = await axios
-        .get(`http://localhost:8080/api/public/menu`)
-        .catch((err) => console.log(err))
+    try {
+        const response: any = await axios.get(publicRoutes.MENU).catch((err) => console.log(err))
 
-    const menu = response.data?.result?.menu
+        const menu = response.data?.result?.menu
 
-    return menuUtils.removeHiddenElements(menu) as IMenuElement[]
+        return menuUtils.removeHiddenElements(menu) as IMenuElement[]
+    } catch (e) {
+        console.error(`Error getting menu: ${e}`)
+    }
+
+    return []
 }
 
 export const menuService = {

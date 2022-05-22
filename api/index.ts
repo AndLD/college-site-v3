@@ -27,6 +27,8 @@ apiRouter.use('/public', publicRouter)
 publicRouter.use('/menu', setReqEntity(entities.MENU), menuPublicRouter)
 // Articles
 publicRouter.use('/article', setReqEntity(entities.ARTICLES), articlesPublicRouter)
+// News
+publicRouter.use('/news', setReqEntity(entities.NEWS), newsPrivateRouter)
 
 // Authorized router
 const privateRouter = Router()
@@ -50,6 +52,7 @@ privateRouter.use(
     setReqEntity(entities.ARTICLES),
     articlesPrivateRouter
 )
+// News
 privateRouter.use('/news', hasModeratorStatus, setReqEntity(entities.NEWS), newsPrivateRouter)
 // Actions
 privateRouter.use('/action', setReqEntity(entities.ACTIONS), actionsPrivateRouter)

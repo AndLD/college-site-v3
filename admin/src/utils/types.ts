@@ -56,7 +56,7 @@ export interface INews {
     id: string
     oldId?: number
     title: string
-    data: ArticleData
+    data: NewsData
     description?: string
     tags?: string[]
     // keywords?: string[]

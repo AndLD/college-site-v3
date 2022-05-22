@@ -1,41 +1,46 @@
 import type { NextPage } from 'next'
 import PublicLayout from '../components/PublicLayout'
-import Slider from 'react-simple-image-slider'
 import { menuService } from '../services/menu'
-import { IMenuElement } from '../utils/types'
+import { IndexPageProps, INews, INewsCombined } from '../utils/types'
 import style from '../styles/Index.module.scss'
-import { useEffect, useRef, useState } from 'react'
+import Slider from '../components/Slider'
+import NewsList from '../components/NewsList'
+import { newsService } from '../services/news'
+import { useEffect, useState } from 'react'
+import { errorNotification } from '../utils/notifications'
 
-const MainPage: NextPage = ({ menu }: any) => {
-    const [slides, setSlides] = useState([
-        '/images/index/slider/1.jpeg',
-        '/images/index/slider/2.jpeg',
-        '/images/index/slider/3.jpeg',
-        '/images/index/slider/4.jpeg'
-    ])
-
-    const sliderWrapperRef = useRef<any>(null)
-    const [sliderWidth, setSliderWidth] = useState(0)
+const MainPage: NextPage<IndexPageProps> = ({ menu, newsMetadatas }: IndexPageProps) => {
+    const [news, setNews] = useState<INewsCombined[]>([])
 
     useEffect(() => {
-        setSliderWidth(sliderWrapperRef.current.offsetWidth)
+        const newsIds = newsMetadatas.filter(({ data }) => data.png).map(({ id }) => id)
+
+        newsService
+            .fetchNewsImages(newsIds)
+            .then((newsImages) => {
+                const news = combineNewsData(newsMetadatas, newsImages)
+
+                setNews(news)
+            })
+            .catch((e) => errorNotification(`Error getting news images: ${e}`))
     }, [])
 
+    function combineNewsData(
+        newsMetadatas: INews[],
+        newsImages: { [key: string]: string }
+    ): INewsCombined[] {
+        return newsMetadatas.map((newsMetadata) => ({
+            metadata: newsMetadata,
+            image: newsImages[newsMetadata.id] || null
+        }))
+    }
+
     return (
-        <PublicLayout menu={menu}>
+        <PublicLayout menu={menu} news={news}>
             <div id={style['sky-section']}>
                 <div className={style['flex']}>
-                    <section ref={sliderWrapperRef} className={style['flex-child-2']}>
-                        <Slider
-                            width={sliderWidth}
-                            height={'30vw'}
-                            images={slides}
-                            showBullets={true}
-                            showNavs={true}
-                            autoPlay={true}
-                            autoPlayDelay={3}
-                            // useGPURender={true}
-                        />
+                    <section className={style['flex-child-2']}>
+                        <Slider />
                     </section>
                     <div className={`${style['flex-child-1']} ${style['info-block']}`}>
                         <div id={style['offer']}>Запрошуємо на навчання!</div>
@@ -68,7 +73,7 @@ const MainPage: NextPage = ({ menu }: any) => {
                 </table>
 
                 <div className={style['desk-wrapper']}>
-                    <div className={style['desk']}>
+                    <div className={`${style['desk']} ${style['desk-left']}`}>
                         <div className={style['desk-title']}>Денна форма навчання</div>
                         <div className={style['desk-text']}>
                             <div>
@@ -138,7 +143,7 @@ const MainPage: NextPage = ({ menu }: any) => {
                         <div className={style['ribbon']}></div>
                     </div>
 
-                    <div className={style['desk']}>
+                    <div className={`${style['desk']} ${style['desk-right']}`}>
                         <div className={style['desk-title']}>Заочна форма навчання</div>
                         <div className={style['desk-text']}>
                             <div>
@@ -200,20 +205,27 @@ const MainPage: NextPage = ({ menu }: any) => {
                         <div className={style['ribbon']}></div>
                     </div>
                 </div>
+
+                <NewsList />
             </div>
         </PublicLayout>
     )
 }
 
 export async function getServerSideProps() {
-    const props: {
-        menu?: IMenuElement[]
-    } = {}
+    const props: IndexPageProps = {
+        menu: [],
+        newsMetadatas: []
+    }
 
     const menu = await menuService.fetchMenu()
-
     if (menu) {
         props.menu = menu
+    }
+
+    const newsMetadatas = await newsService.fetchNewsMetadatas(3)
+    if (newsMetadatas) {
+        props.newsMetadatas = newsMetadatas
     }
 
     return {

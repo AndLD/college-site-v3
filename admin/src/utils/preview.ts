@@ -1,7 +1,7 @@
-function blobToBase64(blob: Blob) {
+function blobToBase64(blob: Blob): Promise<string> {
     return new Promise((resolve, _) => {
         const reader = new FileReader()
-        reader.onloadend = () => resolve(reader.result)
+        reader.onloadend = () => resolve((reader.result as string).split('base64,')[1])
         reader.readAsDataURL(blob)
     })
 }

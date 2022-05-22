@@ -3,5 +3,6 @@ export const publicRoute = `${HOST}/api/public`
 
 export const publicRoutes = {
     MENU: `${publicRoute}/menu`,
-    ARTICLE: `${publicRoute}/article`
+    ARTICLE: `${publicRoute}/article`,
+    NEWS: `${publicRoute}/news`
 }
