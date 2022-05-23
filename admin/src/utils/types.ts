@@ -155,4 +155,5 @@ export interface IColumn {
     dataIndex: string
     render?: (value: any) => any
     width?: number
+    align?: 'center'
 }

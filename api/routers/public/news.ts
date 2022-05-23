@@ -1,4 +1,4 @@
-import { Response, Router } from 'express'
+import { Request, Response, Router } from 'express'
 import { controller } from '../../controller/controller'
 import { Options } from '../../utils/types'
 import JSZip from 'jszip'
@@ -9,6 +9,7 @@ import { getLogger } from '../../utils/logger'
 import { bufferUtils } from '../../utils/buffer'
 import { newsService } from '../../services/news'
 import { googleDriveService } from '../../services/googleDrive'
+import { appSettingsService } from '../../services/appSettings'
 
 const logger = getLogger('routes/public/news')
 
@@ -99,5 +100,14 @@ export default Router()
             }
 
             bufferService.deleteFile(zipName)
+        })
+    })
+
+    // Get pinned news ids
+    .get('/pinned', (_: Request, res: Response) => {
+        const pinnedNewsIds = appSettingsService.get().pinnedNewsIds || []
+
+        res.json({
+            result: pinnedNewsIds
         })
     })

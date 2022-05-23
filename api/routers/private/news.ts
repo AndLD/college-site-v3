@@ -55,6 +55,7 @@ export default Router()
 
     // Download news
     .get('/download', async (req: any, res: Response) => {
+        console.log(111)
         res.set('Access-Control-Expose-Headers', 'Content-Disposition')
 
         let ids = req.query.ids && req.query.ids.split(',')
@@ -114,6 +115,7 @@ export default Router()
         if (filenames.length === 1) {
             return res.download(filenames[0].path)
         } else if (filenames.length === 0) {
+            console.log(2)
             return res.sendStatus(404)
         }
 

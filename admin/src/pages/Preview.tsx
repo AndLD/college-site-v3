@@ -11,7 +11,8 @@ import {
     IAction,
     IColumn,
     IPreviewFile,
-    NewsAllowedFileExtension
+    NewsAllowedFileExtension,
+    NewsData
 } from '../utils/types'
 import { errorNotification, warningNotification } from '../utils/notifications'
 import { ArrowDownOutlined } from '@ant-design/icons'
@@ -123,7 +124,7 @@ function Preview() {
                         setPreviewFile({
                             name,
                             objectUrl: window.URL.createObjectURL(data),
-                            base64: (base64 as string).split('base64,')[1],
+                            base64,
                             ext
                         })
                     })
@@ -131,17 +132,14 @@ function Preview() {
                     previewUtils.blobToBase64(data).then((base64) => {
                         setPreviewImage({
                             name,
-                            base64: (base64 as string).split('base64,')[1],
+                            base64,
                             ext
                         })
                     })
                 }
             })
             .catch((err: AxiosError) => {
-                if (
-                    err.message === 'Request failed with status code 404' &&
-                    Object.values(options)[0].includes('png')
-                ) {
+                if (err.message === 'Request failed with status code 404') {
                     return
                 }
 
@@ -150,28 +148,37 @@ function Preview() {
     }
 
     function downloadActionFiles(actionId: string) {
-        if (!previewFile) {
+        if (!previewFile || !action) {
             return
         }
 
-        if (previewFile.ext === 'pdf' && previewFile.objectUrl) {
-            previewUtils.showDownloadDialog(
-                `${previewFile.name}.${previewFile.ext}`,
-                previewFile.objectUrl
-            )
+        if (action.entity === 'articles' && previewFile.ext === 'pdf' && previewFile.objectUrl) {
+            previewUtils.showDownloadDialog(`${previewFile.name}.pdf`, previewFile.objectUrl)
             return
         }
 
         setIsDownloadBtnLoading(true)
-        const options: { [key: string]: ArticlesAllowedFileExtension[] } = {
-            [actionId + '_pending']:
-                (!action?.payload?.data?.docx && action?.payload?.data?.html) ||
-                action?.payload?.data?.html
-                    ? ['html']
-                    : ['docx', 'html']
+        const options: {
+            [key: string]: (ArticlesAllowedFileExtension | NewsAllowedFileExtension)[]
+        } = {
+            [actionId + '_pending']: []
         }
 
-        axios(`${privateRoutes.ARTICLE}/download`, {
+        for (const key in action.payload?.data as ArticleData | NewsData) {
+            if (key === 'png') {
+                continue
+            }
+
+            if (action.payload?.data[key] === true) {
+                options[actionId + '_pending'].push(
+                    key as ArticlesAllowedFileExtension | NewsAllowedFileExtension
+                )
+            }
+        }
+
+        const route = action.entity === 'articles' ? privateRoutes.ARTICLE : privateRoutes.NEWS
+
+        axios(`${route}/download`, {
             params: {
                 ids: actionId + '_pending'
             },
@@ -202,7 +209,9 @@ function Preview() {
         <AdminLayout currentPage={`preview/${actionId}`}>
             <Title level={1}>
                 Preview of {action?.entity === 'articles' ? 'article' : 'news'}
-                {previewFile ? null : <Spin style={{ marginLeft: 20 }} size="large" />}
+                {previewFile || previewImage ? null : (
+                    <Spin style={{ marginLeft: 20 }} size="large" />
+                )}
             </Title>
             <span>{`Action [${actionId}]`}</span>
             <Tooltip title="Download">
@@ -237,7 +246,7 @@ function Preview() {
                                 <img
                                     src={'data:image/png;base64,' + previewImage.base64}
                                     alt="Preview news main image"
-                                    style={{ width: '30%' }}
+                                    style={{ height: '40vh' }}
                                 />
                             </div>
                         ) : (

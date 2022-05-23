@@ -132,10 +132,14 @@ function NewsTable() {
                     align: 'center',
                     render: (value: boolean) => (
                         <Tooltip title={value ? 'True' : 'False'}>
-                            <Badge
-                                style={{ marginLeft: 10 }}
-                                status={value ? 'success' : 'error'}
-                            />
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    justifyContent: 'center'
+                                }}
+                            >
+                                <Badge status={value ? 'success' : 'error'} />
+                            </div>
                         </Tooltip>
                     ),
                     width: 50

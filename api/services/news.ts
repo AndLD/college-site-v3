@@ -299,7 +299,7 @@ async function replaceOldIds(docIds: string[]) {
     const where: Filter[] = []
 
     for (const docId of docIds) {
-        if (docId.length < 10) {
+        if (docId.length < 10 && !docId.includes('_pending')) {
             try {
                 const oldId = parseInt(docId)
                 if (oldId) {

@@ -1,4 +1,4 @@
-import { Badge, Table, Tag } from 'antd'
+import { Badge, Table, Tag, Tooltip } from 'antd'
 import { Dispatch, SetStateAction } from 'react'
 import { ArticleData, IColumn, NewsData } from './types'
 
@@ -49,9 +49,22 @@ function getActionPayloadTable(
         if (key === 'tags') {
             column.render = (tags: string[]) =>
                 tags.map((tag: string, index) => <Tag key={'tag' + index}>{tag}</Tag>)
-        }
-        if (key.toLowerCase().includes('timestamp')) {
+        } else if (key.toLowerCase().includes('timestamp')) {
             column.render = (value: number) => value && new Date(value).toLocaleString()
+        } else if (key === 'inlineMainImage') {
+            column.align = 'center'
+            column.render = (value: boolean) => (
+                <Tooltip title={value ? 'True' : 'False'}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'center'
+                        }}
+                    >
+                        <Badge status={value ? 'success' : 'error'} />
+                    </div>
+                </Tooltip>
+            )
         } else if (key === 'data') {
             column.width = 100
             column.render = (data?: ArticleData | NewsData) => {

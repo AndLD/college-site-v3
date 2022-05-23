@@ -35,7 +35,7 @@ function sendNewActionNotification(actionId: string, actionMetadata: IAction) {
 
     switch (actionMetadata.entity) {
         case 'articles':
-            entityName = '📝 Article'
+            entityName = '📄 Article'
             break
         case 'news':
             entityName = '📅 News'
@@ -74,5 +74,6 @@ function sendWarning(message: string) {
 export const notificationService = {
     sendNewActionNotification,
     sendNewUserNofication,
-    sendError
+    sendError,
+    sendWarning
 }
