@@ -225,18 +225,7 @@ export async function getServerSideProps() {
         // Get ids of all pinned news
         let pinnedNewsIds = await newsService.fetchPinnedNewsIds()
 
-        console.log('STEP 1 Get pinned ids:')
-        console.log('pinnedNewsIds', pinnedNewsIds)
-        console.log()
-
         const newsMetadatas = await newsService.fetchNewsMetadatas(3)
-
-        console.log('STEP 2 Get last 3 news metadatas:')
-        console.log(
-            'newsMetadatas ids',
-            newsMetadatas.map(({ id }) => id)
-        )
-        console.log()
 
         for (const newsMetadata of newsMetadatas) {
             if (pinnedNewsIds.includes(newsMetadata.id)) {
@@ -247,74 +236,28 @@ export async function getServerSideProps() {
             }
         }
 
-        console.log('STEP 3 Distribute between arrays:')
-        console.log(
-            'resultNewsMetadatas',
-            resultNewsMetadatas.map(({ id }) => id)
-        )
-        console.log(
-            'resultPinnedNewsMetadatas',
-            resultPinnedNewsMetadatas.map(({ id }) => id)
-        )
-        console.log()
-
-        console.log('STEP 4 If we have less than 3 pinned news, we getting more pinned news')
         if (resultPinnedNewsMetadatas.length < 3) {
             // Remove ids of pinned news we have already from all pinned news ids array
             pinnedNewsIds = pinnedNewsIds.filter((pinnedNewsId) => {
                 return !resultPinnedNewsIds.includes(pinnedNewsId)
             })
 
-            console.log('pinnedNewsIds to get:', pinnedNewsIds)
-
             if (pinnedNewsIds.length) {
                 const pinnedNewsMetadatas: INews[] = await newsService.fetchNewsMetadatasByIds(
                     pinnedNewsIds
                 )
 
-                console.log(
-                    'pinnedNewsMetadatas is obtained:',
-                    pinnedNewsMetadatas.map(({ id }) => id)
-                )
-
                 resultPinnedNewsMetadatas.push(...pinnedNewsMetadatas)
             }
         }
-        console.log()
-
-        console.log('STEP 5 Sort pinned news we have and slice 0-3')
-        console.log(
-            'resultPinnedNewsMetadatas before STEP 5',
-            resultPinnedNewsMetadatas.map(({ id }) => id)
-        )
 
         resultPinnedNewsMetadatas = resultPinnedNewsMetadatas.sort(sortByTimestamp).slice(0, 3)
 
-        console.log(
-            'resultPinnedNewsMetadatas after STEP 5',
-            resultPinnedNewsMetadatas.map(({ id }) => id)
-        )
-        console.log()
-
-        console.log('STEP 6 Mark pinned news')
-        console.log()
         // Mark pinned news
         resultPinnedNewsMetadatas = resultPinnedNewsMetadatas.map((metadata) => ({
             ...metadata,
             pinned: true
         }))
-
-        console.log('RESULT:')
-        console.log()
-
-        console.log(
-            'resultNewsMetadatas',
-            resultNewsMetadatas.map(({ id }) => id)
-        )
-        console.log(
-            'resultPinnedNewsMetadatas',
-            resultPinnedNewsMetadatas.map(({ id }) => id)
-        )
 
         const readyNewsMetadatas = [
             ...resultPinnedNewsMetadatas,

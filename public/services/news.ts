@@ -110,8 +110,6 @@ async function fetchNewsMetadatasByIds(ids: string[]) {
 
         const newsMetadatas = response.data?.result
 
-        console.log('newsMetadatas.length', newsMetadatas.length)
-
         return newsMetadatas as INews[]
     } catch (e) {
         console.error(`Error getting news metadatas by ids: ${e}`)
