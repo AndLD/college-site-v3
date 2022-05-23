@@ -1,11 +1,11 @@
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import { publicRoutes } from '../utils/constants'
 import { menuUtils } from '../utils/menu'
 import { IMenuElement } from '../utils/types'
 
 async function fetchMenu() {
     try {
-        const response: any = await axios.get(publicRoutes.MENU).catch((err) => console.log(err))
+        const response: any = await axios(publicRoutes.MENU)
 
         const menu = response.data?.result?.menu
 

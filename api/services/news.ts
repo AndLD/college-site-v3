@@ -349,7 +349,7 @@ async function checkOldIdUsage(oldId: number) {
     return newsMetadatas.map((newsMetadata: INews) => newsMetadata.id) as string[]
 }
 
-async function checkMetadatasExistance(docIds: string[]) {
+async function getMetadatasByIds(docIds: string[]) {
     const newsMetadatas = await _getMetadatasFromDB({ docIds })
 
     return newsMetadatas
@@ -365,5 +365,5 @@ export const newsService = {
     updateFileToGoogleDriveFlow,
     replaceOldIds,
     checkOldIdUsage,
-    checkMetadatasExistance
+    getMetadatasByIds
 }

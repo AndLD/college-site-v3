@@ -1,13 +1,15 @@
 import type { NextPage } from 'next'
 import PublicLayout from '../components/PublicLayout'
 import { menuService } from '../services/menu'
-import { IndexPageProps, INews, INewsCombined } from '../utils/types'
+import { IMenuElement, IndexPageProps, INews, INewsCombined } from '../utils/types'
 import style from '../styles/Index.module.scss'
 import Slider from '../components/Slider'
 import NewsList from '../components/NewsList'
 import { newsService } from '../services/news'
 import { useEffect, useState } from 'react'
 import { errorNotification } from '../utils/notifications'
+import { newsUtils } from '../utils/news'
+import { sortByTimestamp } from '../utils/functions'
 
 const MainPage: NextPage<IndexPageProps> = ({ menu, newsMetadatas }: IndexPageProps) => {
     const [news, setNews] = useState<INewsCombined[]>([])
@@ -18,22 +20,12 @@ const MainPage: NextPage<IndexPageProps> = ({ menu, newsMetadatas }: IndexPagePr
         newsService
             .fetchNewsImages(newsIds)
             .then((newsImages) => {
-                const news = combineNewsData(newsMetadatas, newsImages)
+                const news = newsUtils.combineNewsData(newsMetadatas, newsImages)
 
                 setNews(news)
             })
             .catch((e) => errorNotification(`Error getting news images: ${e}`))
     }, [])
-
-    function combineNewsData(
-        newsMetadatas: INews[],
-        newsImages: { [key: string]: string }
-    ): INewsCombined[] {
-        return newsMetadatas.map((newsMetadata) => ({
-            metadata: newsMetadata,
-            image: newsImages[newsMetadata.id] || null
-        }))
-    }
 
     return (
         <PublicLayout menu={menu} news={news}>
@@ -218,14 +210,122 @@ export async function getServerSideProps() {
         newsMetadatas: []
     }
 
-    const menu = await menuService.fetchMenu()
+    const menu: IMenuElement[] = await menuService.fetchMenu()
     if (menu) {
         props.menu = menu
     }
 
-    const newsMetadatas = await newsService.fetchNewsMetadatas(3)
-    if (newsMetadatas) {
-        props.newsMetadatas = newsMetadatas
+    // TODO: Refactor (namings at least)
+    try {
+        // Unpinned news
+        let resultNewsMetadatas: INews[] = []
+        let resultPinnedNewsMetadatas: INews[] = []
+
+        const resultPinnedNewsIds: string[] = []
+        // Get ids of all pinned news
+        let pinnedNewsIds = await newsService.fetchPinnedNewsIds()
+
+        console.log('STEP 1 Get pinned ids:')
+        console.log('pinnedNewsIds', pinnedNewsIds)
+        console.log()
+
+        const newsMetadatas = await newsService.fetchNewsMetadatas(3)
+
+        console.log('STEP 2 Get last 3 news metadatas:')
+        console.log(
+            'newsMetadatas ids',
+            newsMetadatas.map(({ id }) => id)
+        )
+        console.log()
+
+        for (const newsMetadata of newsMetadatas) {
+            if (pinnedNewsIds.includes(newsMetadata.id)) {
+                resultPinnedNewsMetadatas.push(newsMetadata)
+                resultPinnedNewsIds.push(newsMetadata.id)
+            } else {
+                resultNewsMetadatas.push(newsMetadata)
+            }
+        }
+
+        console.log('STEP 3 Distribute between arrays:')
+        console.log(
+            'resultNewsMetadatas',
+            resultNewsMetadatas.map(({ id }) => id)
+        )
+        console.log(
+            'resultPinnedNewsMetadatas',
+            resultPinnedNewsMetadatas.map(({ id }) => id)
+        )
+        console.log()
+
+        console.log('STEP 4 If we have less than 3 pinned news, we getting more pinned news')
+        if (resultPinnedNewsMetadatas.length < 3) {
+            // Remove ids of pinned news we have already from all pinned news ids array
+            pinnedNewsIds = pinnedNewsIds.filter((pinnedNewsId) => {
+                return !resultPinnedNewsIds.includes(pinnedNewsId)
+            })
+
+            console.log('pinnedNewsIds to get:', pinnedNewsIds)
+
+            if (pinnedNewsIds.length) {
+                const pinnedNewsMetadatas: INews[] = await newsService.fetchNewsMetadatasByIds(
+                    pinnedNewsIds
+                )
+
+                console.log(
+                    'pinnedNewsMetadatas is obtained:',
+                    pinnedNewsMetadatas.map(({ id }) => id)
+                )
+
+                resultPinnedNewsMetadatas.push(...pinnedNewsMetadatas)
+            }
+        }
+        console.log()
+
+        console.log('STEP 5 Sort pinned news we have and slice 0-3')
+        console.log(
+            'resultPinnedNewsMetadatas before STEP 5',
+            resultPinnedNewsMetadatas.map(({ id }) => id)
+        )
+
+        resultPinnedNewsMetadatas = resultPinnedNewsMetadatas.sort(sortByTimestamp).slice(0, 3)
+
+        console.log(
+            'resultPinnedNewsMetadatas after STEP 5',
+            resultPinnedNewsMetadatas.map(({ id }) => id)
+        )
+        console.log()
+
+        console.log('STEP 6 Mark pinned news')
+        console.log()
+        // Mark pinned news
+        resultPinnedNewsMetadatas = resultPinnedNewsMetadatas.map((metadata) => ({
+            ...metadata,
+            pinned: true
+        }))
+
+        console.log('RESULT:')
+        console.log()
+
+        console.log(
+            'resultNewsMetadatas',
+            resultNewsMetadatas.map(({ id }) => id)
+        )
+        console.log(
+            'resultPinnedNewsMetadatas',
+            resultPinnedNewsMetadatas.map(({ id }) => id)
+        )
+
+        const readyNewsMetadatas = [
+            ...resultPinnedNewsMetadatas,
+            ...resultNewsMetadatas.sort(sortByTimestamp)
+        ].slice(0, 3)
+
+        if (readyNewsMetadatas) {
+            props.newsMetadatas = readyNewsMetadatas
+        }
+    } catch (e) {
+        console.error(`[getServerSideProps] Error getting news metadatas: ${e}`)
     }
 
     return {

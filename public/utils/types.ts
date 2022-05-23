@@ -41,6 +41,8 @@ export interface INews {
     timestamp: number
     lastUpdateTimestamp?: number
     inlineMainImage?: boolean
+
+    pinned?: boolean
 }
 
 export type ArticleData = {

@@ -1,6 +1,4 @@
-// function arrayBufferToBase64(data: ArrayBuffer): string {
-//     return Buffer.from(data as ArrayBuffer).toString('base64')
-// }
+import { INews, INewsCombined } from './types'
 
 async function arrayBufferToBase64(data: ArrayBuffer): Promise<string> {
     return new Promise((resolve, _) => {
@@ -10,6 +8,17 @@ async function arrayBufferToBase64(data: ArrayBuffer): Promise<string> {
     })
 }
 
+function combineNewsData(
+    newsMetadatas: INews[],
+    newsImages: { [key: string]: string }
+): INewsCombined[] {
+    return newsMetadatas.map((newsMetadata) => ({
+        metadata: newsMetadata,
+        image: newsImages[newsMetadata.id] || null
+    }))
+}
+
 export const newsUtils = {
-    arrayBufferToBase64
+    arrayBufferToBase64,
+    combineNewsData
 }

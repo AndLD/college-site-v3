@@ -121,6 +121,7 @@ const controllerMethods = {
     GET: async ({
         email,
         id,
+        ids,
         pagination,
         select,
         order,
@@ -130,6 +131,7 @@ const controllerMethods = {
     }: {
         email: string
         id?: string
+        ids?: string[]
         pagination?: Pagination
         select?: string[]
         order?: [string, string]
@@ -142,6 +144,7 @@ const controllerMethods = {
             collection: entity,
             where,
             docId: id,
+            docIds: ids,
             pagination,
             select,
             order,
@@ -237,13 +240,13 @@ const parseReq = (req: any) => {
     const singleResult: boolean = req.singleResult
 
     let ids: string[] | undefined
-    if (method === 'DELETE') {
-        ids = req.query.ids.split(',')
+    if (method === 'DELETE' || method === 'GET') {
+        ids = req.query.ids?.split(',')
     }
 
     // Пагинация
     let pagination
-    if (method === 'GET' && !id) {
+    if (method === 'GET' && !id && !ids) {
         const results = parseInt(req.query.results) || 10
         const page = parseInt(req.query.page)
         if (page)

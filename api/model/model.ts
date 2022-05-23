@@ -173,6 +173,7 @@ const prepareQueryRef = ({
     } else if (action == 'get' && docId) {
         queryRef = queryRef.where(documentId, '==', docId)
     } else if (action == 'get' && docIds) {
+        console.log('MODEL get ' + docIds)
         queryRef = queryRef.where(documentId, 'in', docIds)
     }
 

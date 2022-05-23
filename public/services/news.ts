@@ -18,7 +18,7 @@ async function fetchNewsMetadatas(count: number) {
 
         return newsMetadatas as INews[]
     } catch (e) {
-        console.error(`Error getting news metadata: ${e}`)
+        console.error(`Error getting news metadatas: ${e}`)
     }
 
     return []
@@ -86,21 +86,43 @@ async function fetchNewsImages(newsIds: string[]): Promise<{ [key: string]: stri
     return {}
 }
 
-async function fetchNews(count: number): Promise<INewsCombined[]> {
-    const newsMetadatas = await fetchNewsMetadatas(count)
-    const newsIds = newsMetadatas.filter(({ data }) => data.png).map(({ id }) => id)
+async function fetchPinnedNewsIds() {
+    try {
+        const response: any = await axios(`${publicRoutes.NEWS}/pinned`)
 
-    const newsImages = await fetchNewsImages(newsIds)
+        const pinnedNewsIds = response.data?.result
 
-    const news = newsMetadatas.map((newsMetadata) => ({
-        metadata: newsMetadata,
-        image: newsImages[newsMetadata.id] || null
-    }))
+        return pinnedNewsIds as string[]
+    } catch (e) {
+        console.error(`Error getting pinned news ids: ${e}`)
+    }
 
-    return news
+    return []
+}
+
+async function fetchNewsMetadatasByIds(ids: string[]) {
+    try {
+        const response: any = await axios(publicRoutes.NEWS, {
+            params: {
+                ids: ids.join(',')
+            }
+        })
+
+        const newsMetadatas = response.data?.result
+
+        console.log('newsMetadatas.length', newsMetadatas.length)
+
+        return newsMetadatas as INews[]
+    } catch (e) {
+        console.error(`Error getting news metadatas by ids: ${e}`)
+    }
+
+    return []
 }
 
 export const newsService = {
     fetchNewsMetadatas,
-    fetchNewsImages
+    fetchNewsImages,
+    fetchPinnedNewsIds,
+    fetchNewsMetadatasByIds
 }

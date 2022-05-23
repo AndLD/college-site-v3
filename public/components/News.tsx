@@ -2,6 +2,7 @@ import { INewsCombined } from '../utils/types'
 import style from '../styles/Index.module.scss'
 import NewsImage from './NewsImage'
 import moment from 'moment'
+import { PushpinOutlined } from '@ant-design/icons'
 
 function News({ news }: { news: INewsCombined }) {
     return (
@@ -11,7 +12,10 @@ function News({ news }: { news: INewsCombined }) {
                     <NewsImage src={news.image} />
                 </div>
                 <div className={style['single-new-description']}>
-                    <p className={style['single-new-title']}>{news.metadata.title}</p>
+                    <p className={style['single-new-title']}>
+                        {news.metadata.pinned ? <PushpinOutlined /> : null}
+                        {news.metadata.title}
+                    </p>
                     <p className={style['single-new-date-mobile']}>
                         {moment(news.metadata.publicTimestamp).format('DD.MM.YYYY HH:mm')}
                     </p>

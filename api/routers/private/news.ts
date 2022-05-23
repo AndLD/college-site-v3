@@ -263,7 +263,7 @@ export default Router()
             }
             let docId = req.params.id
 
-            const newsMetadatas = await newsService.checkMetadatasExistance([docId])
+            const newsMetadatas = await newsService.getMetadatasByIds([docId])
             if (!newsMetadatas.length) {
                 return res.sendStatus(404)
             }
@@ -377,7 +377,7 @@ export default Router()
                 error: '"ids" query param is missed!'
             })
 
-        const newsMetadatas = await newsService.checkMetadatasExistance(ids)
+        const newsMetadatas = await newsService.getMetadatasByIds(ids)
         if (!newsMetadatas.length) {
             return res.sendStatus(404)
         }

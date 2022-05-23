@@ -5,7 +5,7 @@ import style from '../styles/Menu-v2.module.scss'
 import { menuUtils } from '../utils/menu'
 
 function Menu() {
-    const menu: IMenuElement[] | undefined = useContext(PublicLayoutContext).menu
+    const menu: IMenuElement[] = useContext(PublicLayoutContext).menu
 
     return (
         <>
@@ -13,7 +13,7 @@ function Menu() {
             <section className={style['menu-wrapper']}>
                 <div className={style['small-menu-close-button']}></div>
                 <ul id={style['MENU']}>
-                    {menu ? (
+                    {menu.length ? (
                         menu.map((menuElement) => menuUtils.convertMenuElement(menuElement, 0))
                     ) : (
                         <li>
