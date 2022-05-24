@@ -2,7 +2,7 @@
 
 .trigger {
     padding: 0 24px;
-    font-size: 18px;
+    font-size: 20px;
     line-height: 64px;
     cursor: pointer;
     transition: color 0.3s;
@@ -16,8 +16,10 @@
 }
 
 .trigger:hover,
-.notifications:hover {
+.notifications:hover,
+.blue-color-on-hover:hover {
     color: #1890ff;
+    transition: color 0.3s;
 }
 
 .logo {

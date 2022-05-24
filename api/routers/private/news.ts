@@ -18,10 +18,10 @@ import { newsAllowedFileTypes } from '../../utils/constants'
 import { firebase } from '../../configs/firebase-config'
 import { getAllCompatibleInputForString } from '../../utils/functions'
 import { bufferUtils } from '../../utils/buffer'
-import { appSettingsService } from '../../services/appSettings'
+import { appSettingsService } from '../../services/app-settings'
 import { INews, INewsPost, INewsPut, INewsUpdate, NewsData } from '../../utils/interfaces/news/news'
 import { newsService } from '../../services/news'
-import { googleDriveService } from '../../services/googleDrive'
+import { googleDriveService } from '../../services/google-drive'
 
 const logger = getLogger('routes/private/news')
 
@@ -55,7 +55,6 @@ export default Router()
 
     // Download news
     .get('/download', async (req: any, res: Response) => {
-        console.log(111)
         res.set('Access-Control-Expose-Headers', 'Content-Disposition')
 
         let ids = req.query.ids && req.query.ids.split(',')
@@ -115,7 +114,6 @@ export default Router()
         if (filenames.length === 1) {
             return res.download(filenames[0].path)
         } else if (filenames.length === 0) {
-            console.log(2)
             return res.sendStatus(404)
         }
 

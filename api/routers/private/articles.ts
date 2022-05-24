@@ -1,7 +1,7 @@
 import { Response, Router } from 'express'
 import { controller } from '../../controller/controller'
 import multer from 'multer'
-import { googleDriveService } from '../../services/googleDrive'
+import { googleDriveService } from '../../services/google-drive'
 import {
     ArticleData,
     IArticle,
@@ -27,7 +27,10 @@ import { articlesAllowedFileTypes } from '../../utils/constants'
 import { firebase } from '../../configs/firebase-config'
 import { getAllCompatibleInputForString } from '../../utils/functions'
 import { bufferUtils } from '../../utils/buffer'
-import { appSettingsService } from '../../services/appSettings'
+import { appSettingsService } from '../../services/app-settings'
+import { jobsUtils } from '../../utils/jobs'
+import { jobsService } from '../../services/jobs'
+import { jobs } from 'googleapis/build/src/apis/jobs'
 
 const logger = getLogger('routes/private/articles')
 
@@ -157,19 +160,31 @@ export default Router()
             email: req.user.email,
             status: req.user._doc.status
         }
+
+        const jobId = jobsService.add(
+            user.email,
+            jobsUtils.templates.articles.post.title,
+            jobsUtils.templates.articles.post.steps
+        )
+
         const timestamp = Date.now()
 
         const body: IArticlePost = JSON.parse(req.body.json)
+
+        jobsService.nextStep(jobId)
 
         if (body.oldId) {
             // TODO: Rename the variable :)
             const sameOldIdArticleIds = await articlesService.checkOldIdUsage(body.oldId)
             if (sameOldIdArticleIds.length) {
+                jobsService.error(jobId)
                 return res.status(400).json({
                     error: `"oldId" is used by articles [${sameOldIdArticleIds.join(', ')}]`
                 })
             }
         }
+
+        jobsService.nextStep(jobId)
 
         try {
             var file = req.file && processFile(req.file)
@@ -178,11 +193,14 @@ export default Router()
                 throw 'File missed'
             }
         } catch (e) {
+            jobsService.error(jobId)
             logger.error(e)
             return res.status(400).json({
                 error: e
             })
         }
+
+        jobsService.nextStep(jobId)
 
         const data: ArticleData = {}
         data[file.ext as ArticlesAllowedFileExtension] = true
@@ -198,7 +216,12 @@ export default Router()
         }
         if (body.publicTimestamp) articleMetadata.publicTimestamp = timestamp
 
+        jobsService.nextStep(jobId)
+
         const docId = firebase.db.collection('articles').doc().id
+
+        jobsService.updateTitle(jobId, `Article [${articleMetadata.title}, ${docId}] adding`)
+
         const actionId = firebase.db.collection('actions').doc().id
 
         const actionMetadata: IAction = {
@@ -215,6 +238,8 @@ export default Router()
             timestamp
         }
 
+        jobsService.nextStep(jobId)
+
         // If action auto approve disabled for current admin
         if (
             user.status === 'admin' &&
@@ -223,23 +248,41 @@ export default Router()
             actionMetadata.status = 'pending'
         }
 
+        if (actionMetadata.status === 'pending') {
+            jobsService.updateTitle(
+                jobId,
+                `Requesting to ADD Article [${articleMetadata.title}, ${docId}]`
+            )
+            jobsService.updateStepDescription(jobId, 'Auto approve unavailable')
+        } else {
+            jobsService.updateStepDescription(jobId, 'Auto approve available')
+        }
+
+        jobsService.nextStep(jobId)
+
         try {
             await actionsService.addAction(actionId, actionMetadata, file)
 
             if (actionMetadata.status === 'pending') {
+                jobsService.removeNextSteps(jobId)
+                jobsService.success(jobId)
                 return res.json({
                     result: { actionId }
                 })
             }
 
+            jobsService.nextStep(jobId)
+
             var result = await articlesService.addArticle(docId, articleMetadata, file)
         } catch (e: any) {
+            jobsService.error(jobId)
             logger.error(e)
             return res.status(500).json({
                 error: e
             })
         }
 
+        jobsService.success(jobId)
         return res.json({
             result
         })

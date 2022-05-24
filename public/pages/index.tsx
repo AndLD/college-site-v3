@@ -12,7 +12,9 @@ import { newsUtils } from '../utils/news'
 import { sortByTimestamp } from '../utils/functions'
 
 const MainPage: NextPage<IndexPageProps> = ({ menu, newsMetadatas }: IndexPageProps) => {
-    const [news, setNews] = useState<INewsCombined[]>([])
+    const [news, setNews] = useState<INewsCombined[]>(
+        newsMetadatas.map((metadata) => ({ metadata, image: null }))
+    )
 
     useEffect(() => {
         const newsIds = newsMetadatas.filter(({ data }) => data.png).map(({ id }) => id)

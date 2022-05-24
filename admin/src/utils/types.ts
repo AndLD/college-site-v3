@@ -157,3 +157,22 @@ export interface IColumn {
     width?: number
     align?: 'center'
 }
+
+export interface IJob {
+    id: string
+    title: string
+    steps: JobStep[]
+    timestamp: number
+    duration?: number
+    currentStep: number
+    status: JobStatus
+    user: string
+}
+
+export type JobStatus = 'success' | 'normal' | 'exception' | 'active'
+
+export type JobStep = {
+    title: string
+    description?: string
+    duration?: number
+}

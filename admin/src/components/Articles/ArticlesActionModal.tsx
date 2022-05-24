@@ -102,11 +102,11 @@ function ArticlesActionModal({ selectedRowsState }: { selectedRowsState: [IArtic
         }
 
         Promise.all(promises).then(() => {
-            dispatch(setActionModalVisibility(false))
-            setIsActionModalBtnLoading(false)
-
             actionSuccessCallback()
         })
+
+        dispatch(setActionModalVisibility(false))
+        setIsActionModalBtnLoading(false)
 
         async function makeRequest(formData: FormData, articleTitle: string) {
             await axios(privateRoutes.ARTICLE, {

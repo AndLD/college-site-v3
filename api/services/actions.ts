@@ -12,7 +12,7 @@ import {
 } from '../utils/types'
 import { getLogger } from '../utils/logger'
 import { articlesService } from './articles'
-import { googleDriveService } from './googleDrive'
+import { googleDriveService } from './google-drive'
 import { ArticleData, IArticle } from '../utils/interfaces/articles/articles'
 import { notificationService } from './notification'
 import { firebase } from '../configs/firebase-config'

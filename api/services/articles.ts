@@ -4,7 +4,7 @@ import { convertDocxToHtml, getAllCompatibleInputForString } from '../utils/func
 import { IArticle, IArticleUpdate } from '../utils/interfaces/articles/articles'
 import { getLogger } from '../utils/logger'
 import { Error, ArticleFileData, Filter, ModelResult } from '../utils/types'
-import { googleDriveService } from './googleDrive'
+import { googleDriveService } from './google-drive'
 import { notificationService } from './notification'
 
 const logger = getLogger('services/articles')

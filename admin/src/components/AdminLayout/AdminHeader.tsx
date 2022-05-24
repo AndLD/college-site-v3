@@ -11,6 +11,7 @@ import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { setMenuCollapsed } from '../../store/actions'
 import UserAvatar from './AdminHeader/UserAvatar'
+import Jobs from './AdminHeader/Jobs'
 
 const { Header } = Layout
 
@@ -21,29 +22,38 @@ export default function AdminHeader() {
 
     return (
         <Header className="site-layout-background" style={{ padding: 0 }}>
-            {React.createElement(collapsed ? MenuUnfoldOutlined : MenuFoldOutlined, {
-                className: 'trigger',
-                onClick: () => dispatch(setMenuCollapsed(!collapsed))
-            })}
-            <Dropdown
-                overlay={
-                    <Menu>
-                        <Menu.Item key="1" icon={<UserOutlined />}>
-                            <Link to="/admin/profile">Profile</Link>
-                        </Menu.Item>
-                        <Menu.Item key="2" icon={<LogoutOutlined />}>
-                            <LogoutButton />
-                        </Menu.Item>
-                    </Menu>
-                }
-                placement="bottom"
-                arrow
-                trigger={['click']}
-            >
-                <span>
-                    <UserAvatar />
-                </span>
-            </Dropdown>
+            <div style={{ display: 'flex', justifyContent: 'center', width: '180px' }}>
+                <div style={{ flex: 1, textAlign: 'center' }}>
+                    {React.createElement(collapsed ? MenuUnfoldOutlined : MenuFoldOutlined, {
+                        className: 'trigger',
+                        onClick: () => dispatch(setMenuCollapsed(!collapsed))
+                    })}
+                </div>
+                <div style={{ flex: 1, textAlign: 'center' }}>
+                    <Dropdown
+                        overlay={
+                            <Menu>
+                                <Menu.Item key="1" icon={<UserOutlined />}>
+                                    <Link to="/admin/profile">Profile</Link>
+                                </Menu.Item>
+                                <Menu.Item key="2" icon={<LogoutOutlined />}>
+                                    <LogoutButton />
+                                </Menu.Item>
+                            </Menu>
+                        }
+                        placement="bottom"
+                        arrow
+                        trigger={['click']}
+                    >
+                        <span>
+                            <UserAvatar />
+                        </span>
+                    </Dropdown>
+                </div>
+                <div style={{ flex: 1, textAlign: 'center' }}>
+                    <Jobs />
+                </div>
+            </div>
         </Header>
     )
 }

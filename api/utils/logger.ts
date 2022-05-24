@@ -1,8 +1,13 @@
 import log4js from 'log4js'
+import moment from 'moment'
+
 // Настройки логирования
 log4js.configure({
     appenders: {
-        file: { type: 'file', filename: `logs/${Date.now().toString()}.log` },
+        file: {
+            type: 'file',
+            filename: `logs/${moment(Date.now()).format('DD.MM.YYYY HH:mm:ss')}.log`
+        },
         con: { type: 'console' }
     },
 

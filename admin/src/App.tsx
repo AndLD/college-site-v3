@@ -10,8 +10,6 @@ import { privateRoutes } from './utils/constants'
 import { errorNotification } from './utils/notifications'
 import { IUser } from './utils/types'
 
-const firebaseAuth = getAuth()
-
 function App() {
     const dispatch = useDispatch()
 
@@ -29,8 +27,8 @@ function App() {
     }
 
     useEffect(() => {
-        firebaseAuth.onAuthStateChanged((userCredentials: any) => {
-            if (userCredentials)
+        getAuth().onIdTokenChanged((userCredentials: any) => {
+            if (userCredentials) {
                 userCredentials.getIdToken().then((token: string) => {
                     fetchUser(token).then(() => {
                         dispatch(setAuth(true))
@@ -38,7 +36,7 @@ function App() {
 
                     dispatch(setToken(token))
                 })
-            else {
+            } else {
                 dispatch(setAuth(false))
             }
         })

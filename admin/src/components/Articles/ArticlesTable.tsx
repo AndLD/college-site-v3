@@ -41,7 +41,7 @@ function ArticlesTable() {
                 {
                     title: 'ID',
                     dataIndex: 'id',
-                    width: 200
+                    width: 220
                 },
                 {
                     title: 'Old ID',

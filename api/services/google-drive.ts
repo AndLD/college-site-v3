@@ -15,7 +15,7 @@ import { firebase } from '../configs/firebase-config'
 import { articlesService } from './articles'
 import { notificationService } from './notification'
 
-const logger = getLogger('services/googleDrive')
+const logger = getLogger('services/google-drive')
 
 const drive = google.drive('v3')
 

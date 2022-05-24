@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { model } from '../model/model'
-import { appSettingsService } from '../services/appSettings'
+import { appSettingsService } from '../services/app-settings'
 import { articlesService } from '../services/articles'
 import { errors } from '../utils/constants'
 import { tryCatch } from '../utils/decorators'

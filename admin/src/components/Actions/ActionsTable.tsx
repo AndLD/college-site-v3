@@ -76,7 +76,7 @@ function ActionsTable() {
                 {
                     title: 'ID',
                     dataIndex: 'id',
-                    width: 200,
+                    width: 220,
                     render: (value: string, row: IAction) => {
                         return (
                             <>

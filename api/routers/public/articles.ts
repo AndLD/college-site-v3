@@ -1,6 +1,6 @@
 import { Response, Router } from 'express'
 import { model } from '../../model/model'
-import { googleDriveService } from '../../services/googleDrive'
+import { googleDriveService } from '../../services/google-drive'
 import { ArticlesAllowedFileExtension, Error, ModelResult } from '../../utils/types'
 
 export default Router()

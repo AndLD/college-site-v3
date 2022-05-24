@@ -2,7 +2,7 @@ import { Request, Response, Router } from 'express'
 import { hasModeratorStatus } from '../../middlewares/auth'
 import { getCollectionLength } from '../../model/model'
 import { bufferService } from '../../services/buffer'
-import { googleDriveService } from '../../services/googleDrive'
+import { googleDriveService } from '../../services/google-drive'
 import { entities, startTimestamp } from '../../utils/constants'
 
 export default Router()

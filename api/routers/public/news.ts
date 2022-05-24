@@ -8,8 +8,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { getLogger } from '../../utils/logger'
 import { bufferUtils } from '../../utils/buffer'
 import { newsService } from '../../services/news'
-import { googleDriveService } from '../../services/googleDrive'
-import { appSettingsService } from '../../services/appSettings'
+import { googleDriveService } from '../../services/google-drive'
+import { appSettingsService } from '../../services/app-settings'
 
 const logger = getLogger('routes/public/news')
 

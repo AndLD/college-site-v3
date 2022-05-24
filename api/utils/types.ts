@@ -159,3 +159,24 @@ export type NewsFileData = {
 export type Options = {
     [key: string]: (ArticlesAllowedFileExtension | NewsAllowedFileExtension)[]
 }
+
+export interface IJob {
+    id?: string
+    title: string
+    steps: JobStep[]
+    timestamp: number
+    duration?: number
+    currentStep: number
+    status: JobStatus
+    user: string
+}
+
+export type JobStatus = 'success' | 'normal' | 'exception' | 'active'
+
+export type JobStep = {
+    title: string
+    description?: string
+    duration?: number
+}
+
+export type JobUpdateBody = { currentStep?: number; status?: JobStatus }

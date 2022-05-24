@@ -11,7 +11,7 @@ import {
     NewsAllowedFileExtension,
     NewsFileData
 } from '../utils/types'
-import { googleDriveService } from './googleDrive'
+import { googleDriveService } from './google-drive'
 import { notificationService } from './notification'
 
 const logger = getLogger('services/news')

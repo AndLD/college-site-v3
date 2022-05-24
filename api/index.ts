@@ -1,5 +1,5 @@
 import { getLogger } from './utils/logger'
-import { app } from './pre-configs'
+import { setupApp } from './setup-app'
 import { hasAdminStatus, hasModeratorStatus, isAuthorized } from './middlewares/auth'
 import { setReqEntity } from './middlewares/decorators'
 import menuPrivateRouter from './routers/private/menu'
@@ -14,8 +14,12 @@ import newsPublicRouter from './routers/public/news'
 import newsPrivateRouter from './routers/private/news'
 import actionsPrivateRouter from './routers/private/actions'
 import statisticsPrivateRouter from './routers/private/statistics'
+import httpServer from 'http'
+import { setupSocketServer } from './setup-socket-connection'
 
 const logger = getLogger('index')
+
+const app = setupApp()
 
 const apiRouter = Router()
 app.use('/api', apiRouter)
@@ -61,9 +65,14 @@ privateRouter.use('/action', setReqEntity(entities.ACTIONS), actionsPrivateRoute
 // Statistics (test route)
 privateRouter.use('/statistics', hasModeratorStatus, statisticsPrivateRouter)
 
+const server = httpServer.createServer(app)
+
+setupSocketServer(server)
+
 const port = process.env.PORT
-app.listen(port, () => {
+
+server.listen(port, () => {
     logger.info(`Server has been started on ${port}`)
 })
 
-export default app
+// export default app

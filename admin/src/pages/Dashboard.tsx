@@ -46,8 +46,6 @@ function Dashboard() {
             .catch((err: AxiosError) => errorNotification(err.message))
     }, [])
 
-    useEffect(() => console.log(statistics), [statistics])
-
     return (
         <AdminLayout>
             <Title level={1}>Dashboard</Title>
