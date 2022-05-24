@@ -1,30 +1,58 @@
 import { DeploymentUnitOutlined } from '@ant-design/icons'
 import { Badge, Checkbox, Empty, Popover, Skeleton, Tooltip } from 'antd'
-import { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
-import { io, Socket } from 'socket.io-client'
+import { useEffect, useReducer, useState } from 'react'
+import { io } from 'socket.io-client'
 import { IJob } from '../../../utils/types'
 import JobsCollapse from './JobsCollapse'
 
-function Jobs() {
-    const token = useSelector((state: any) => state.app.token)
+let jobs: { [id: string]: IJob } = {}
 
-    const [jobs, setJobs] = useState<{ [id: string]: IJob }>({})
+function Jobs() {
+    // const token = useSelector((state: any) => state.app.token)
+    // const [jobs, setJobs] = useState<{ [id: string]: IJob }>({})
     const [isJobsLoading, setIsJobsLoading] = useState<boolean>(false)
     const [isKeepJobsVisibleEnabled, setIsKeepJobsVisibleEnabled] = useState<boolean>(false)
     const [isJobsVisible, setIsJobsVisible] = useState<boolean>(false)
+    // const [socket, setSocket] = useState<Socket | null>(null)
 
-    const [socket, setSocket] = useState<Socket | null>(null)
+    const [, forceUpdate] = useReducer((x) => x + 1, 0)
+
+    function setJobs(newJobs: { [id: string]: IJob }) {
+        jobs = newJobs
+        forceUpdate()
+    }
 
     useEffect(() => {
-        const newSocket = io('http://localhost:8080', {
+        const socket = io('http://localhost:8080', {
             withCredentials: true,
-            reconnectionDelay: 1000,
-            extraHeaders: {
-                Authorization: `Bearer ${token}`
-            }
+            reconnectionDelay: 1000
+            // extraHeaders: {
+            //     Authorization: `Bearer ${token}`
+            // }
         })
-        setSocket(newSocket)
+
+        console.log('render')
+        socket.on('connect', () => {
+            setIsJobsLoading(false)
+        })
+
+        socket.on('disconnect', () => {
+            setIsJobsLoading(true)
+        })
+
+        socket.on('update-jobs', (jobs: { [id: string]: IJob }) => setJobs(jobs))
+        socket.on('update-job', (id: string, job: IJob) => {
+            setJobs({ ...jobs, [id]: job })
+            // jobs[id] = job
+        })
+
+        socket.on('remove-job', (id: string) => {
+            const newJobs = jobs
+            delete newJobs[id]
+            setJobs(newJobs)
+        })
+
+        // setSocket(socket)
 
         const setIsKeepJobsVisibleEnabledFromLocalStorage = localStorage.getItem(
             'isKeepJobsVisibleEnabled'
@@ -43,24 +71,7 @@ function Jobs() {
         )
     }, [isKeepJobsVisibleEnabled])
 
-    if (socket) {
-        console.log('render')
-        socket.once('connect', () => {
-            setIsJobsLoading(false)
-        })
-
-        socket.once('disconnect', () => {
-            setIsJobsLoading(true)
-        })
-
-        socket.once('update-jobs', (jobs: { [id: string]: IJob }) => setJobs(jobs))
-        socket.once('update-job', (id: string, job: IJob) => setJobs({ ...jobs, [id]: job }))
-        socket.once('remove-job', (id: string) => {
-            const newJobs = jobs
-            delete newJobs[id]
-            setJobs(newJobs)
-        })
-    }
+    useEffect(() => console.log(jobs), [jobs])
 
     return (
         <span className="trigger">
@@ -68,7 +79,7 @@ function Jobs() {
                 title={
                     <div>
                         Jobs{' '}
-                        <Tooltip title="Keep jobs window visible">
+                        <Tooltip title="Keep jobs window open">
                             <Checkbox
                                 checked={isKeepJobsVisibleEnabled}
                                 onChange={(e) => setIsKeepJobsVisibleEnabled(e.target.checked)}

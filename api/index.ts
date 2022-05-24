@@ -69,10 +69,8 @@ const server = httpServer.createServer(app)
 
 setupSocketServer(server)
 
-const port = process.env.PORT
+const port = process.env.PORT || 8080
 
 server.listen(port, () => {
     logger.info(`Server has been started on ${port}`)
 })
-
-// export default app
