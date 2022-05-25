@@ -24,7 +24,7 @@ export default function ArticlesTableControls() {
         dispatch(setActionModalVisibility(true))
         dispatch(
             setActionSuccessCallback(() => {
-                fetchArticles(pagination)
+                fetchArticles(pagination, null, 'timestamp,desc')
                 setSelectedRows([])
             })
         )
