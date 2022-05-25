@@ -13,14 +13,14 @@ function add(user: string, title: string, steps: JobStep[]) {
 
     const timestamp = Date.now()
 
-    steps[0].duration = performance.now()
+    performance.mark(`job:${id}:step:0 start`)
+    performance.mark(`job:${id} start`)
 
     const job = {
         title,
         steps,
         currentStep: 0,
         timestamp,
-        duration: performance.now(),
         status: 'active' as JobStatus,
         user
     }
@@ -70,10 +70,17 @@ function updateStepDescription(id: string, description: string) {
 }
 
 function _nextStep(id: string) {
+    const measureName = `job:${id}:step:${jobs[id].currentStep}`
+
+    performance.mark(`${measureName} end`)
+
+    performance.measure(measureName, `${measureName} start`, `${measureName} end`)
+
     jobs[id].steps[jobs[id].currentStep].duration =
-        performance.now() - (jobs[id].steps[jobs[id].currentStep].duration as number)
+        performance.getEntriesByName(measureName)[0].duration
     jobs[id].currentStep++
-    jobs[id].steps[jobs[id].currentStep].duration = performance.now()
+
+    performance.mark(`job:${id}:step:${jobs[id].currentStep} start`)
 }
 
 function nextStep(id: string) {
@@ -113,8 +120,7 @@ function insertStep(id: string, stepTitle: string, stepDescription?: string) {
     // Create step
     const newStep: JobStep = {
         title: stepTitle,
-        description: stepDescription,
-        duration: performance.now()
+        description: stepDescription
     }
     // Insert step
     const steps = [
@@ -127,6 +133,7 @@ function insertStep(id: string, stepTitle: string, stepDescription?: string) {
     _emitJobUpdate(id)
 }
 
+// Deprecated
 function removeStep(id: string) {
     if (jobs[id].currentStep === 0) {
         jobs[id].steps.shift()
@@ -151,12 +158,19 @@ function removeNextSteps(id: string) {
 function error(id: string) {
     jobs[id].status = 'exception'
 
-    const lastStepDurationValue = jobs[id].steps[jobs[id].currentStep].duration
+    const stepMeasureName = `job:${id}:step:${jobs[id].currentStep}`
 
-    if (lastStepDurationValue) {
-        jobs[id].steps[jobs[id].currentStep].duration = performance.now() - lastStepDurationValue
-    }
-    jobs[id].duration = performance.now() - (jobs[id].duration || 0)
+    performance.mark(`${stepMeasureName} end`)
+    performance.measure(stepMeasureName, `${stepMeasureName} start`, `${stepMeasureName} end`)
+
+    jobs[id].steps[jobs[id].currentStep].duration =
+        performance.getEntriesByName(stepMeasureName)[0].duration
+
+    const jobMeasureName = `job:${id}`
+    performance.mark(`${jobMeasureName} end`)
+    performance.measure(jobMeasureName, `${jobMeasureName} start`, `${jobMeasureName} end`)
+
+    jobs[id].duration = performance.getEntriesByName(jobMeasureName)[0].duration
 
     _emitJobUpdate(id)
 }
@@ -164,14 +178,19 @@ function error(id: string) {
 function success(id: string) {
     jobs[id].status = 'success'
 
-    const lastStepDurationValue = jobs[id].steps[jobs[id].steps.length - 1].duration
+    const stepMeasureName = `job:${id}:step:${jobs[id].currentStep}`
 
-    const now = performance.now()
+    performance.mark(`${stepMeasureName} end`)
+    performance.measure(stepMeasureName, `${stepMeasureName} start`, `${stepMeasureName} end`)
 
-    if (lastStepDurationValue) {
-        jobs[id].steps[jobs[id].steps.length - 1].duration = now - lastStepDurationValue
-    }
-    jobs[id].duration = now - (jobs[id].duration || 0)
+    jobs[id].steps[jobs[id].currentStep].duration =
+        performance.getEntriesByName(stepMeasureName)[0].duration
+
+    const jobMeasureName = `job:${id}`
+    performance.mark(`${jobMeasureName} end`)
+    performance.measure(jobMeasureName, `${jobMeasureName} start`, `${jobMeasureName} end`)
+
+    jobs[id].duration = performance.getEntriesByName(jobMeasureName)[0].duration
 
     _emitJobUpdate(id)
 

@@ -46,7 +46,6 @@ function Jobs() {
     }, [isKeepJobsVisibleEnabled])
 
     useEffect(() => {
-        console.log(jobs)
         if (socket) {
             setupJobsEvents(socket)
         }
@@ -80,8 +79,6 @@ function Jobs() {
                 filtered[id] = jobs[id]
             }
         }
-
-        console.log('filtered', filtered)
 
         setJobs(filtered)
     }
