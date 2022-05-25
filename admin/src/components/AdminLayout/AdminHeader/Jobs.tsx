@@ -3,27 +3,25 @@ import { Badge, Checkbox, Empty, Popover, Skeleton, Tooltip } from 'antd'
 import { useEffect, useReducer, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { io, Socket } from 'socket.io-client'
-import { useImmer } from 'use-immer'
 import { IJob } from '../../../utils/types'
 import JobsCollapse from './JobsCollapse'
 
 function Jobs() {
-    const [jobs, setJobs] = useImmer<{ [id: string]: IJob }>({})
+    const [jobs, setJobs] = useState<{ [id: string]: IJob }>({})
     const [isJobsLoading, setIsJobsLoading] = useState<boolean>(false)
     const [isKeepJobsVisibleEnabled, setIsKeepJobsVisibleEnabled] = useState<boolean>(false)
     const [isJobsVisible, setIsJobsVisible] = useState<boolean>(false)
     const socket: Socket = useSelector((state: any) => state.app.socket)
 
     useEffect(() => {
-        socket.once('connect', () => {
+        socket.on('connect', () => {
             setIsJobsLoading(false)
         })
 
-        socket.once('disconnect', () => {
+        socket.on('disconnect', () => {
             setIsJobsLoading(true)
         })
 
-        console.log(0)
         setupJobsEvents(socket)
 
         const setIsKeepJobsVisibleEnabledFromLocalStorage = localStorage.getItem(
@@ -49,17 +47,21 @@ function Jobs() {
 
     useEffect(() => {
         console.log(jobs)
-
         if (socket) {
-            console.log(1)
             setupJobsEvents(socket)
         }
     }, [jobs])
 
     function setupJobsEvents(socket: Socket) {
-        console.log('setupSocketJobsEvents')
-
-        socket.once('update-jobs', (jobs: { [id: string]: IJob }) => setJobs(jobs))
+        socket.once('update-jobs', (newJobs: { [id: string]: IJob }) => {
+            const successJobs: { [id: string]: IJob } = {}
+            for (const id in jobs) {
+                if (jobs[id].status === 'success' || jobs[id].status === 'exception') {
+                    successJobs[id] = jobs[id]
+                }
+            }
+            setJobs({ ...successJobs, ...newJobs })
+        })
         socket.once('update-job', (id: string, job: IJob) => {
             setJobs({ ...jobs, [id]: job })
         })
@@ -70,18 +72,50 @@ function Jobs() {
         })
     }
 
+    function dropSuccessedJobs() {
+        const filtered: { [id: string]: IJob } = {}
+
+        for (const id in jobs) {
+            if (jobs[id].status !== 'success') {
+                filtered[id] = jobs[id]
+            }
+        }
+
+        console.log('filtered', filtered)
+
+        setJobs(filtered)
+    }
+
     return (
         <span className="trigger">
             <Popover
                 title={
                     <div>
-                        Jobs{' '}
-                        <Tooltip title="Keep jobs window open">
-                            <Checkbox
-                                checked={isKeepJobsVisibleEnabled}
-                                onChange={(e) => setIsKeepJobsVisibleEnabled(e.target.checked)}
-                            />
-                        </Tooltip>
+                        <div>
+                            Jobs{' '}
+                            <Tooltip title="Keep jobs window open">
+                                <Checkbox
+                                    checked={isKeepJobsVisibleEnabled}
+                                    onChange={(e) => setIsKeepJobsVisibleEnabled(e.target.checked)}
+                                />
+                            </Tooltip>
+                        </div>
+                        <div>
+                            {Object.keys(jobs).filter((id) => jobs[id].status === 'success')
+                                .length > 0 ? (
+                                <span
+                                    style={{
+                                        color: '#1890ff',
+                                        width: '100%',
+                                        textAlign: 'right',
+                                        cursor: 'pointer'
+                                    }}
+                                    onClick={dropSuccessedJobs}
+                                >
+                                    Drop successed
+                                </span>
+                            ) : null}
+                        </div>
                     </div>
                 }
                 placement="bottom"

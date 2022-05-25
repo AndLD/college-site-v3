@@ -1,10 +1,11 @@
 import { Collapse, Progress, Steps } from 'antd'
+import moment from 'moment'
 import { jobsUtils } from '../../../utils/jobs'
 import { IJob } from '../../../utils/types'
 
 function JobsCollapse({ jobs }: { jobs: { [id: string]: IJob } }) {
     return (
-        <Collapse style={{ maxHeight: '80vh', overflowY: 'scroll' }}>
+        <Collapse accordion style={{ maxHeight: '80vh', overflowY: 'scroll' }}>
             {Object.keys(jobs).map((id, i) => {
                 const percent =
                     jobs[id].status === 'success'
@@ -18,6 +19,9 @@ function JobsCollapse({ jobs }: { jobs: { [id: string]: IJob } }) {
                         style={{ minWidth: 400 }}
                         header={
                             <div>
+                                <div>
+                                    {moment(jobs[id].timestamp).format('DD.MM.YYYY HH:mm:ss')}
+                                </div>
                                 <div style={{ color: '#1890ff' }}>{jobs[id].user}</div>
                                 <div style={{ maxWidth: 350 }}>{jobs[id].title}</div>
                                 <Progress
@@ -26,9 +30,26 @@ function JobsCollapse({ jobs }: { jobs: { [id: string]: IJob } }) {
                                     status={jobs[id].status}
                                 />
                                 <div>
-                                    {jobs[id].status !== 'success'
-                                        ? jobs[id].steps[jobs[id].currentStep].title
-                                        : null}
+                                    {jobs[id].status !== 'success' ? (
+                                        <span
+                                            style={{
+                                                color:
+                                                    jobs[id].status === 'exception'
+                                                        ? 'rgb(255, 68, 70)'
+                                                        : ''
+                                            }}
+                                        >
+                                            {jobs[id].steps[jobs[id].currentStep].title}
+                                        </span>
+                                    ) : jobs[id].duration ? (
+                                        <span
+                                            style={{
+                                                color: 'rgb(72, 188, 25)'
+                                            }}
+                                        >
+                                            {Number(jobs[id].duration / 1000).toFixed(2)} s
+                                        </span>
+                                    ) : null}
                                 </div>
                             </div>
                         }
@@ -42,11 +63,16 @@ function JobsCollapse({ jobs }: { jobs: { [id: string]: IJob } }) {
                             percent={percent}
                         >
                             {jobs[id].steps.map((step, i) => {
+                                const preparedDuration =
+                                    (step.duration && Number(step.duration / 1000).toFixed(2)) || 0
+                                const stepDuration =
+                                    preparedDuration > 0 ? preparedDuration + 's' : null
+
                                 return (
                                     <Steps.Step
                                         key={i}
                                         title={step.title}
-                                        subTitle={step.duration ? step.duration : null}
+                                        subTitle={stepDuration}
                                         description={step.description}
                                     />
                                 )

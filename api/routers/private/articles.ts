@@ -30,7 +30,6 @@ import { bufferUtils } from '../../utils/buffer'
 import { appSettingsService } from '../../services/app-settings'
 import { jobsUtils } from '../../utils/jobs'
 import { jobsService } from '../../services/jobs'
-import { jobs } from 'googleapis/build/src/apis/jobs'
 
 const logger = getLogger('routes/private/articles')
 
@@ -208,6 +207,9 @@ export default Router()
             data.html = true
         }
 
+        const docId = firebase.db.collection('articles').doc().id
+        jobsService.updateStepDescription(jobId, docId)
+
         const articleMetadata: IArticle = {
             ...body,
             publicTimestamp: timestamp,
@@ -218,11 +220,10 @@ export default Router()
 
         jobsService.nextStep(jobId)
 
-        const docId = firebase.db.collection('articles').doc().id
-
         jobsService.updateTitle(jobId, `Article [${articleMetadata.title}, ${docId}] adding`)
 
         const actionId = firebase.db.collection('actions').doc().id
+        jobsService.updateStepDescription(jobId, actionId)
 
         const actionMetadata: IAction = {
             entity: 'articles',

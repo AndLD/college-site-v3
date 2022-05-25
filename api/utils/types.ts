@@ -165,7 +165,7 @@ export interface IJob {
     title: string
     steps: JobStep[]
     timestamp: number
-    duration?: number
+    duration: number
     currentStep: number
     status: JobStatus
     user: string

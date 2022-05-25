@@ -20,6 +20,7 @@ function add(user: string, title: string, steps: JobStep[]) {
         steps,
         currentStep: 0,
         timestamp,
+        duration: performance.now(),
         status: 'active' as JobStatus,
         user
     }
@@ -70,7 +71,7 @@ function updateStepDescription(id: string, description: string) {
 
 function _nextStep(id: string) {
     jobs[id].steps[jobs[id].currentStep].duration =
-        (performance.now() - (jobs[id].steps[jobs[id].currentStep].duration as number)) / 1000
+        performance.now() - (jobs[id].steps[jobs[id].currentStep].duration as number)
     jobs[id].currentStep++
     jobs[id].steps[jobs[id].currentStep].duration = performance.now()
 }
@@ -110,9 +111,10 @@ function addNextStep(id: string, stepTitle: string, stepDescription?: string) {
 
 function insertStep(id: string, stepTitle: string, stepDescription?: string) {
     // Create step
-    const newStep = {
+    const newStep: JobStep = {
         title: stepTitle,
-        description: stepDescription
+        description: stepDescription,
+        duration: performance.now()
     }
     // Insert step
     const steps = [
@@ -121,12 +123,6 @@ function insertStep(id: string, stepTitle: string, stepDescription?: string) {
         ...jobs[id].steps.slice(jobs[id].currentStep + 1)
     ]
     jobs[id].steps = steps
-
-    // Move to next step
-    jobs[id].steps[jobs[id].currentStep].duration =
-        performance.now() - (jobs[id].steps[jobs[id].currentStep].duration as number)
-    jobs[id].currentStep++
-    jobs[id].steps[jobs[id].currentStep].duration = performance.now()
 
     _emitJobUpdate(id)
 }
@@ -155,11 +151,27 @@ function removeNextSteps(id: string) {
 function error(id: string) {
     jobs[id].status = 'exception'
 
+    const lastStepDurationValue = jobs[id].steps[jobs[id].currentStep].duration
+
+    if (lastStepDurationValue) {
+        jobs[id].steps[jobs[id].currentStep].duration = performance.now() - lastStepDurationValue
+    }
+    jobs[id].duration = performance.now() - (jobs[id].duration || 0)
+
     _emitJobUpdate(id)
 }
 
 function success(id: string) {
     jobs[id].status = 'success'
+
+    const lastStepDurationValue = jobs[id].steps[jobs[id].steps.length - 1].duration
+
+    const now = performance.now()
+
+    if (lastStepDurationValue) {
+        jobs[id].steps[jobs[id].steps.length - 1].duration = now - lastStepDurationValue
+    }
+    jobs[id].duration = now - (jobs[id].duration || 0)
 
     _emitJobUpdate(id)
 
