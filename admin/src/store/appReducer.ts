@@ -8,7 +8,8 @@ import {
     SET_ACTION,
     SET_TABLE_SELECTED_ROWS,
     SET_ACTION_SUCCESS_CALLBACK,
-    SET_USER
+    SET_USER,
+    SET_SOCKET
 } from './types'
 
 const initialState = {
@@ -57,6 +58,9 @@ export const appReducer = (
 
         case SET_USER:
             return { ...state, user: action.payload }
+
+        case SET_SOCKET:
+            return { ...state, socket: action.payload }
 
         default:
             return state

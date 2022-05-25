@@ -1,3 +1,4 @@
+import { Socket } from 'socket.io-client'
 import { IUser } from '../utils/types'
 import {
     SET_AUTH,
@@ -9,7 +10,8 @@ import {
     SET_ACTION,
     SET_TABLE_SELECTED_ROWS,
     SET_ACTION_SUCCESS_CALLBACK,
-    SET_USER
+    SET_USER,
+    SET_SOCKET
 } from './types'
 
 export const setAuth = (newAuth: boolean) => ({
@@ -58,4 +60,9 @@ export const setActionSuccessCallback = (actionSuccessCallback: () => void) => (
 export const setUser = (user: IUser) => ({
     type: SET_USER,
     payload: user
+})
+
+export const setSocket = (socket: Socket) => ({
+    type: SET_SOCKET,
+    payload: socket
 })

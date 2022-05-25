@@ -1,6 +1,7 @@
 import { DeploymentUnitOutlined } from '@ant-design/icons'
 import { Badge, Checkbox, Empty, Popover, Skeleton, Tooltip } from 'antd'
 import { useEffect, useReducer, useState } from 'react'
+import { useSelector } from 'react-redux'
 import { io, Socket } from 'socket.io-client'
 import { useImmer } from 'use-immer'
 import { IJob } from '../../../utils/types'
@@ -11,14 +12,9 @@ function Jobs() {
     const [isJobsLoading, setIsJobsLoading] = useState<boolean>(false)
     const [isKeepJobsVisibleEnabled, setIsKeepJobsVisibleEnabled] = useState<boolean>(false)
     const [isJobsVisible, setIsJobsVisible] = useState<boolean>(false)
-    const [socket, setSocket] = useState<Socket | null>(null)
+    const socket: Socket = useSelector((state: any) => state.app.socket)
 
     useEffect(() => {
-        const socket = io('http://localhost:8080', {
-            withCredentials: true,
-            reconnectionDelay: 1000
-        })
-
         socket.once('connect', () => {
             setIsJobsLoading(false)
         })
@@ -30,8 +26,6 @@ function Jobs() {
         console.log(0)
         setupJobsEvents(socket)
 
-        setSocket(socket)
-
         const setIsKeepJobsVisibleEnabledFromLocalStorage = localStorage.getItem(
             'isKeepJobsVisibleEnabled'
         )
@@ -41,9 +35,9 @@ function Jobs() {
             setIsKeepJobsVisibleEnabled(false)
         }
 
-        // return () => {
-        //     socket.disconnect()
-        // }
+        return () => {
+            socket.removeAllListeners()
+        }
     }, [])
 
     useEffect(() => {
