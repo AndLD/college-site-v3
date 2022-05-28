@@ -113,7 +113,9 @@ function Dashboard() {
                             <Tooltip title="Start time">
                                 <Title level={2}>
                                     <div>
-                                        {new Date(statistics.startTimestamp).toLocaleString()}
+                                        {moment(statistics.startTimestamp).format(
+                                            'DD.MM.YYYY HH:mm:ss'
+                                        )}
                                     </div>
                                     <ClockCircleOutlined
                                         style={{ fontSize: '60px', marginTop: 10 }}

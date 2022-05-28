@@ -1,19 +1,21 @@
 import { Server } from 'socket.io'
 import httpServer from 'http'
-import { getLogger } from './utils/logger'
-import { jobsService } from './services/jobs'
+import { getLogger } from '../utils/logger'
+import { jobsService } from '../services/jobs'
 
-const logger = getLogger('setup-socket-server')
+const logger = getLogger('setup/socket-connection')
 
 export function setupSocketServer(server: httpServer.Server) {
+    const corsOptions = {
+        origin: process.env.ADMIN_URL || 'http://localhost:3000',
+        credentials: true
+    }
+
     const io = new Server(server, {
-        cors: {
-            origin: process.env.ADMIN_URL || 'http://localhost:3000',
-            credentials: true
-        }
+        cors: corsOptions
     })
 
-    // TODO: Set up auth middleware
+    // TODO: Use auth middleware
     // io.use(isSocketAuthorized as any)
 
     io.on('connection', async (socket) => {

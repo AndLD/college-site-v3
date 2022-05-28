@@ -1,12 +1,17 @@
 import { IJob, JobStatus, JobStep, JobUpdateBody } from '../utils/types'
 import EventEmitter from 'events'
 import { v4 as uuidv4 } from 'uuid'
+import { jobsUtils } from '../utils/jobs'
 
 // const timestamp = Date.now()
 
 const jobs: { [key: string]: IJob } = {}
 
 const jobsEventEmitter = new EventEmitter()
+
+function _emitJobUpdate(id: string) {
+    jobsEventEmitter.emit('update', id, jobs[id])
+}
 
 function add(user: string, title: string, steps: JobStep[]) {
     const id = uuidv4()
@@ -81,6 +86,10 @@ function _nextStep(id: string) {
     jobs[id].currentStep++
 
     performance.mark(`job:${id}:step:${jobs[id].currentStep} start`)
+
+    // Clear marks and measures
+    performance.clearMeasures(measureName)
+    performance.clearMarks(`${measureName} end`)
 }
 
 function nextStep(id: string) {
@@ -155,22 +164,37 @@ function removeNextSteps(id: string) {
     _emitJobUpdate(id)
 }
 
-function error(id: string) {
-    jobs[id].status = 'exception'
+function _finish(id: string) {
+    const step = jobs[id].currentStep
 
-    const stepMeasureName = `job:${id}:step:${jobs[id].currentStep}`
-
+    const stepMeasureName = `job:${id}:step:${step}`
     performance.mark(`${stepMeasureName} end`)
     performance.measure(stepMeasureName, `${stepMeasureName} start`, `${stepMeasureName} end`)
 
-    jobs[id].steps[jobs[id].currentStep].duration =
-        performance.getEntriesByName(stepMeasureName)[0].duration
+    jobs[id].steps[step].duration = performance.getEntriesByName(stepMeasureName)[0].duration
 
     const jobMeasureName = `job:${id}`
     performance.mark(`${jobMeasureName} end`)
     performance.measure(jobMeasureName, `${jobMeasureName} start`, `${jobMeasureName} end`)
 
     jobs[id].duration = performance.getEntriesByName(jobMeasureName)[0].duration
+
+    // Clear marks and measures
+    jobsUtils.clearPerformanceResources(
+        [stepMeasureName, jobMeasureName],
+        [
+            `${stepMeasureName} start`,
+            `${stepMeasureName} end`,
+            `${jobMeasureName} start`,
+            `${jobMeasureName} end`
+        ]
+    )
+}
+
+function error(id: string) {
+    jobs[id].status = 'exception'
+
+    _finish(id)
 
     _emitJobUpdate(id)
 }
@@ -178,19 +202,7 @@ function error(id: string) {
 function success(id: string) {
     jobs[id].status = 'success'
 
-    const stepMeasureName = `job:${id}:step:${jobs[id].currentStep}`
-
-    performance.mark(`${stepMeasureName} end`)
-    performance.measure(stepMeasureName, `${stepMeasureName} start`, `${stepMeasureName} end`)
-
-    jobs[id].steps[jobs[id].currentStep].duration =
-        performance.getEntriesByName(stepMeasureName)[0].duration
-
-    const jobMeasureName = `job:${id}`
-    performance.mark(`${jobMeasureName} end`)
-    performance.measure(jobMeasureName, `${jobMeasureName} start`, `${jobMeasureName} end`)
-
-    jobs[id].duration = performance.getEntriesByName(jobMeasureName)[0].duration
+    _finish(id)
 
     _emitJobUpdate(id)
 
@@ -205,10 +217,6 @@ function remove(id: string) {
 
 function get() {
     return jobs
-}
-
-function _emitJobUpdate(id: string) {
-    jobsEventEmitter.emit('update', id, jobs[id])
 }
 
 export const jobsService = {

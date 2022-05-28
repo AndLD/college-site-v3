@@ -18,6 +18,16 @@ const templates = {
     }
 }
 
+function clearPerformanceResources(measureNames: string[], marks: string[]) {
+    for (const measureName of measureNames) {
+        performance.clearMeasures(measureName)
+    }
+    for (const mark of marks) {
+        performance.clearMarks(mark)
+    }
+}
+
 export const jobsUtils = {
-    templates
+    templates,
+    clearPerformanceResources
 }
