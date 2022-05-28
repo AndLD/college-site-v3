@@ -25,11 +25,14 @@ async function fetchNewsMetadatas(count: number) {
 }
 
 // Frontend only
-async function fetchNewsImages(newsIds: string[]): Promise<{ [key: string]: string }> {
+async function fetchNewsData(
+    newsIds: string[],
+    requestedExt: ('html' | 'png')[]
+): Promise<{ [key: string]: string }> {
     const options: any = {}
 
     for (const id of newsIds) {
-        options[id] = ['png']
+        options[id] = requestedExt
     }
 
     try {
@@ -50,10 +53,9 @@ async function fetchNewsImages(newsIds: string[]): Promise<{ [key: string]: stri
         }
 
         const filename: string = contentDisposition.split('filename=')[1].replaceAll('"', '')
-        const name = filename.slice(0, filename.lastIndexOf('.'))
         const ext = filename.slice(filename.lastIndexOf('.') + 1)
 
-        if (ext !== 'zip' && ext !== 'png') {
+        if (ext !== 'zip' && ext !== 'png' && ext !== 'html') {
             throw new Error(`Unsupported "${ext}" file obtained`)
         }
 
@@ -69,13 +71,20 @@ async function fetchNewsImages(newsIds: string[]): Promise<{ [key: string]: stri
             const zip = await jszip.loadAsync(data)
 
             for (const filename in zip.files) {
-                const name = filename.slice(0, filename.lastIndexOf('.'))
-                result[name] = await newsUtils.arrayBufferToBase64(
-                    await zip.files[filename].async('arraybuffer')
-                )
+                const data = await zip.files[filename].async('arraybuffer')
+
+                const ext = filename.slice(filename.lastIndexOf('.') + 1)
+
+                if (ext === 'png') {
+                    result[filename] = await newsUtils.arrayBufferToBase64(data)
+                } else if (ext === 'html') {
+                    result[filename] = await newsUtils.arrayBufferToString(data)
+                }
             }
         } else if (ext === 'png') {
-            result[name] = await newsUtils.arrayBufferToBase64(data)
+            result[filename] = await newsUtils.arrayBufferToBase64(data)
+        } else if (ext === 'html') {
+            result[filename] = await newsUtils.arrayBufferToString(data)
         }
 
         return result
@@ -120,7 +129,7 @@ async function fetchNewsMetadatasByIds(ids: string[]) {
 
 export const newsService = {
     fetchNewsMetadatas,
-    fetchNewsImages,
+    fetchNewsData,
     fetchPinnedNewsIds,
     fetchNewsMetadatasByIds
 }

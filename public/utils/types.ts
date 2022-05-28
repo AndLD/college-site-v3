@@ -69,6 +69,7 @@ export type Options = {
 export interface INewsCombined {
     metadata: INews
     image: string | null
+    content: string | null
 }
 
 export type IndexPageProps = {

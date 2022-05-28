@@ -15,7 +15,7 @@ export function setupSocketServer(server: httpServer.Server) {
         cors: corsOptions
     })
 
-    // TODO: Use auth middleware
+    // TODO: Fix auth middleware
     // io.use(isSocketAuthorized as any)
 
     io.on('connection', async (socket) => {

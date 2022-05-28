@@ -28,6 +28,8 @@ function Preview() {
     const [previewImage, setPreviewImage] = useState<IPreviewFile>()
     const [previewFile, setPreviewFile] = useState<IPreviewFile>()
     const [isActionMetadataLoading, setIsActionMetadataLoading] = useState<boolean>(false)
+    const [isImageLoading, setIsImageLoading] = useState<boolean>(false)
+    const [isFileLoading, setIsFileLoading] = useState<boolean>(false)
     const [isDownloadBtnLoading, setIsDownloadBtnLoading] = useState<boolean>(false)
 
     useEffect(() => {
@@ -80,6 +82,14 @@ function Preview() {
             [key: string]: (ArticlesAllowedFileExtension | NewsAllowedFileExtension)[]
         }
     ) {
+        const requestedExt = Object.values(options)[0]
+
+        if (requestedExt.includes('html') || requestedExt.includes('pdf')) {
+            setIsFileLoading(true)
+        } else if (requestedExt.includes('png')) {
+            setIsImageLoading(true)
+        }
+
         const route = action?.entity === 'articles' ? privateRoutes.ARTICLE : privateRoutes.NEWS
 
         axios(`${route}/download`, {
@@ -145,6 +155,13 @@ function Preview() {
 
                 errorNotification(err.message)
             })
+            .finally(() => {
+                if (requestedExt.includes('html') || requestedExt.includes('pdf')) {
+                    setIsFileLoading(false)
+                } else if (requestedExt.includes('png')) {
+                    setIsImageLoading(false)
+                }
+            })
     }
 
     function downloadActionFiles(actionId: string) {
@@ -209,9 +226,9 @@ function Preview() {
         <AdminLayout currentPage={`preview/${actionId}`}>
             <Title level={1}>
                 Preview of {action?.entity === 'articles' ? 'article' : 'news'}
-                {previewFile || previewImage ? null : (
+                {isFileLoading || isImageLoading ? (
                     <Spin style={{ marginLeft: 20 }} size="large" />
-                )}
+                ) : null}
             </Title>
             <span>{`Action [${actionId}]`}</span>
             <Tooltip title="Download">

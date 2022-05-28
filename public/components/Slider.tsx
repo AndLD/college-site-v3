@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Slider from 'react-simple-image-slider'
+import { isMobile } from 'react-device-detect'
 
 function MySlider() {
     const [slides, setSlides] = useState([
@@ -20,7 +21,7 @@ function MySlider() {
         <div ref={sliderWrapperRef}>
             <Slider
                 width={sliderWidth}
-                height={'30vw'}
+                height={isMobile ? '50vw' : '30vw'}
                 images={slides}
                 showBullets={true}
                 showNavs={true}
