@@ -14,7 +14,7 @@ async function _fetchNewsMetadatas(count: number, tags?: string[]) {
                 results: count,
                 order: 'timestamp,desc',
                 filters: tags?.length
-                    ? tags.map((tag) => `keywords,contains,${tag}`).join(';')
+                    ? tags.map((tag) => `tags,contains,${tag}`).join(';')
                     : undefined
             }
         })
@@ -171,7 +171,7 @@ async function _fetchNewsMetadatasByIdsAndTags(ids: string[], tags?: string[]) {
             params: {
                 ids: ids.join(','),
                 filters: tags?.length
-                    ? tags.map((tag) => `keywords,contains,${tag}`).join(';')
+                    ? tags.map((tag) => `tags,contains,${tag}`).join(';')
                     : undefined
             }
         })
