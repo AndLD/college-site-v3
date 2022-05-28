@@ -5,7 +5,9 @@ function Header() {
     return (
         <header id={style['container']}>
             <div id={style['logo']}>
-                <img src="/images/logo.png" alt="logo" />
+                <a href="/">
+                    <img src="/images/logo.png" alt="logo" />
+                </a>
             </div>
             <div id={style['title']}>
                 <div id={style['td1']}>
