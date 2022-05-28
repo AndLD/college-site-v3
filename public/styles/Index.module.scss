@@ -341,8 +341,7 @@ $ribbonColor: $menuColor;
         flex: 1;
 
         margin-right: 1%;
-
-        max-height: inherit;
+        margin-bottom: 0;
 
         img {
             max-width: 100%;
@@ -356,7 +355,7 @@ $ribbonColor: $menuColor;
         text-indent: 3%;
 
         .single-new-title {
-            margin-bottom: 2%;
+            // margin-bottom: 2%;
 
             max-width: 80%;
 

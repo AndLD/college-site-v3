@@ -1,10 +1,12 @@
 import axios, { AxiosResponse } from 'axios'
 import JSZip from 'jszip'
 import { publicRoutes } from '../utils/constants'
+import { sortByTimestamp } from '../utils/functions'
 import { newsUtils } from '../utils/news'
+import { errorNotification } from '../utils/notifications'
 import { INews, INewsCombined } from '../utils/types'
 
-async function fetchNewsMetadatas(count: number) {
+async function _fetchNewsMetadatas(count: number) {
     try {
         const response: any = await axios(publicRoutes.NEWS, {
             params: {
@@ -25,7 +27,7 @@ async function fetchNewsMetadatas(count: number) {
 }
 
 // Frontend only
-async function fetchNewsData(
+async function _fetchNewsData(
     newsIds: string[],
     requestedExt: ('html' | 'png')[]
 ): Promise<{ [key: string]: string }> {
@@ -95,7 +97,58 @@ async function fetchNewsData(
     return {}
 }
 
-async function fetchPinnedNewsIds() {
+function fetchNewsData(
+    newsMetadatas: INews[],
+    newsCombined: INewsCombined[],
+    callback: (newsCombined: INewsCombined[]) => void
+) {
+    const newsIds = {
+        requestsImage: newsMetadatas
+            .filter(({ data, inlineMainImage }) => !inlineMainImage && data.png)
+            .map(({ id }) => id),
+        requestsInlineMainImage: newsMetadatas
+            .filter(({ inlineMainImage }) => inlineMainImage)
+            .map(({ id }) => id)
+    }
+
+    if (newsIds.requestsImage) {
+        _fetchNewsData(newsIds.requestsImage, ['png'])
+            .then((newsImages) => {
+                const modifiedNewsImages: { [key: string]: string } = {}
+
+                for (const filename in newsImages) {
+                    modifiedNewsImages[filename.replace('.png', '')] = newsImages[filename]
+                }
+
+                newsCombined = newsUtils.attachNewsImages(newsCombined, modifiedNewsImages)
+
+                callback(newsCombined)
+            })
+            .catch((e) => errorNotification(`Error getting news images: ${e}`))
+    }
+
+    if (newsIds.requestsInlineMainImage) {
+        _fetchNewsData(newsIds.requestsInlineMainImage, ['html'])
+            .then((newsContent) => {
+                const newsImages: { [key: string]: string } = {}
+
+                for (const filename in newsContent) {
+                    const html = newsContent[filename]
+
+                    const src = newsUtils.parseHtmlImgSrc(html)
+
+                    newsImages[filename.replace('.html', '')] = src
+                }
+
+                newsCombined = newsUtils.attachNewsImages(newsCombined, newsImages)
+
+                callback(newsCombined)
+            })
+            .catch((e) => errorNotification(`Error getting news images: ${e}`))
+    }
+}
+
+async function _fetchPinnedNewsIds() {
     try {
         const response: any = await axios(`${publicRoutes.NEWS}/pinned`)
 
@@ -109,7 +162,7 @@ async function fetchPinnedNewsIds() {
     return []
 }
 
-async function fetchNewsMetadatasByIds(ids: string[]) {
+async function _fetchNewsMetadatasByIds(ids: string[]) {
     try {
         const response: any = await axios(publicRoutes.NEWS, {
             params: {
@@ -127,9 +180,57 @@ async function fetchNewsMetadatasByIds(ids: string[]) {
     return []
 }
 
+// TODO: Refactor (namings at least)
+async function fetchNewsMetadatas(count: number) {
+    // Unpinned news
+    let resultNewsMetadatas: INews[] = []
+    let resultPinnedNewsMetadatas: INews[] = []
+
+    const resultPinnedNewsIds: string[] = []
+    // Get ids of all pinned news
+    let pinnedNewsIds = await _fetchPinnedNewsIds()
+
+    const newsMetadatas = await _fetchNewsMetadatas(count)
+
+    for (const newsMetadata of newsMetadatas) {
+        if (pinnedNewsIds.includes(newsMetadata.id)) {
+            resultPinnedNewsMetadatas.push(newsMetadata)
+            resultPinnedNewsIds.push(newsMetadata.id)
+        } else {
+            resultNewsMetadatas.push(newsMetadata)
+        }
+    }
+
+    if (resultPinnedNewsMetadatas.length < count) {
+        // Remove ids of pinned news we have already from all pinned news ids array
+        pinnedNewsIds = pinnedNewsIds.filter((pinnedNewsId) => {
+            return !resultPinnedNewsIds.includes(pinnedNewsId)
+        })
+
+        if (pinnedNewsIds.length) {
+            const pinnedNewsMetadatas: INews[] = await _fetchNewsMetadatasByIds(pinnedNewsIds)
+
+            resultPinnedNewsMetadatas.push(...pinnedNewsMetadatas)
+        }
+    }
+
+    resultPinnedNewsMetadatas = resultPinnedNewsMetadatas.sort(sortByTimestamp).slice(0, count)
+
+    // Mark pinned news
+    resultPinnedNewsMetadatas = resultPinnedNewsMetadatas.map((metadata) => ({
+        ...metadata,
+        pinned: true
+    }))
+
+    const readyNewsMetadatas = [
+        ...resultPinnedNewsMetadatas,
+        ...resultNewsMetadatas.sort(sortByTimestamp)
+    ].slice(0, count)
+
+    return readyNewsMetadatas
+}
+
 export const newsService = {
-    fetchNewsMetadatas,
     fetchNewsData,
-    fetchPinnedNewsIds,
-    fetchNewsMetadatasByIds
+    fetchNewsMetadatas
 }

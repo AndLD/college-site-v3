@@ -76,3 +76,8 @@ export type IndexPageProps = {
     menu: IMenuElement[]
     newsMetadatas: INews[]
 }
+
+export type NewsListPageProps = {
+    menu: IMenuElement[]
+    newsMetadatas: INews[]
+}

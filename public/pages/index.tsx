@@ -7,9 +7,6 @@ import Slider from '../components/Slider'
 import NewsList from '../components/NewsList'
 import { newsService } from '../services/news'
 import { useEffect, useState } from 'react'
-import { errorNotification } from '../utils/notifications'
-import { newsUtils } from '../utils/news'
-import { sortByTimestamp } from '../utils/functions'
 import { isMobile } from 'react-device-detect'
 
 const MainPage: NextPage<IndexPageProps> = ({ menu, newsMetadatas }: IndexPageProps) => {
@@ -19,55 +16,11 @@ const MainPage: NextPage<IndexPageProps> = ({ menu, newsMetadatas }: IndexPagePr
         let newsCombined = newsMetadatas.map(
             (metadata): INewsCombined => ({ metadata, image: null, content: null })
         )
-
         setNews(newsCombined)
 
-        const newsIds = {
-            requestsImage: newsMetadatas
-                .filter(({ data, inlineMainImage }) => !inlineMainImage && data.png)
-                .map(({ id }) => id),
-            requestsInlineMainImage: newsMetadatas
-                .filter(({ inlineMainImage }) => inlineMainImage)
-                .map(({ id }) => id)
-        }
-
-        if (newsIds.requestsImage) {
-            newsService
-                .fetchNewsData(newsIds.requestsImage, ['png'])
-                .then((newsImages) => {
-                    const modifiedNewsImages: { [key: string]: string } = {}
-
-                    for (const filename in newsImages) {
-                        modifiedNewsImages[filename.replace('.png', '')] = newsImages[filename]
-                    }
-
-                    newsCombined = newsUtils.attachNewsImages(newsCombined, modifiedNewsImages)
-
-                    setNews(newsCombined)
-                })
-                .catch((e) => errorNotification(`Error getting news images: ${e}`))
-        }
-
-        if (newsIds.requestsInlineMainImage) {
-            newsService
-                .fetchNewsData(newsIds.requestsInlineMainImage, ['html'])
-                .then((newsContent) => {
-                    const newsImages: { [key: string]: string } = {}
-
-                    for (const filename in newsContent) {
-                        const html = newsContent[filename]
-
-                        const src = newsUtils.parseHtmlImgSrc(html)
-
-                        newsImages[filename.replace('.html', '')] = src
-                    }
-
-                    newsCombined = newsUtils.attachNewsImages(newsCombined, newsImages)
-
-                    setNews(newsCombined)
-                })
-                .catch((e) => errorNotification(`Error getting news images: ${e}`))
-        }
+        newsService.fetchNewsData(newsMetadatas, newsCombined, (newsCombined) =>
+            setNews(newsCombined)
+        )
     }, [])
 
     return (
@@ -93,6 +46,7 @@ const MainPage: NextPage<IndexPageProps> = ({ menu, newsMetadatas }: IndexPagePr
                                 </div>
                                 <div
                                     className={style['ribbon']}
+                                    // TODO: Refactor
                                     style={{ visibility: isMobile ? 'hidden' : 'visible' }}
                                 ></div>
                             </div>
@@ -261,9 +215,8 @@ export async function getServerSideProps() {
         props.menu = menu
     }
 
-    // TODO: Refactor (namings at least)
     try {
-        const newsMetadatas = await getNewsMetadatas()
+        const newsMetadatas = await newsService.fetchNewsMetadatas(3)
         if (newsMetadatas) {
             props.newsMetadatas = newsMetadatas
         }
@@ -274,57 +227,6 @@ export async function getServerSideProps() {
     return {
         props
     }
-}
-
-async function getNewsMetadatas() {
-    // Unpinned news
-    let resultNewsMetadatas: INews[] = []
-    let resultPinnedNewsMetadatas: INews[] = []
-
-    const resultPinnedNewsIds: string[] = []
-    // Get ids of all pinned news
-    let pinnedNewsIds = await newsService.fetchPinnedNewsIds()
-
-    const newsMetadatas = await newsService.fetchNewsMetadatas(3)
-
-    for (const newsMetadata of newsMetadatas) {
-        if (pinnedNewsIds.includes(newsMetadata.id)) {
-            resultPinnedNewsMetadatas.push(newsMetadata)
-            resultPinnedNewsIds.push(newsMetadata.id)
-        } else {
-            resultNewsMetadatas.push(newsMetadata)
-        }
-    }
-
-    if (resultPinnedNewsMetadatas.length < 3) {
-        // Remove ids of pinned news we have already from all pinned news ids array
-        pinnedNewsIds = pinnedNewsIds.filter((pinnedNewsId) => {
-            return !resultPinnedNewsIds.includes(pinnedNewsId)
-        })
-
-        if (pinnedNewsIds.length) {
-            const pinnedNewsMetadatas: INews[] = await newsService.fetchNewsMetadatasByIds(
-                pinnedNewsIds
-            )
-
-            resultPinnedNewsMetadatas.push(...pinnedNewsMetadatas)
-        }
-    }
-
-    resultPinnedNewsMetadatas = resultPinnedNewsMetadatas.sort(sortByTimestamp).slice(0, 3)
-
-    // Mark pinned news
-    resultPinnedNewsMetadatas = resultPinnedNewsMetadatas.map((metadata) => ({
-        ...metadata,
-        pinned: true
-    }))
-
-    const readyNewsMetadatas = [
-        ...resultPinnedNewsMetadatas,
-        ...resultNewsMetadatas.sort(sortByTimestamp)
-    ].slice(0, 3)
-
-    return readyNewsMetadatas
 }
 
 export default MainPage
