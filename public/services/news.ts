@@ -6,13 +6,16 @@ import { newsUtils } from '../utils/news'
 import { errorNotification } from '../utils/notifications'
 import { INews, INewsCombined } from '../utils/types'
 
-async function _fetchNewsMetadatas(count: number) {
+async function _fetchNewsMetadatas(count: number, tags?: string[]) {
     try {
         const response: any = await axios(publicRoutes.NEWS, {
             params: {
                 page: 1,
                 results: count,
-                order: 'timestamp,desc'
+                order: 'timestamp,desc',
+                filters: tags?.length
+                    ? tags.map((tag) => `keywords,contains,${tag}`).join(';')
+                    : undefined
             }
         })
 
@@ -162,15 +165,18 @@ async function _fetchPinnedNewsIds() {
     return []
 }
 
-async function _fetchNewsMetadatasByIds(ids: string[]) {
+async function _fetchNewsMetadatasByIdsAndTags(ids: string[], tags?: string[]) {
     try {
         const response: any = await axios(publicRoutes.NEWS, {
             params: {
-                ids: ids.join(',')
+                ids: ids.join(','),
+                filters: tags?.length
+                    ? tags.map((tag) => `keywords,contains,${tag}`).join(';')
+                    : undefined
             }
         })
 
-        const newsMetadatas = response.data?.result
+        const newsMetadatas = response.data?.result || []
 
         return newsMetadatas as INews[]
     } catch (e) {
@@ -181,7 +187,7 @@ async function _fetchNewsMetadatasByIds(ids: string[]) {
 }
 
 // TODO: Refactor (namings at least)
-async function fetchNewsMetadatas(count: number) {
+async function fetchNewsMetadatas(count: number, tags?: string[]) {
     // Unpinned news
     let resultNewsMetadatas: INews[] = []
     let resultPinnedNewsMetadatas: INews[] = []
@@ -190,7 +196,7 @@ async function fetchNewsMetadatas(count: number) {
     // Get ids of all pinned news
     let pinnedNewsIds = await _fetchPinnedNewsIds()
 
-    const newsMetadatas = await _fetchNewsMetadatas(count)
+    const newsMetadatas = await _fetchNewsMetadatas(count, tags)
 
     for (const newsMetadata of newsMetadatas) {
         if (pinnedNewsIds.includes(newsMetadata.id)) {
@@ -208,7 +214,10 @@ async function fetchNewsMetadatas(count: number) {
         })
 
         if (pinnedNewsIds.length) {
-            const pinnedNewsMetadatas: INews[] = await _fetchNewsMetadatasByIds(pinnedNewsIds)
+            const pinnedNewsMetadatas: INews[] = await _fetchNewsMetadatasByIdsAndTags(
+                pinnedNewsIds,
+                tags
+            )
 
             resultPinnedNewsMetadatas.push(...pinnedNewsMetadatas)
         }

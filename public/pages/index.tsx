@@ -13,14 +13,16 @@ const MainPage: NextPage<IndexPageProps> = ({ menu, newsMetadatas }: IndexPagePr
     const [news, setNews] = useState<INewsCombined[]>([])
 
     useEffect(() => {
-        let newsCombined = newsMetadatas.map(
-            (metadata): INewsCombined => ({ metadata, image: null, content: null })
-        )
-        setNews(newsCombined)
-
-        newsService.fetchNewsData(newsMetadatas, newsCombined, (newsCombined) =>
+        if (newsMetadatas.length) {
+            let newsCombined = newsMetadatas.map(
+                (metadata): INewsCombined => ({ metadata, image: null, content: null })
+            )
             setNews(newsCombined)
-        )
+
+            newsService.fetchNewsData(newsMetadatas, newsCombined, (newsCombined) =>
+                setNews(newsCombined)
+            )
+        }
     }, [])
 
     return (

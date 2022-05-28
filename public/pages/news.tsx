@@ -13,14 +13,16 @@ const NewsListPage: NextPage<IndexPageProps> = ({ menu, newsMetadatas }: IndexPa
     useEffect(() => {
         document.title = 'Новини'
 
-        let newsCombined = newsMetadatas.map(
-            (metadata): INewsCombined => ({ metadata, image: null, content: null })
-        )
-        setNews(newsCombined)
-
-        newsService.fetchNewsData(newsMetadatas, newsCombined, (newsCombined) =>
+        if (newsMetadatas.length) {
+            let newsCombined = newsMetadatas.map(
+                (metadata): INewsCombined => ({ metadata, image: null, content: null })
+            )
             setNews(newsCombined)
-        )
+
+            newsService.fetchNewsData(newsMetadatas, newsCombined, (newsCombined) =>
+                setNews(newsCombined)
+            )
+        }
     }, [])
 
     return (
@@ -32,7 +34,7 @@ const NewsListPage: NextPage<IndexPageProps> = ({ menu, newsMetadatas }: IndexPa
     )
 }
 
-export async function getServerSideProps() {
+export async function getServerSideProps({ query }: { query: { [key: string]: string } }) {
     const props: NewsListPageProps = {
         menu: [],
         newsMetadatas: []
@@ -44,7 +46,9 @@ export async function getServerSideProps() {
     }
 
     try {
-        const newsMetadatas = await newsService.fetchNewsMetadatas(10)
+        const tags = query?.tags?.split(',')
+
+        const newsMetadatas = await newsService.fetchNewsMetadatas(10, tags)
         if (newsMetadatas) {
             props.newsMetadatas = newsMetadatas
         }
