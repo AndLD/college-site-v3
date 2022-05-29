@@ -111,3 +111,6 @@ export default Router()
             result: pinnedNewsIds
         })
     })
+
+    // News getting by id
+    .get('/:id', controller)

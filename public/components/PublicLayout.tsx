@@ -4,16 +4,25 @@ import Footer from './Footer'
 import Header from './Header'
 import Menu from './Menu-v2'
 import UsefulLinks from './UsefulLinks'
+import DefaultErrorPage from 'next/error'
 
 function PublicLayout({
     children,
     menu,
-    news
+    news,
+    singleNews,
+    statusCode
 }: {
     children: any
     menu?: IMenuElement[]
     news?: INewsCombined[]
+    singleNews?: INewsCombined
+    statusCode?: number
 }) {
+    if (statusCode && statusCode > 299) {
+        return <DefaultErrorPage statusCode={statusCode} />
+    }
+
     return (
         <div id="public-layout-container">
             <Header />
@@ -27,7 +36,8 @@ function PublicLayout({
             <UsefulLinks />
             <PublicLayoutContext.Provider
                 value={{
-                    news
+                    news,
+                    singleNews
                 }}
             >
                 <div>{children}</div>

@@ -5,6 +5,10 @@ import { sortByTimestamp } from '../utils/functions'
 import { newsUtils } from '../utils/news'
 import { errorNotification } from '../utils/notifications'
 import { INews, INewsCombined } from '../utils/types'
+import { encode as arrayBufferToBase64NodeJs } from 'base64-arraybuffer'
+import { Blob as BlobNodeJs } from 'buffer'
+
+// TODO: Refactor hole file
 
 async function _fetchNewsMetadatas(count: number, tags?: string[]) {
     try {
@@ -94,7 +98,78 @@ async function _fetchNewsData(
 
         return result
     } catch (e) {
-        console.error(`Error getting images for news: ${e}`)
+        console.error(`Error getting data for news: ${e}`)
+    }
+
+    return {}
+}
+
+// Backend only
+async function _fetchNewsDataNodeJs(
+    newsIds: string[],
+    requestedExt: ('html' | 'png')[]
+): Promise<{ [key: string]: string }> {
+    const options: any = {}
+
+    for (const id of newsIds) {
+        options[id] = requestedExt
+    }
+
+    try {
+        const response: AxiosResponse = await axios(`${publicRoutes.NEWS}/download`, {
+            params: {
+                ids: newsIds.join(',')
+            },
+            headers: {
+                'download-options': JSON.stringify(options)
+            },
+            responseType: 'blob'
+        })
+
+        const contentDisposition = response.headers['content-disposition']
+
+        if (!contentDisposition) {
+            throw new Error('"content-disposition" response header missed')
+        }
+
+        const filename: string = contentDisposition.split('filename=')[1].replaceAll('"', '')
+        const ext = filename.slice(filename.lastIndexOf('.') + 1)
+
+        if (ext !== 'zip' && ext !== 'png' && ext !== 'html') {
+            throw new Error(`Unsupported "${ext}" file obtained`)
+        }
+
+        const blob = new BlobNodeJs([response.data as BlobNodeJs])
+
+        const data = await blob.arrayBuffer()
+
+        const result: { [key: string]: string } = {}
+
+        if (ext === 'zip') {
+            const jszip = new JSZip()
+
+            const zip = await jszip.loadAsync(data)
+
+            for (const filename in zip.files) {
+                const data = await zip.files[filename].async('arraybuffer')
+
+                const ext = filename.slice(filename.lastIndexOf('.') + 1)
+
+                if (ext === 'png') {
+                    result[filename] = await arrayBufferToBase64NodeJs(data)
+                } else if (ext === 'html') {
+                    result[filename] = await blob.text()
+                }
+            }
+        } else if (ext === 'png') {
+            result[filename] = await arrayBufferToBase64NodeJs(data)
+        } else if (ext === 'html') {
+            result[filename] = await blob.text()
+        }
+
+        return result
+    } catch (e) {
+        console.error(`Error getting data for news: ${e}`)
     }
 
     return {}
@@ -114,7 +189,7 @@ function fetchNewsData(
             .map(({ id }) => id)
     }
 
-    if (newsIds.requestsImage) {
+    if (newsIds.requestsImage.length) {
         _fetchNewsData(newsIds.requestsImage, ['png'])
             .then((newsImages) => {
                 const modifiedNewsImages: { [key: string]: string } = {}
@@ -130,7 +205,7 @@ function fetchNewsData(
             .catch((e) => errorNotification(`Error getting news images: ${e}`))
     }
 
-    if (newsIds.requestsInlineMainImage) {
+    if (newsIds.requestsInlineMainImage.length) {
         _fetchNewsData(newsIds.requestsInlineMainImage, ['html'])
             .then((newsContent) => {
                 const newsImages: { [key: string]: string } = {}
@@ -239,7 +314,35 @@ async function fetchNewsMetadatas(count: number, tags?: string[]) {
     return readyNewsMetadatas
 }
 
+async function fetchNewsMetadataById(id: string) {
+    try {
+        const response: AxiosResponse = await axios(`${publicRoutes.NEWS}/${id}`)
+
+        const newsMetadata = response.data?.result
+
+        return newsMetadata as INews | null
+    } catch (e) {
+        console.error(`Error getting news metadatas by ids: ${e}`)
+    }
+
+    return null
+}
+
+async function fetchNewsContentById(id: string) {
+    try {
+        const newsContent = await _fetchNewsDataNodeJs([id], ['html'])
+
+        return newsContent
+    } catch (e) {
+        console.error(`Error getting news content by id: ${e}`)
+    }
+
+    return null
+}
+
 export const newsService = {
     fetchNewsData,
-    fetchNewsMetadatas
+    fetchNewsMetadatas,
+    fetchNewsMetadataById,
+    fetchNewsContentById
 }

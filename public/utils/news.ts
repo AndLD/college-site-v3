@@ -1,4 +1,4 @@
-import { INews, INewsCombined } from './types'
+import { INewsCombined } from './types'
 
 async function arrayBufferToBase64(data: ArrayBuffer): Promise<string> {
     return new Promise((resolve, _) => {
@@ -20,7 +20,7 @@ async function arrayBufferToString(data: ArrayBuffer): Promise<string> {
 //     newsMetadatas: INews[],
 //     newsImages: { [key: string]: string },
 //     newsContent: { [key: string]: string }
-// ): INewsCombined[] {
+// ): INewsCombined[] {s
 //     return newsMetadatas.map((newsMetadata) => ({
 //         metadata: newsMetadata,
 //         image: newsImages[newsMetadata.id] || null,
@@ -40,15 +40,15 @@ function attachNewsImages(
     })
 }
 
-function attachNewsContent(
-    news: INewsCombined[],
-    newsContent: { [key: string]: string }
-): INewsCombined[] {
-    return news.map((n) => {
-        n.content = newsContent[n.metadata.id] || null
-        return n
-    })
-}
+// function attachNewsContent(
+//     news: INewsCombined[],
+//     newsContent: { [key: string]: string }
+// ): INewsCombined[] {
+//     return news.map((n) => {
+//         n.content = newsContent[n.metadata.id] || null
+//         return n
+//     })
+// }
 
 function parseHtmlImgSrc(html: string) {
     const imgBegin = '<img'
@@ -75,6 +75,6 @@ export const newsUtils = {
     arrayBufferToBase64,
     arrayBufferToString,
     attachNewsImages,
-    attachNewsContent,
+    // attachNewsContent,
     parseHtmlImgSrc
 }

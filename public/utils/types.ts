@@ -81,3 +81,10 @@ export type NewsListPageProps = {
     menu: IMenuElement[]
     newsMetadatas: INews[]
 }
+
+export type NewsPageProps = {
+    menu: IMenuElement[]
+    newsMetadata: INews | null
+    newsContent: string | null
+    statusCode?: number
+}
