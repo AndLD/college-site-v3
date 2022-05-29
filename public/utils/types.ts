@@ -88,3 +88,10 @@ export type NewsPageProps = {
     newsContent: string | null
     statusCode?: number
 }
+
+export type ArticlePageProps = {
+    menu: IMenuElement[]
+    articleMetadata: IArticle | null
+    articleContent: string | null
+    statusCode?: number
+}

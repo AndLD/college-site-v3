@@ -9,7 +9,8 @@ import {
     Filter,
     ModelResult,
     NewsAllowedFileExtension,
-    NewsFileData
+    NewsFileData,
+    Options
 } from '../utils/types'
 import { googleDriveService } from './google-drive'
 import { notificationService } from './notification'
@@ -293,13 +294,15 @@ async function updateFileToGoogleDriveFlow(
     await addFileToGoogleDriveFlow(docId, file)
 }
 
-async function replaceOldIds(docIds: string[]) {
+async function replaceOldIds(docIds: string[], options?: Options) {
     const ids: string[] = []
 
     const where: Filter[] = []
 
+    const newOptions: Options = {}
+
     for (const docId of docIds) {
-        if (docId.length < 10 && !docId.includes('_pending')) {
+        if (docId.length < 10) {
             try {
                 const oldId = parseInt(docId)
                 if (oldId) {
@@ -308,10 +311,18 @@ async function replaceOldIds(docIds: string[]) {
             } catch {}
         } else {
             ids.push(docId)
+
+            if (options) {
+                newOptions[docId] = options[docId]
+            }
         }
     }
 
     if (!where.length) {
+        if (options) {
+            return [ids, newOptions]
+        }
+
         return ids
     }
 
@@ -335,7 +346,15 @@ async function replaceOldIds(docIds: string[]) {
         } else {
             // TODO: Investigate the situation: is it possible "ids" array includes "newsMetadata.id" already
             ids.push(newsMetadata.id)
+
+            if (options) {
+                newOptions[newsMetadata.id] = options[newsMetadata.oldId]
+            }
         }
+    }
+
+    if (options) {
+        return [ids, newOptions]
     }
 
     return ids

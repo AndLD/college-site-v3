@@ -1,10 +1,12 @@
 import { Badge, Table, TablePaginationConfig } from 'antd'
 import { useContext } from 'react'
+import { useSelector } from 'react-redux'
 import { ArticlesContext } from '../../contexts'
 import { ArticleData } from '../../utils/types'
 import Tags from '../Users/Tags'
 
 function ArticlesTable() {
+    const publicUrl = useSelector((state: any) => state.app.env.publicUrl)
     const [tableData, setTableData] = useContext(ArticlesContext).tableDataState
     const [isTableLoading, setIsTableLoading] = useContext(ArticlesContext).isTableLoadingState
     const [pagination, setPagination] = useContext(ArticlesContext).paginationState
@@ -19,6 +21,7 @@ function ArticlesTable() {
                 {
                     title: 'Title',
                     dataIndex: 'title',
+                    render: (title, row) => <a href={`${publicUrl}/article/${row.id}`}>{title}</a>,
                     // width: 450,
                     fixed: 'left'
                 },

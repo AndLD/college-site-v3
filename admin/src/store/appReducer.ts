@@ -20,7 +20,13 @@ const initialState = {
         collapsed: window.localStorage.getItem('adminMenuCollapsed') === 'true' ? true : false
     },
     actionModalVisibility: false,
-    action: 'Add'
+    action: 'Add',
+    env: {
+        publicUrl:
+            process.env.NODE_ENV === 'production'
+                ? process.env.REACT_APP_PROD_PUBLIC_URL
+                : process.env.REACT_APP_DEV_PUBLIC_URL
+    }
 }
 
 export const appReducer = (

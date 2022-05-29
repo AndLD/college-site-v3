@@ -3,7 +3,7 @@ import { articlesAllowedFileTypes, innerErrors } from '../utils/constants'
 import { convertDocxToHtml, getAllCompatibleInputForString } from '../utils/functions'
 import { IArticle, IArticleUpdate } from '../utils/interfaces/articles/articles'
 import { getLogger } from '../utils/logger'
-import { Error, ArticleFileData, Filter, ModelResult } from '../utils/types'
+import { Error, ArticleFileData, Filter, ModelResult, Options } from '../utils/types'
 import { googleDriveService } from './google-drive'
 import { notificationService } from './notification'
 
@@ -263,10 +263,12 @@ async function updateFileToGoogleDriveFlow(docId: string, file: ArticleFileData)
     await addFileToGoogleDriveFlow(docId, file)
 }
 
-async function replaceOldIds(docIds: string[]) {
+async function replaceOldIds(docIds: string[], options?: Options) {
     const ids: string[] = []
 
     const where: Filter[] = []
+
+    const newOptions: Options = {}
 
     for (const docId of docIds) {
         if (docId.length < 10) {
@@ -278,10 +280,18 @@ async function replaceOldIds(docIds: string[]) {
             } catch {}
         } else {
             ids.push(docId)
+
+            if (options) {
+                newOptions[docId] = options[docId]
+            }
         }
     }
 
     if (!where.length) {
+        if (options) {
+            return [ids, newOptions]
+        }
+
         return ids
     }
 
@@ -303,9 +313,17 @@ async function replaceOldIds(docIds: string[]) {
                 `ERROR [${innerErrors.ARTICLE_OLD_ID_DUBLICATE.code}]: ${innerErrors.ARTICLE_OLD_ID_DUBLICATE.msg}: oldId = ${articleMetadata.oldId}`
             )
         } else {
-            // TODO: Investigate the situation: is it possible "ids" array includes "articleMetadata.id" already
+            // TODO: Investigate the situation: is it possible "ids" array has included "articleMetadata.id" already
             ids.push(articleMetadata.id)
+
+            if (options) {
+                newOptions[articleMetadata.id] = options[articleMetadata.oldId]
+            }
         }
+    }
+
+    if (options) {
+        return [ids, newOptions]
     }
 
     return ids

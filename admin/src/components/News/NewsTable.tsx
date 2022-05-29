@@ -11,6 +11,7 @@ import Tags from '../Users/Tags'
 import '../../styles/News.scss'
 
 function NewsTable() {
+    const publicUrl = useSelector((state: any) => state.app.env.publicUrl)
     const token = useSelector((state: any) => state.app.token)
     const [tableData, setTableData] = useContext(NewsContext).tableDataState
     const [isTableLoading, setIsTableLoading] = useContext(NewsContext).isTableLoadingState
@@ -64,6 +65,7 @@ function NewsTable() {
                 {
                     title: 'Title',
                     dataIndex: 'title',
+                    render: (title, row) => <a href={`${publicUrl}/news/${row.id}`}>{title}</a>,
                     width: 450,
                     fixed: 'left'
                 },

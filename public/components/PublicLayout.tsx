@@ -20,7 +20,11 @@ function PublicLayout({
     statusCode?: number
 }) {
     if (statusCode && statusCode > 299) {
-        return <DefaultErrorPage statusCode={statusCode} />
+        let title: string | undefined
+        if (statusCode === 503) {
+            title = 'Service Unavailable'
+        }
+        return <DefaultErrorPage statusCode={statusCode} title={title} />
     }
 
     return (

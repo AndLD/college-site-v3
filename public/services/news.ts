@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from 'axios'
+import axios, { AxiosError, AxiosResponse } from 'axios'
 import JSZip from 'jszip'
 import { publicRoutes } from '../utils/constants'
 import { sortByTimestamp } from '../utils/functions'
@@ -320,12 +320,16 @@ async function fetchNewsMetadataById(id: string) {
 
         const newsMetadata = response.data?.result
 
-        return newsMetadata as INews | null
-    } catch (e) {
+        return [newsMetadata as INews | null, 200]
+    } catch (e: any) {
         console.error(`Error getting news metadatas by ids: ${e}`)
-    }
 
-    return null
+        if (e.toString().includes('ECONNREFUSED')) {
+            return [null, 503]
+        } else {
+            return [null, e.response.status]
+        }
+    }
 }
 
 async function fetchNewsContentById(id: string) {

@@ -54,9 +54,10 @@
                     color: red;
                 }
             }
-            // TODO: Remove
             iframe {
                 max-width: 100% !important;
+                display: block;
+                margin: auto;
             }
         }
     }

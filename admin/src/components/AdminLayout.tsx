@@ -11,6 +11,7 @@ import AdminMenu from './AdminLayout/AdminMenu'
 const { Sider, Content } = Layout
 
 function AdminLayout({ children, currentPage }: any) {
+    const publicUrl = useSelector((state: any) => state.app.env.publicUrl)
     const collapsed = useSelector((state: any) => state.app.menu.collapsed)
 
     useEffect(() => {
@@ -32,10 +33,8 @@ function AdminLayout({ children, currentPage }: any) {
                         src={logo}
                         alt="Admin Page Logo"
                         onClick={() => {
-                            window.location.href =
-                                (process.env.NODE_ENV === 'production'
-                                    ? process.env.REACT_APP_PROD_PUBLIC_DOMAIN
-                                    : process.env.REACT_APP_DEV_PUBLIC_DOMAIN) || '#'
+                            console.log(process.env.REACT_APP_DEV_PUBLIC_URL)
+                            window.location.href = publicUrl || '#'
                         }}
                     />
                     <div

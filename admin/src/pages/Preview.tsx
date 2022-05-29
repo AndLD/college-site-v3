@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import axios, { AxiosError, AxiosResponse } from 'axios'
-import { privateRoutes } from '../utils/constants'
+import { privateRoutes, publicRoutes } from '../utils/constants'
 import {
     ArticlesAllowedFileExtension,
     ArticleData,
@@ -18,6 +18,7 @@ import { errorNotification, warningNotification } from '../utils/notifications'
 import { ArrowDownOutlined } from '@ant-design/icons'
 import { actionsUtils } from '../utils/actions'
 import { previewUtils as previewUtils } from '../utils/preview'
+import { isArrayBuffer } from 'lodash'
 
 const { Title } = Typography
 

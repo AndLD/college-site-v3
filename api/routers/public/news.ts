@@ -29,10 +29,10 @@ export default Router()
                 error: '"ids" query param is missed!'
             })
 
-        ids = await newsService.replaceOldIds(ids)
-
-        const options: Options | undefined =
+        let options: Options | undefined =
             req.headers['download-options'] && JSON.parse(req.headers['download-options'])
+
+        ;[ids, options] = (await newsService.replaceOldIds(ids, options)) as [string[], Options]
 
         const bufferOptions =
             (options && bufferService.getBufferAvailableOptions('news', ids, options)) || undefined

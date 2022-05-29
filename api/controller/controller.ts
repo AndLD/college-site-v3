@@ -2,6 +2,7 @@ import { Request, Response } from 'express'
 import { model } from '../model/model'
 import { appSettingsService } from '../services/app-settings'
 import { articlesService } from '../services/articles'
+import { newsService } from '../services/news'
 import { errors } from '../utils/constants'
 import { tryCatch } from '../utils/decorators'
 import {
@@ -63,8 +64,13 @@ export const controller = tryCatch(async function (req: Request, res: Response) 
 
     let replacedId: string | undefined
 
+    // TODO: Replace oldIds in 'ids' the same way as 'id'
     if (method == 'GET' && id) {
-        ;[replacedId] = await articlesService.replaceOldIds([id])
+        if (entity === 'articles') {
+            ;[replacedId] = (await articlesService.replaceOldIds([id])) as string[]
+        } else if (entity === 'news') {
+            ;[replacedId] = (await newsService.replaceOldIds([id])) as string[]
+        }
     }
 
     // const whereUserIsOwner: Filter = ['user', '==', email]

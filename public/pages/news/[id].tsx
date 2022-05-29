@@ -26,6 +26,8 @@ const NewsPage: NextPage<NewsPageProps> = ({
                 newsService.fetchNewsData([newsMetadata], [newsCombined], (newsCombined) => {
                     setNews(newsCombined[0])
                 })
+            } else {
+                setNews(newsCombined)
             }
         }
     }, [])
@@ -76,7 +78,11 @@ export async function getServerSideProps({ query }: GetServerSidePropsContext) {
         // TODO: Validate id before fetching
         const id: string = query?.id as string
 
-        const newsMetadata = await newsService.fetchNewsMetadataById(id)
+        const [newsMetadata, statusCode] = await newsService.fetchNewsMetadataById(id)
+        if (statusCode != 200) {
+            props.statusCode = statusCode
+            return { props }
+        }
         if (!newsMetadata) {
             props.statusCode = 404
             return { props }
@@ -88,9 +94,9 @@ export async function getServerSideProps({ query }: GetServerSidePropsContext) {
             props.statusCode = 404
             return { props }
         }
-        props.newsContent = newsContent[id + '.html'] || null
+        props.newsContent = newsContent[Object.keys(newsContent)[0]] || null
     } catch (e) {
-        console.error(`[getServerSideProps] Error getting news metadatas: ${e}`)
+        console.error(`[getServerSideProps] Error getting news data: ${e}`)
     }
 
     return {
