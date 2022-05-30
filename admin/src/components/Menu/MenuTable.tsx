@@ -89,7 +89,7 @@ function MenuTable() {
                 fetchMenu(pagination)
 
                 setSelectedRows([])
-                successNotification('Menu block was successfully deleted!')
+                successNotification('Menu blocks successfully deleted!')
             })
             .catch((err: AxiosError) => errorNotification(err.message))
     }

@@ -11,7 +11,7 @@ function get() {
         const settings = fs.readFileSync(appSettingsPath)
         return JSON.parse(settings.toString())
     } catch (e) {
-        logger.error('Failed to get appSettings with error:', e)
+        throw 'Failed to get appSettings with error: ' + e
     }
 }
 
@@ -39,7 +39,7 @@ function set(newSettings: any) {
 
         return true
     } catch (e) {
-        logger.error('Failed to set appSettings with error:', e)
+        throw 'Failed to set appSettings with error: ' + e
     }
 }
 

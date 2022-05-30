@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { controller } from '../../controller/controller'
+import { controller } from '../../controllers/controller'
 import { hasAdminStatus, hasModeratorStatus } from '../../middlewares/auth'
 import { validateBody } from '../../middlewares/validation'
 

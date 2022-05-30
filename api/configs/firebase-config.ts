@@ -15,10 +15,12 @@ try {
         })
 
         logger.info('Firestore successfully connected.')
-    } else throw 'Firebase configs not found in ".env"!'
+    } else throw new Error('Firebase configs not found in ".env"!')
 
     var firebaseData: {
-        admin: any
+        admin: {
+            auth: (app?: admin.app.App | undefined) => admin.auth.Auth
+        }
         db: FirebaseFirestore.Firestore
         documentId: FirebaseFirestore.FieldPath
     } = {

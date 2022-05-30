@@ -28,13 +28,13 @@ export const validateBody = (req: any, res: Response, next: NextFunction) => {
                     { IMenuElement }
                 )
 
-            error = checkInterface(req.body, IMenuBlockChecker)
+            error = _checkInterface(req.body, IMenuBlockChecker)
             break
         case entities.APP_SETTINGS:
             if (method === 'PUT')
                 var { IAppSettingsPut: IAppSettingsChecker } = createCheckers({ IAppSettingsPut })
 
-            error = checkInterface(req.body, IAppSettingsChecker)
+            error = _checkInterface(req.body, IAppSettingsChecker)
             break
         case entities.USERS:
             if (method === 'PUT' && status === 'admin')
@@ -42,7 +42,7 @@ export const validateBody = (req: any, res: Response, next: NextFunction) => {
             else if (method === 'PUT' && status === 'moderator')
                 var { IUserPutByModerator: IUserChecker } = createCheckers({ IUserPutByModerator })
 
-            error = checkInterface(req.body, IUserChecker)
+            error = _checkInterface(req.body, IUserChecker)
 
             if (error && status !== 'admin') {
                 errorCode = 403
@@ -60,7 +60,7 @@ export const validateBody = (req: any, res: Response, next: NextFunction) => {
     next()
 }
 
-function checkInterface(body: Any, checker: Checker) {
+function _checkInterface(body: Any, checker: Checker) {
     try {
         checker.strictCheck(body)
     } catch (e) {

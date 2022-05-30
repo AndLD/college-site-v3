@@ -1,9 +1,7 @@
-import { loggerMiddleware } from '../middlewares/logger'
-import dotenv from 'dotenv'
-dotenv.config()
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
+import { loggerMiddleware } from '../middlewares/logger'
 
 export function setupApp() {
     const app = express()

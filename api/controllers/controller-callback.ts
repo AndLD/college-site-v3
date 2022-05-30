@@ -2,12 +2,23 @@ import { Any, ControllerCallbackArgs, DefaultResult, ModelArgs, UpdateSchema } f
 
 import { model } from '../model/model'
 
-// Изменение или удаление определенного объекта в БД
-export const controllerCallback = async ({ email, entity, docId, action, updateSchema }: ControllerCallbackArgs) => {
+// Updating or deletion of a specific object in DB
+export const controllerCallback = async ({
+    email,
+    entity,
+    docId,
+    action,
+    updateSchema
+}: ControllerCallbackArgs) => {
     let obj: Any | null | undefined
 
     if (action == 'update' && updateSchema) {
-        const [result, error]: DefaultResult = await processUpdateSchema({ email, entity, docId, updateSchema })
+        const [result, error]: DefaultResult = await processUpdateSchema({
+            email,
+            entity,
+            docId,
+            updateSchema
+        })
         if (error) return [null, error]
 
         obj = result

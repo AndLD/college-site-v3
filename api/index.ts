@@ -1,3 +1,5 @@
+import dotenv from 'dotenv'
+dotenv.config()
 import { getLogger } from './utils/logger'
 import { setupServer } from './setup/server'
 

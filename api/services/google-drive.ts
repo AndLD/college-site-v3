@@ -5,15 +5,11 @@ import {
     defaultArticleOptions,
     defaultNewsOptions,
     environment,
-    googleDrive,
-    innerErrors
+    googleDrive
 } from '../utils/constants'
 import { Readable } from 'stream'
 import { bufferFolderPath, bufferService } from './buffer'
-import { ArticlesAllowedFileExtension, Filter, NewsAllowedFileExtension } from '../utils/types'
-import { firebase } from '../configs/firebase-config'
-import { articlesService } from './articles'
-import { notificationService } from './notification'
+import { ArticlesAllowedFileExtension, NewsAllowedFileExtension } from '../utils/types'
 
 const logger = getLogger('services/google-drive')
 
@@ -177,18 +173,6 @@ async function uploadFile(
     return response.data
 }
 
-// async function updateFile(
-//     docId: string,
-//     file: { ext: string; mimetype: string; body: Buffer; size: number }
-// ) {
-//     // TODO: Check if specified file truly deleted
-//     await deleteFiles([docId])
-
-//     const uploadingResult = await uploadFile(docId, file)
-
-//     return uploadingResult
-// }
-
 async function updateFilename(
     filename: string,
     newFilename: string,
@@ -243,7 +227,6 @@ async function deleteFiles(
 export const googleDriveService = {
     downloadFiles,
     uploadFile,
-    // updateFile,
     deleteFiles,
     updateFilename,
     getFilesMetadataByDocIds

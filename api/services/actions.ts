@@ -38,13 +38,15 @@ async function addAction(
     })) as [ModelResult | null, Error | null]
 
     if (modelError) {
-        throw 'Add action metadata to database failed with error: ' + modelError.msg
+        throw new Error('Add action metadata to database failed with error: ' + modelError.msg)
     }
 
     actionId = modelResult?.mainResult?.id
 
     if (!actionId) {
-        throw 'Action was not stored to database! Body: ' + JSON.stringify(actionMetadata)
+        throw new Error(
+            'Action was not stored to database! Body: ' + JSON.stringify(actionMetadata)
+        )
     }
 
     if ((file || image) && actionMetadata.status === 'pending') {
@@ -268,7 +270,7 @@ async function updateActions(actionIds: string[], newStatus: ActionStatus, email
         await Promise.all(promises)
         logger.info('Action metadata update successfully reverted')
 
-        throw errorMsg
+        throw new Error(errorMsg)
     }
 }
 
@@ -299,11 +301,13 @@ async function _updateActionMetadata(actionId: string, newStatus: ActionStatus, 
     })) as [ModelResult | null, Error | null]
 
     if (modelError) {
-        throw 'Action status update failed with error: ' + modelError.msg
+        throw new Error('Action status update failed with error: ' + modelError.msg)
     }
 
     if (!modelResult?.mainResult?.id) {
-        throw `Something went wrong. No ID in result of action [${actionId}] status update`
+        throw new Error(
+            `Something went wrong. No ID in result of action [${actionId}] status update`
+        )
     }
 
     const actionMetadata = modelResult.mainResult as IAction
@@ -373,11 +377,11 @@ async function _getMetadataById(actionId: string) {
     })) as [ModelResult | null, Error | null]
 
     if (modelError) {
-        throw 'Error getting actionMetadata: ' + modelError.msg
+        throw new Error('Error getting actionMetadata: ' + modelError.msg)
     }
 
     if (!modelResult?.mainResult?.id) {
-        throw `actionMetadata with ID [${actionId}] does not exist`
+        throw new Error(`actionMetadata with ID [${actionId}] does not exist`)
     }
 
     return modelResult.mainResult as IAction
@@ -391,7 +395,7 @@ async function _getMetadatas(where: Filter[]) {
     })) as [ModelResult | null, Error | null]
 
     if (modelError) {
-        throw 'Error getting actionMetadata: ' + modelError.msg
+        throw new Error('Error getting actionMetadata: ' + modelError.msg)
     }
 
     if (!modelResult?.mainResult) {
@@ -409,7 +413,7 @@ async function _getMetadatasByIds(docIds: string[]) {
     })) as [ModelResult | null, Error | null]
 
     if (modelError) {
-        throw 'Error getting actionMetadatas: ' + modelError.msg
+        throw new Error('Error getting actionMetadatas: ' + modelError.msg)
     }
 
     if (!modelResult?.mainResult) {

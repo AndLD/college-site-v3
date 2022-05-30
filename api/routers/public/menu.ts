@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { controller } from '../../controller/controller'
+import { controller } from '../../controllers/controller'
 import { setReqProp, setReqQueryProp } from '../../middlewares/decorators'
 
 export default Router()

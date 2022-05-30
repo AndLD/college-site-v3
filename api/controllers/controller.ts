@@ -18,12 +18,11 @@ import {
     Error,
     CallControllerCallbacksResults,
     Pagination,
-    ArrayContainsFilter,
-    MyFile
+    ArrayContainsFilter
 } from '../utils/types'
 
 export const controller = tryCatch(async function (req: Request, res: Response) {
-    // Парсинг необходимых данных из запроса
+    // Parse data from request
     const [reqData, parseReqError] = parseReq(req) as DefaultResult
     if (parseReqError)
         return res.status(parseReqError.code).json({

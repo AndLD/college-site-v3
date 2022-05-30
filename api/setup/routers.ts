@@ -13,6 +13,7 @@ import newsPublicRouter from '../routers/public/news'
 import newsPrivateRouter from '../routers/private/news'
 import actionsPrivateRouter from '../routers/private/actions'
 import statisticsPrivateRouter from '../routers/private/statistics'
+import migrationPrivateRouter from '../routers/private/migration'
 
 export function setupRouters(app: Express) {
     const apiRouter = Router()
@@ -56,6 +57,9 @@ export function setupRouters(app: Express) {
     // Actions
     privateRouter.use('/action', setReqEntity(entities.ACTIONS), actionsPrivateRouter)
 
-    // Statistics (test route)
+    // Statistics
     privateRouter.use('/statistics', hasModeratorStatus, statisticsPrivateRouter)
+
+    // Migration
+    privateRouter.use('/migration', hasAdminStatus, migrationPrivateRouter)
 }

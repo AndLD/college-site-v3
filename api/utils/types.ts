@@ -1,3 +1,5 @@
+// TODO: Refactor
+
 import { NextFunction, Request, Response } from 'express'
 import { IArticle } from './interfaces/articles/articles'
 import { IMenuBlock } from './interfaces/menu/menu'
@@ -17,7 +19,7 @@ export type Controller = (req: Request, res: Response, next?: NextFunction) => a
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
 export type LogicOperator = '<' | '<=' | '==' | '>=' | '>'
 export type UpdateOperator = '+' | '-'
-// TODO: Убрать 'in', 'array-contains' из типа Filter ?
+// TODO: Remove 'in', 'array-contains' from 'Filter' type ?
 export type Filter =
     | [string, LogicOperator, number | boolean | string]
     | [string, 'array-contains', string]
@@ -25,7 +27,9 @@ export type Filter =
     | [string, 'in', string[]]
     | [string, '!=', string]
     | [FirebaseFirestore.FieldPath, '==', string]
+// TODO: Remove:
 // | [string, 'like', string]
+
 export type ArrayContainsFilter = [string, 'array-contains', string]
 export type UpdateSchema = [string, UpdateOperator, string | number][]
 
@@ -180,3 +184,9 @@ export type JobStep = {
 }
 
 export type JobUpdateBody = { currentStep?: number; status?: JobStatus }
+
+export type MigrationOptions = {
+    skip: number
+    limit: number
+    minOldId?: number
+}

@@ -29,9 +29,13 @@ async function addMetadataToDB(docId: string, obj: IArticle) {
         obj
     })) as [ModelResult | null, Error | null]
 
-    if (modelError) throw modelError.msg
+    if (modelError) {
+        throw new Error(modelError.msg)
+    }
 
-    if (!modelResult?.mainResult?.id) throw 'Article info was not stored to DB!'
+    if (!modelResult?.mainResult?.id) {
+        throw new Error('Article info was not stored to DB!')
+    }
 
     return modelResult.mainResult as { id: string }
 }
@@ -73,8 +77,9 @@ async function _deleteMetadatasFromDB(docIds: string[], errorMsg?: string, colle
         collection: collection || articlesCollection
     })
 
-    if (deleteModelError)
-        throw errorMsg || 'Deleting metadatas failed with error: ' + deleteModelError.msg
+    if (deleteModelError) {
+        throw new Error(errorMsg || 'Deleting metadatas failed with error: ' + deleteModelError.msg)
+    }
 }
 
 async function addFileToGoogleDrive(
@@ -97,7 +102,9 @@ async function addFileToGoogleDrive(
             filename && filename.includes('_pending') ? 'actions' : undefined
         )
 
-        throw `Article file [${filename || docId}.${file.ext}] was not stored to Google Drive!`
+        throw new Error(
+            `Article file [${filename || docId}.${file.ext}] was not stored to Google Drive!`
+        )
     }
 }
 
@@ -112,7 +119,9 @@ async function addFileToGoogleDriveFlow(
     if (file.mimetype === articlesAllowedFileTypes.docx) {
         try {
             var html = (await convertDocxToHtml(file.body))?.value
-            if (!html) throw 'Result of convertion DOCX to HTML is empty'
+            if (!html) {
+                throw new Error('Result of convertion DOCX to HTML is empty')
+            }
         } catch {
             // If DOCX was not converted to HTML we should delete DOCX from Google Drive and it's document from database
             const baseErrorMsg = `Article file [${
@@ -127,7 +136,7 @@ async function addFileToGoogleDriveFlow(
                 filename && filename.includes('_pending') ? 'actions' : undefined
             )
 
-            throw baseErrorMsg
+            throw new Error(baseErrorMsg)
         }
 
         const htmlBuffer = Buffer.from(html)
@@ -209,9 +218,13 @@ async function _updateMetadataToDB(docId: string, obj: IArticleUpdate) {
         obj
     })) as [ModelResult | null, Error | null]
 
-    if (modelError) throw modelError.msg
+    if (modelError) {
+        throw new Error(modelError.msg)
+    }
 
-    if (!modelResult?.mainResult?.id) throw 'Article info was not stored to DB!'
+    if (!modelResult?.mainResult?.id) {
+        throw new Error('Article info was not stored to DB!')
+    }
 
     return modelResult.mainResult as { id: string }
 }
@@ -224,11 +237,11 @@ async function _getMetadataFromDB(docId: string) {
     })) as [ModelResult | null, Error | null]
 
     if (modelError) {
-        throw modelError.msg
+        throw new Error(modelError.msg)
     }
 
     if (!modelResult?.mainResult) {
-        throw `No article [${docId}] metadata found in DB`
+        throw new Error(`No article [${docId}] metadata found in DB`)
     }
 
     return modelResult.mainResult as IArticle
@@ -236,7 +249,7 @@ async function _getMetadataFromDB(docId: string) {
 
 async function _getMetadatasFromDB({ where, docIds }: { where?: Filter[]; docIds?: string[] }) {
     if (!(where || docIds)) {
-        throw '"docIds" or "where" parameter should be specified'
+        throw new Error('"docIds" or "where" parameter should be specified')
     }
 
     const [modelResult, modelError] = (await model({
@@ -247,7 +260,7 @@ async function _getMetadatasFromDB({ where, docIds }: { where?: Filter[]; docIds
     })) as [ModelResult | null, Error | null]
 
     if (modelError) {
-        throw modelError.msg
+        throw new Error(modelError.msg)
     }
 
     if (!modelResult?.mainResult) {

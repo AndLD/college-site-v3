@@ -35,7 +35,7 @@ export const model = async ({
     let mainResult, triggersResult, error
     let total = 0
 
-    // Выполнение триггеров
+    // Perform triggers
     if (triggers) {
         ;[triggersResult, error] = await callTriggers(triggers, {
             email,
@@ -206,8 +206,8 @@ const prepareQueryRef = ({
     }
 }
 
-//TODO REFACTOR
-//! For multiple deletion only
+// TODO: Refactor
+// For multiple deletion only
 const makeBatchedDeletes = ({
     collection,
     docIds,
@@ -292,25 +292,25 @@ const processFirebaseRes = async (
     return [Array.isArray(result) ? (result.length > 0 ? result : null) : result, null]
 }
 
-// TODO Удалить
-// Является ли пользователь владельцем документа
-const isUserOwner = (doc: Any, email: string) => doc.user == email
+// TODO: Remove
+// Is user document owner
+// const isUserOwner = (doc: Any, email: string) => doc.user == email
 
-// TODO Изменить
+// TODO Remove
 // "Есть ли у пользователя доступ": функция принимает первым аргументом документ / id документа, а вторым - email пользователя. Функция определяет есть ли у пользователя с email полномочия взаимодействовать с документом
-const isUserHasAccess = async (data: string | Any, email: string, entity?: string) => {
-    if (typeof data == 'string')
-        data = await module.exports.model({ collection: entity, docId: data, action: 'get' })
-    if (typeof data == 'object') {
-        if (isUserOwner(data, email)) return [true, null]
-        else {
-            const [result, error] = await module.exports.model({
-                collection: 'users',
-                where: [['email', '==', data.user]],
-                action: 'get'
-            })
-            if (error) return [null, error]
-            return [result[0].friends.includes(email), null]
-        }
-    } else throw 'isUserHasAccess: Incorrect "doc"'
-}
+// const isUserHasAccess = async (data: string | Any, email: string, entity?: string) => {
+//     if (typeof data == 'string')
+//         data = await module.exports.model({ collection: entity, docId: data, action: 'get' })
+//     if (typeof data == 'object') {
+//         if (isUserOwner(data, email)) return [true, null]
+//         else {
+//             const [result, error] = await module.exports.model({
+//                 collection: 'users',
+//                 where: [['email', '==', data.user]],
+//                 action: 'get'
+//             })
+//             if (error) return [null, error]
+//             return [result[0].friends.includes(email), null]
+//         }
+//     } else throw 'isUserHasAccess: Incorrect "doc"'
+// }
