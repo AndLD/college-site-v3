@@ -6,6 +6,7 @@ import { newsService } from '../../services/news'
 import { bufferUtils } from '../../utils/buffer'
 import {
     IAction,
+    IRequestFile,
     NewsAllowedFileExtension,
     NewsAllowedFileType,
     NewsFileData,
@@ -23,12 +24,6 @@ import { actionsService } from '../../services/actions'
 import { tryCatch } from '../../utils/decorators'
 
 const logger = getLogger('controller/private/news')
-
-interface IRequestFile {
-    originalname: string
-    buffer: Buffer
-    size: number
-}
 
 function _processNewsFile(file: IRequestFile): NewsFileData {
     const nameSplittedByDot = file.originalname.split('.')
@@ -350,11 +345,19 @@ async function deleteNews(req: any, res: Response) {
             error: '"ids" query param is missed!'
         })
 
-    const newsMetadatas = await newsService.getMetadatasByIds(ids)
-    if (!newsMetadatas.length) {
+    const pinnedNewsIds = appSettingsService.get().pinnedNewsIds
+    for (const id of ids) {
+        if (pinnedNewsIds.includes(id)) {
+            return res.status(400).json({
+                error: 'Deletion pinned news is not allowed'
+            })
+        }
+    }
+
+    ids = await newsService.checkMetadatasExistance(ids)
+    if (!ids.length) {
         return res.sendStatus(404)
     }
-    ids = newsMetadatas.map((newsMetadata: INews) => newsMetadata.id)
 
     const actionId = firebase.db.collection('actions').doc().id
 

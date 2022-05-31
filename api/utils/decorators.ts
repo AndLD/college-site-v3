@@ -5,11 +5,16 @@ const logger = getLogger('utils/decorators')
 
 // Оборачивает контроллер проверкой try catch
 export const tryCatch = (controller: Controller) =>
-    async function (req: any, res: any, next: any) {
+    async function (req: any, res: any) {
         try {
             await controller(req, res)
         } catch (err) {
-            logger.error(`Error [${req.method}, ${req.originalUrl}]:\n`, err)
+            logger.error(
+                `Error [${req.method}, ${req.originalUrl}]${
+                    req.isSimulation ? 'SIMULATION' : ''
+                }:\n`,
+                err
+            )
             res.sendStatus(500)
         }
     } as Controller

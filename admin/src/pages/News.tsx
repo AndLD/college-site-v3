@@ -26,6 +26,7 @@ function News() {
     const [searchValue, setSearchValue] = useState<string>()
     const [selectedRows, setSelectedRows] = useState([])
     const [isDeleteBtnLoading, setIsDeleteBtnLoading] = useState<boolean>(false)
+    const [pinnedNewsIds, setPinnedNewsIds] = useState<string[]>([])
 
     useEffect(() => {
         document.title = 'Admin News'
@@ -160,6 +161,7 @@ function News() {
                     paginationState: [pagination, setPagination],
                     selectedRowsState: [selectedRows, setSelectedRows],
                     searchValueState: [searchValue, setSearchValue],
+                    pinnedNewsIdsState: [pinnedNewsIds, setPinnedNewsIds],
                     fetchNews,
                     deleteNews,
                     downloadNews

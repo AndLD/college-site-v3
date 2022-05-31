@@ -1,10 +1,10 @@
 import { ArrowDownOutlined } from '@ant-design/icons'
 import { Button, Popconfirm } from 'antd'
-import { useContext } from 'react'
+import { SetStateAction, useContext } from 'react'
 import { useDispatch } from 'react-redux'
 import { NewsContext } from '../../contexts'
 import { setAction, setActionModalVisibility, setActionSuccessCallback } from '../../store/actions'
-import { Action } from '../../utils/types'
+import { Action, INews } from '../../utils/types'
 
 export default function NewsTableControls() {
     const dispatch = useDispatch()
@@ -18,6 +18,7 @@ export default function NewsTableControls() {
     const fetchNews = useContext(NewsContext).fetchNews
     const deleteNews = useContext(NewsContext).deleteNews
     const downloadNews = useContext(NewsContext).downloadNews
+    const [pinnedNewsIds, setPinnedNewsIds] = useContext(NewsContext).pinnedNewsIdsState
 
     function showActionModal(newAction: Action) {
         dispatch(setAction(newAction))
@@ -58,7 +59,12 @@ export default function NewsTableControls() {
                 <Button
                     style={{ margin: '0 0 0 5px' }}
                     type="primary"
-                    disabled={selectedRows.length === 0}
+                    disabled={
+                        selectedRows.length === 0 ||
+                        selectedRows.filter((selectedRow: INews) =>
+                            pinnedNewsIds.includes(selectedRow.id)
+                        ).length > 0
+                    }
                     loading={isDeleteBtnLoading}
                 >
                     Delete

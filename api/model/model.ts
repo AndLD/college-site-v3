@@ -17,7 +17,7 @@ if (!db || !documentId) {
     throw '"db" or "documentId" variables are undefined'
 }
 
-// TODO: Refactor & Optimization: Separate "model" function into lots of small functions. Use TRANSACTIONS, BATCH and BULK requests
+// TODO: Refactor & Optimization: Separate "model" function into small functions. Use TRANSACTIONS, BATCH and BULK requests
 export const model = async ({
     email,
     collection,

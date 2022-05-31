@@ -24,6 +24,7 @@ import {
     ArticlesAllowedFileExtension,
     ArticlesAllowedFileType,
     IAction,
+    IRequestFile,
     Options
 } from '../../utils/types'
 import fs from 'fs'
@@ -31,12 +32,6 @@ import { v4 as uuidv4 } from 'uuid'
 import { tryCatch } from '../../utils/decorators'
 
 const logger = getLogger('controller/private/articles')
-
-interface IRequestFile {
-    originalname: string
-    buffer: Buffer
-    size: number
-}
 
 function _processArticleFile(file: IRequestFile): ArticleFileData {
     const nameSplittedByDot = file.originalname.split('.')
@@ -181,11 +176,11 @@ async function postArticle(req: any, res: Response) {
         if (!file) {
             throw new Error('File missed')
         }
-    } catch (e) {
+    } catch (e: any) {
         jobsService.error(jobId)
         logger.error(e)
         return res.status(400).json({
-            error: e
+            error: e.toString()
         })
     }
 
@@ -269,7 +264,7 @@ async function postArticle(req: any, res: Response) {
         jobsService.error(jobId)
         logger.error(e)
         return res.status(500).json({
-            error: e
+            error: e.toString()
         })
     }
 
@@ -393,6 +388,7 @@ async function deleteArticle(req: any, res: Response) {
         })
 
     ids = await articlesService.checkMetadatasExistance(ids)
+
     if (!ids.length) {
         return res.sendStatus(404)
     }

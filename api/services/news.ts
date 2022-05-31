@@ -368,10 +368,30 @@ async function checkOldIdUsage(oldId: number) {
     return newsMetadatas.map((newsMetadata: INews) => newsMetadata.id) as string[]
 }
 
-async function getMetadatasByIds(docIds: string[]) {
+async function getMetadatasByIds(docIds: string[]): Promise<INews[]> {
     const newsMetadatas = await _getMetadatasFromDB({ docIds })
 
     return newsMetadatas
+}
+
+// TODO: Refactor (code dublicates)
+async function checkMetadatasExistance(docIds: string[]) {
+    const checkedIds: string[] = []
+
+    // Trying to get documents portionally by 10. Because Firestore 'IN' argument supports 10 elements max
+    for (let i = 0; i < docIds.length; i += 10) {
+        const portion = docIds.slice(i, i + 10)
+        const checkedPortion = await _checkMetadatasPortionExistance(portion)
+        checkedIds.push(...checkedPortion)
+    }
+
+    return checkedIds
+}
+
+async function _checkMetadatasPortionExistance(docIds: string[]): Promise<string[]> {
+    const newsMetadatas = await _getMetadatasFromDB({ docIds })
+
+    return newsMetadatas.map((newsMetadata: INews) => newsMetadata.id as string)
 }
 
 export const newsService = {
@@ -384,5 +404,6 @@ export const newsService = {
     updateFileToGoogleDriveFlow,
     replaceOldIds,
     checkOldIdUsage,
-    getMetadatasByIds
+    getMetadatasByIds,
+    checkMetadatasExistance
 }

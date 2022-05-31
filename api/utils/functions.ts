@@ -1,5 +1,5 @@
 import { parse as parseHtml, HTMLElement, NodeType } from 'node-html-parser'
-import { ElementChild, Options } from './types'
+import { ElementChild } from './types'
 import mammoth from 'mammoth'
 import { getLogger } from './logger'
 

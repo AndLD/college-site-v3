@@ -21,7 +21,11 @@ function ArticlesTable() {
                 {
                     title: 'Title',
                     dataIndex: 'title',
-                    render: (title, row) => <a href={`${publicUrl}/article/${row.id}`}>{title}</a>,
+                    render: (title, row) => (
+                        <a href={`${publicUrl}/article/${row.id}`} target="_blank">
+                            {title}
+                        </a>
+                    ),
                     // width: 450,
                     fixed: 'left'
                 },

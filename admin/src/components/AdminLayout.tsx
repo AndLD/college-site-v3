@@ -33,7 +33,6 @@ function AdminLayout({ children, currentPage }: any) {
                         src={logo}
                         alt="Admin Page Logo"
                         onClick={() => {
-                            console.log(process.env.REACT_APP_DEV_PUBLIC_URL)
                             window.location.href = publicUrl || '#'
                         }}
                     />

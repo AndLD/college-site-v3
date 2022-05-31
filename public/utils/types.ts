@@ -1,3 +1,5 @@
+import { Blob } from 'buffer'
+
 export interface IMenuBlock {
     id?: string
     description?: string

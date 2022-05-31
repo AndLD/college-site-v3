@@ -19,8 +19,7 @@ function NewsTable() {
     const [selectedRows, setSelectedRows] = useContext(NewsContext).selectedRowsState
     const [searchValue, setSearchValue] = useContext(NewsContext).searchValueState
     const fetchNews = useContext(NewsContext).fetchNews
-
-    const [pinnedIds, setPinnedIds] = useState<string[]>([])
+    const [pinnedNewsIds, setPinnedNewsIds] = useContext(NewsContext).pinnedNewsIdsState
 
     useEffect(() => {
         fetchNewsPinnedIds()
@@ -53,7 +52,7 @@ function NewsTable() {
         })
             .then((res: AxiosResponse) => {
                 const pinnedNewsIds = res.data.result.pinnedNewsIds
-                setPinnedIds(pinnedNewsIds)
+                setPinnedNewsIds(pinnedNewsIds)
             })
             .catch((err: AxiosError) => errorNotification(err.message))
     }
@@ -65,7 +64,11 @@ function NewsTable() {
                 {
                     title: 'Title',
                     dataIndex: 'title',
-                    render: (title, row) => <a href={`${publicUrl}/news/${row.id}`}>{title}</a>,
+                    render: (title, row) => (
+                        <a href={`${publicUrl}/news/${row.id}`} target="_blank">
+                            {title}
+                        </a>
+                    ),
                     width: 450,
                     fixed: 'left'
                 },
@@ -83,7 +86,7 @@ function NewsTable() {
                     title: 'Pinned',
                     align: 'center',
                     render: (_, row: INews) => {
-                        const isPinned = pinnedIds.includes(row.id)
+                        const isPinned = pinnedNewsIds.includes(row.id)
 
                         if (isPinned) {
                         }

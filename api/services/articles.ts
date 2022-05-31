@@ -351,6 +351,19 @@ async function checkOldIdUsage(oldId: number) {
 }
 
 async function checkMetadatasExistance(docIds: string[]) {
+    const checkedIds = []
+
+    // Trying to get documents portionally by 10. Because Firestore 'IN' argument supports 10 elements max
+    for (let i = 0; i < docIds.length; i += 10) {
+        const portion = docIds.slice(i, i + 10)
+        const checkedPortion = await _checkMetadatasPortionExistance(portion)
+        checkedIds.push(...checkedPortion)
+    }
+
+    return checkedIds
+}
+
+async function _checkMetadatasPortionExistance(docIds: string[]) {
     const articleMetadatas = await _getMetadatasFromDB({ docIds })
 
     return articleMetadatas.map((articleMetadata: IArticle) => articleMetadata.id)

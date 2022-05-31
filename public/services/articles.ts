@@ -57,7 +57,7 @@ async function _fetchArticleDataNodeJs(
 
         const blob = new BlobNodeJs([response.data as BlobNodeJs])
 
-        const data = response.data
+        const data = response.data as ArrayBuffer
 
         const result: { [key: string]: string } = {}
 

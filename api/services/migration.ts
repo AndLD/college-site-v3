@@ -2,10 +2,10 @@
 
 import filetype from 'magic-bytes.js'
 import mysql from 'mysql'
-import { MigrationOptions } from '../utils/types'
-import { Blob } from 'buffer'
+import { IRequestFile, MigrationOptions, UserStatus } from '../utils/types'
 import { parse as parseHtml } from 'node-html-parser'
-import { convertDocxToHtml } from '../utils/functions'
+import { privateArticlesControllers } from '../controllers/private/articles'
+import { isHtml } from '../utils/is-html'
 
 interface connectionOptions {
     host: string | undefined
@@ -31,9 +31,22 @@ type ArticleContent = {
 }
 
 type GetArticlesResult = {
-    articleRawMetadatas: any[]
-    articleFiles: ArticleContent[]
+    articleBodies: IMigrationArticleBody[]
+    articleFiles: { [id: string]: ArticleContent }
 }
+
+interface IMigrationArticleBody {
+    title: string
+    oldId: number
+    inlineMainImage: true
+}
+
+type User = {
+    email: string
+    status: UserStatus
+}
+
+type PostArticleResult = { status: number; resBody: any }
 
 const connectionOptions: connectionOptions = {
     host: process.env.MYSQL_HOST,
@@ -66,15 +79,22 @@ function _getConnection() {
     return mysql.createConnection(connectionOptions)
 }
 
-function _getArticles({ skip, limit, minOldId }: MigrationOptions): Promise<GetArticlesResult> {
+function _getArticles({
+    skip,
+    limit,
+    minOldId,
+    oldIds
+}: MigrationOptions): Promise<GetArticlesResult> {
     const table = 'articles'
 
-    const queryString = `SELECT * FROM ${table} WHERE id = 6${
-        minOldId ? ` WHERE id > ${minOldId}` : ''
-    } LIMIT ${limit} OFFSET ${skip}`
+    const oldIdsClause = oldIds?.length ? oldIds.map((oldId) => `id == ${oldId}`).join(' OR ') : ''
+    const minOldIdClause = minOldId ? `id > ${minOldId}` : ''
+    const whereClause = minOldId || oldIds ? `WHERE ${minOldIdClause} ${oldIdsClause}` : ''
 
-    const articleRawMetadatas: any = []
-    const articleFiles: any = {}
+    const queryString = `SELECT * FROM ${table} ${whereClause} LIMIT ${limit} OFFSET ${skip}`
+
+    const articleBodies: IMigrationArticleBody[] = []
+    const articleFiles: { [id: string]: ArticleContent } = {}
 
     return new Promise((resolve, reject) => {
         _getConnection().query(queryString, async (err, result: IArticleV2[]) => {
@@ -83,9 +103,10 @@ function _getArticles({ skip, limit, minOldId }: MigrationOptions): Promise<GetA
             }
 
             for (const row of result) {
-                articleRawMetadatas.push({
+                articleBodies.push({
                     title: row.title,
-                    oldId: row.id
+                    oldId: row.id,
+                    inlineMainImage: true
                 })
 
                 const articleFile: ArticleContent = {}
@@ -94,10 +115,11 @@ function _getArticles({ skip, limit, minOldId }: MigrationOptions): Promise<GetA
 
                 if (row.html && !row.docx) {
                     const buffer = Buffer.from(row.html)
+                    console.log(111)
 
                     articleFile.html = buffer
                 } else if (row.docx) {
-                    const buffer = Buffer.from(row.docx)
+                    const buffer = row.docx
 
                     try {
                         const guessedFiles = filetype(buffer)
@@ -106,8 +128,7 @@ function _getArticles({ skip, limit, minOldId }: MigrationOptions): Promise<GetA
                             if (guessedFile.extension === 'docx') {
                                 const str = buffer.toString()
 
-                                if (parseHtml(str)) {
-                                    console.log(3)
+                                if (isHtml(str)) {
                                     articleFile.html = buffer
                                 } else {
                                     articleFile.docx = buffer
@@ -125,7 +146,6 @@ function _getArticles({ skip, limit, minOldId }: MigrationOptions): Promise<GetA
                             const str = await buffer.toString()
 
                             try {
-                                console.log(2)
                                 if (parseHtml(str)) {
                                     articleFile.html = buffer
                                 }
@@ -137,27 +157,91 @@ function _getArticles({ skip, limit, minOldId }: MigrationOptions): Promise<GetA
                         throw e
                     }
                 }
-
-                console.log(articleFile)
             }
 
-            resolve({ articleRawMetadatas, articleFiles })
+            resolve({ articleBodies, articleFiles })
         })
     })
 }
 
-async function _postArticle() {}
+async function _postArticle(
+    user: User,
+    articleBody: IMigrationArticleBody,
+    articleFile: ArticleContent
+): Promise<PostArticleResult> {
+    if (!(articleFile.html || articleFile.docx || articleFile.pdf)) {
+        throw new Error('No article content provided')
+    }
 
-async function startMigration(options: MigrationOptions) {
+    const ext = Object.keys(articleFile)[0] as 'html' | 'docx' | 'pdf'
+    const buffer = articleFile[ext] as Buffer
+    const size = buffer.byteLength
+
+    const file: IRequestFile = {
+        originalname: `migrated-article.${ext}`,
+        buffer,
+        size
+    }
+
+    // TODO: Add type
+    const req = {
+        user: {
+            email: user.email,
+            _doc: {
+                status: user.status
+            }
+        },
+        body: {
+            json: JSON.stringify(articleBody)
+        },
+        file,
+        method: 'POST',
+        originalUrl: '/api/private/article',
+        isSimulation: true
+    }
+
+    // TODO: Add type
+    const res: any = {
+        statusCode: 200,
+        // TODO: Refactor dublication
+        status: (status: number) => {
+            res.statusCode = status
+            return res
+        },
+        sendStatus: (status: number) => {
+            res.statusCode = status
+            return res
+        },
+        json: (resBody: any) => {
+            res.resBody = resBody
+        }
+    }
+
+    await privateArticlesControllers.postArticle(req as any, res as any)
+
+    return { status: res.statusCode, resBody: res.resBody }
+}
+
+async function migrate(user: User, options: MigrationOptions) {
+    const migrationResult: PostArticleResult[] = []
+
     try {
-        const { articleRawMetadatas, articleFiles }: GetArticlesResult = await _getArticles(options)
+        const { articleBodies, articleFiles }: GetArticlesResult = await _getArticles(options)
 
-        return articleRawMetadatas
+        for (const articleBody of articleBodies) {
+            const articleFile = articleFiles[articleBody.oldId]
+
+            const postArticleResult = await _postArticle(user, articleBody, articleFile)
+
+            migrationResult.push(postArticleResult)
+        }
     } catch (e) {
         throw e
     }
+
+    return migrationResult
 }
 
 export const migrationService = {
-    startMigration
+    migrate
 }

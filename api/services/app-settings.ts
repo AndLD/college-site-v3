@@ -1,11 +1,9 @@
 import fs from 'fs'
 import path from 'path'
-import { getLogger } from '../utils/logger'
-
-const logger = getLogger('services/app-settings')
 
 const appSettingsPath = path.join(__dirname, '..', 'app-settings.json')
 
+// TODO: Add return type
 function get() {
     try {
         const settings = fs.readFileSync(appSettingsPath)

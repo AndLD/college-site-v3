@@ -4,9 +4,10 @@ import { menuService } from '../../services/menu'
 import { ArticlePageProps, IMenuElement } from '../../utils/types'
 import indexStyle from '../../styles/Index.module.scss'
 import pageStyle from '../../styles/Page.module.scss'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { articlesService } from '../../services/articles'
 import moment from 'moment'
+import { decode } from 'base64-arraybuffer'
 
 const ArticlePage: NextPage<ArticlePageProps> = ({
     menu,
@@ -14,11 +15,25 @@ const ArticlePage: NextPage<ArticlePageProps> = ({
     articleContent,
     statusCode
 }: ArticlePageProps) => {
+    const [source, setSource] = useState<string>()
+
     useEffect(() => {
         if (articleMetadata) {
             document.title = articleMetadata.title
+
+            if (articleMetadata.data.pdf) {
+                base64ToBlob('data:application/pdf;base64,' + articleContent)
+            }
         }
     }, [])
+
+    async function base64ToBlob(base64: string) {
+        const res = await fetch(base64)
+
+        const blob = await res.blob()
+
+        setSource(URL.createObjectURL(blob))
+    }
 
     return (
         <PublicLayout menu={menu} statusCode={statusCode}>
@@ -46,8 +61,9 @@ const ArticlePage: NextPage<ArticlePageProps> = ({
                                     <iframe
                                         width="100%"
                                         style={{ height: '90vh' }}
-                                        src={'data:application/pdf;base64,' + articleContent}
-                                    ></iframe>
+                                        src={source}
+                                        // src='/8ze3WPfFajm4OwRN31YT.pdf'
+                                    />
                                 ) : (
                                     'Something went wrong'
                                 )
