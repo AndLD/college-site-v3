@@ -46,6 +46,7 @@ const NewsPage: NextPage<NewsPageProps> = ({
                             </div>
                             {/* // TODO: Refactor */}
                             {news?.image && !news.metadata.inlineMainImage ? (
+                                // TODO: Pass URL.createObjectURL(blob) instead of base64 to src
                                 <img src={`data:image/png;base64,` + news.image} alt="News Image" />
                             ) : !news?.metadata.inlineMainImage ? (
                                 <img src="/images/logo.png" alt="News Image" />

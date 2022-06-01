@@ -3,7 +3,7 @@ import { ExtendedError } from 'socket.io/dist/namespace'
 import { firebase } from '../configs/firebase-config'
 import { model } from '../model/model'
 import { notificationService } from '../services/notification'
-import { getAllCompatibleInputForString } from '../utils/functions'
+import { getAllCompatibleInputForString } from '../utils/keywords'
 import { IUser } from '../utils/interfaces/users/users'
 import { Any } from '../utils/types'
 

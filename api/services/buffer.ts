@@ -39,7 +39,7 @@ function _initBufferMetadata() {
     setInterval(_clearBuffer, clearBufferInterval * 1000 * 60)
 
     logger.info(
-        `bufferMetadata successfully initialized, total records in the buffer: ${
+        `Buffer service successfully initialized, total records in the buffer: ${
             Object.keys(bufferMetadata).length
         }`
     )

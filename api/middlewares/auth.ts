@@ -3,7 +3,7 @@ import { firebase } from '../configs/firebase-config'
 import { NextFunction, Response } from 'express'
 import { model } from '../model/model'
 import { IUser } from '../utils/interfaces/users/users'
-import { getAllCompatibleInputForString } from '../utils/functions'
+import { getAllCompatibleInputForString } from '../utils/keywords'
 import { notificationService } from '../services/notification'
 
 export async function isAuthorized(req: any, res: Response, next: NextFunction) {

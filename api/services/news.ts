@@ -1,6 +1,7 @@
 import { model } from '../model/model'
 import { innerErrors, newsAllowedFileTypes } from '../utils/constants'
-import { convertDocxToHtml, getAllCompatibleInputForString } from '../utils/functions'
+import { convertDocxToHtml } from '../utils/convert-docx-to-html'
+import { getAllCompatibleInputForString } from '../utils/keywords'
 import { INews, INewsUpdate } from '../utils/interfaces/news/news'
 import { getLogger } from '../utils/logger'
 import {

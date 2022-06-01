@@ -9,7 +9,7 @@ import { googleDriveService } from '../../services/google-drive'
 import { jobsService } from '../../services/jobs'
 import { bufferUtils } from '../../utils/buffer'
 import { articlesAllowedFileTypes } from '../../utils/constants'
-import { getAllCompatibleInputForString } from '../../utils/functions'
+import { getAllCompatibleInputForString } from '../../utils/keywords'
 import {
     ArticleData,
     IArticle,

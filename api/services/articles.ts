@@ -1,6 +1,7 @@
 import { model } from '../model/model'
 import { articlesAllowedFileTypes, innerErrors } from '../utils/constants'
-import { convertDocxToHtml, getAllCompatibleInputForString } from '../utils/functions'
+import { convertDocxToHtml } from '../utils/convert-docx-to-html'
+import { getAllCompatibleInputForString } from '../utils/keywords'
 import { IArticle, IArticleUpdate } from '../utils/interfaces/articles/articles'
 import { getLogger } from '../utils/logger'
 import { Error, ArticleFileData, Filter, ModelResult, Options } from '../utils/types'
@@ -122,11 +123,11 @@ async function addFileToGoogleDriveFlow(
             if (!html) {
                 throw new Error('Result of convertion DOCX to HTML is empty')
             }
-        } catch {
+        } catch (e) {
             // If DOCX was not converted to HTML we should delete DOCX from Google Drive and it's document from database
             const baseErrorMsg = `Article file [${
                 filename || docId
-            }.html] was not stored to Google Drive!`
+            }.html] was not stored to Google Drive! Cause: ${e}`
 
             await googleDriveService.deleteFiles([filename || docId], 'articles')
 

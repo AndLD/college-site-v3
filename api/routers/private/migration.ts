@@ -4,4 +4,4 @@ import { getLogger } from '../../utils/logger'
 
 export default Router()
     // Start migration process
-    .post('/', privateMigrationControllers.postMigration)
+    .post('/:entity', privateMigrationControllers.postMigration)

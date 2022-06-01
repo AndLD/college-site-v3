@@ -7,7 +7,6 @@ import pageStyle from '../../styles/Page.module.scss'
 import { useEffect, useState } from 'react'
 import { articlesService } from '../../services/articles'
 import moment from 'moment'
-import { decode } from 'base64-arraybuffer'
 
 const ArticlePage: NextPage<ArticlePageProps> = ({
     menu,
@@ -58,12 +57,7 @@ const ArticlePage: NextPage<ArticlePageProps> = ({
                                         }}
                                     ></div>
                                 ) : articleMetadata.data.pdf ? (
-                                    <iframe
-                                        width="100%"
-                                        style={{ height: '90vh' }}
-                                        src={source}
-                                        // src='/8ze3WPfFajm4OwRN31YT.pdf'
-                                    />
+                                    <iframe width="100%" style={{ height: '90vh' }} src={source} />
                                 ) : (
                                     'Something went wrong'
                                 )

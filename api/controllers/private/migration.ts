@@ -4,6 +4,7 @@ import { MigrationOptions } from '../../utils/types'
 import { migrationService } from '../../services/migration'
 import { tryCatch } from '../../utils/decorators'
 import { appSettingsService } from '../../services/app-settings'
+import { entities } from '../../utils/constants'
 
 const logger = getLogger('controller/private/migration')
 
@@ -64,6 +65,14 @@ async function postMigration(req: any, res: Response) {
         status: req.user._doc.status
     }
 
+    const entity: string = req.params.entity
+
+    if (entity !== entities.ARTICLES && entity !== entities.NEWS) {
+        return res.status(400).json({
+            error: 'Bad entity'
+        })
+    }
+
     const isAutoApproveEnabled = appSettingsService
         .get()
         .actionAutoApproveEnabledForAdmins.includes(user.email)
@@ -81,7 +90,7 @@ async function postMigration(req: any, res: Response) {
         return res.sendStatus(400)
     }
 
-    const result = await migrationService.migrate(user, migrationOptions)
+    const result = await migrationService.migrateArticles(user, migrationOptions)
 
     res.json({
         result

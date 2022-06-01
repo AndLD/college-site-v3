@@ -3,7 +3,6 @@
 import filetype from 'magic-bytes.js'
 import mysql from 'mysql'
 import { IRequestFile, MigrationOptions, UserStatus } from '../utils/types'
-import { parse as parseHtml } from 'node-html-parser'
 import { privateArticlesControllers } from '../controllers/private/articles'
 import { isHtml } from '../utils/is-html'
 
@@ -46,7 +45,7 @@ type User = {
     status: UserStatus
 }
 
-type PostArticleResult = { status: number; resBody: any }
+type PostArticleResult = { oldId: number; status: number; resBody: any }
 
 const connectionOptions: connectionOptions = {
     host: process.env.MYSQL_HOST,
@@ -143,14 +142,10 @@ function _getArticles({
                         }
 
                         if (guessedFiles.length === 0) {
-                            const str = await buffer.toString()
+                            const str = buffer.toString()
 
-                            try {
-                                if (parseHtml(str)) {
-                                    articleFile.html = buffer
-                                }
-                            } catch (e) {
-                                throw e
+                            if (isHtml(str)) {
+                                articleFile.html = buffer
                             }
                         }
                     } catch (e) {
@@ -158,6 +153,8 @@ function _getArticles({
                     }
                 }
             }
+
+            process.exit(1)
 
             resolve({ articleBodies, articleFiles })
         })
@@ -219,10 +216,10 @@ async function _postArticle(
 
     await privateArticlesControllers.postArticle(req as any, res as any)
 
-    return { status: res.statusCode, resBody: res.resBody }
+    return { oldId: articleBody.oldId, status: res.statusCode, resBody: res.resBody }
 }
 
-async function migrate(user: User, options: MigrationOptions) {
+async function migrateArticles(user: User, options: MigrationOptions) {
     const migrationResult: PostArticleResult[] = []
 
     try {
@@ -243,5 +240,5 @@ async function migrate(user: User, options: MigrationOptions) {
 }
 
 export const migrationService = {
-    migrate
+    migrateArticles
 }
