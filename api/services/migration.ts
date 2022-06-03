@@ -5,6 +5,7 @@ import mysql from 'mysql'
 import { IRequestFile, MigrationOptions, UserStatus } from '../utils/types'
 import { privateArticlesControllers } from '../controllers/private/articles'
 import { isHtml } from '../utils/is-html'
+import { convertDocxToHtml } from '../utils/convert-docx-to-html'
 
 interface connectionOptions {
     host: string | undefined
@@ -127,10 +128,21 @@ function _getArticles({
                             if (guessedFile.extension === 'docx') {
                                 const str = buffer.toString()
 
+                                // TODO: Fix this
                                 if (isHtml(str)) {
                                     articleFile.html = buffer
                                 } else {
-                                    articleFile.docx = buffer
+                                    let convertResult
+                                    try {
+                                        convertResult = await convertDocxToHtml(buffer)
+                                    } catch {}
+                                    const html = convertResult?.value
+
+                                    if (html) {
+                                        articleFile.docx = buffer
+                                    } else if (row.html) {
+                                        articleFile.html = Buffer.from(row.html)
+                                    }
                                 }
 
                                 break
@@ -153,8 +165,6 @@ function _getArticles({
                     }
                 }
             }
-
-            process.exit(1)
 
             resolve({ articleBodies, articleFiles })
         })

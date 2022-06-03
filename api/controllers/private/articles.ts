@@ -259,7 +259,12 @@ async function postArticle(req: any, res: Response) {
 
         jobsService.nextStep(jobId)
 
-        var result = await articlesService.addArticle(docId, articleMetadata, file)
+        try {
+            var result = await articlesService.addArticle(docId, articleMetadata, file)
+        } catch (e) {
+            await actionsService.deleteAction(actionId)
+            throw e
+        }
     } catch (e: any) {
         jobsService.error(jobId)
         logger.error(e)

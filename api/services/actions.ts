@@ -423,8 +423,21 @@ async function _getMetadatasByIds(docIds: string[]) {
     return modelResult.mainResult as IAction[]
 }
 
+async function deleteAction(actionId: string) {
+    const [_, deleteModelError] = await model({
+        action: 'delete',
+        docId: actionId,
+        collection: actionsCollection
+    })
+
+    if (deleteModelError) {
+        throw new Error('Deleting action metadata failed with error: ' + deleteModelError.msg)
+    }
+}
+
 export const actionsService = {
     addAction,
     updateActions,
-    getConflicts
+    getConflicts,
+    deleteAction
 }

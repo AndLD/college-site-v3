@@ -34,6 +34,8 @@ const MainPage: NextPage<IndexPageProps> = ({ menu, newsMetadatas }: IndexPagePr
                     </section>
                     <div className={`${style['flex-child-1']} ${style['info-block']}`}>
                         <div id={style['offer']}>Запрошуємо на навчання!</div>
+                        {/* // TODO: Refactor (move to a new component) */}
+                        {/* // TODO: Load info block data (link:string, color?: 'red', title:string)[] from API */}
                         <div className={style['desk-wrapper-info-block']}>
                             <div className={style['desk']}>
                                 <div className={style['desk-title']}>
@@ -44,11 +46,10 @@ const MainPage: NextPage<IndexPageProps> = ({ menu, newsMetadatas }: IndexPagePr
                                     </a>
                                 </div>
                                 <div className={style['desk-title']}>
-                                    <a href="/article/541">ПРЕЗЕНТАЦІЯ КОЛЕДЖУ ТА СПЕЦІАЛЬНОСТЕЙ</a>
+                                    <a href="/article/2453">ДОВІДНИК ВСТУПНИКА 2022</a>
                                 </div>
                                 <div
                                     className={style['ribbon']}
-                                    // TODO: Refactor
                                     style={{ visibility: isMobile ? 'hidden' : 'visible' }}
                                 ></div>
                             </div>

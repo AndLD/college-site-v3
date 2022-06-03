@@ -297,9 +297,7 @@ async function updateFileToGoogleDriveFlow(
 
 async function replaceOldIds(docIds: string[], options?: Options) {
     const ids: string[] = []
-
     const where: Filter[] = []
-
     const newOptions: Options = {}
 
     for (const docId of docIds) {
@@ -307,7 +305,7 @@ async function replaceOldIds(docIds: string[], options?: Options) {
             try {
                 const oldId = parseInt(docId)
                 if (oldId) {
-                    where.push(['oldId', '==', docId])
+                    where.push(['oldId', '==', oldId])
                 }
             } catch {}
         } else {
