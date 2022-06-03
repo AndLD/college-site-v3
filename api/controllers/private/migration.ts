@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import { getLogger } from '../../utils/logger'
 import { MigrationOptions } from '../../utils/types'
-import { migrationService } from '../../services/migration'
+import { articlesMigrationService } from '../../services/migration/articles'
 import { tryCatch } from '../../utils/decorators'
 import { appSettingsService } from '../../services/app-settings'
 import { entities } from '../../utils/constants'
@@ -90,7 +90,7 @@ async function postMigration(req: any, res: Response) {
         return res.sendStatus(400)
     }
 
-    const result = await migrationService.migrateArticles(user, migrationOptions)
+    const result = await articlesMigrationService.migrateArticles(user, migrationOptions)
 
     res.json({
         result

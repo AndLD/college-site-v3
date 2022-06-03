@@ -124,6 +124,12 @@ function MenuTable() {
                 }
                 columns={[
                     {
+                        title: '#',
+                        render: (_, row, index) =>
+                            index + 1 + (pagination.current - 1) * pagination.pageSize,
+                        width: 70
+                    },
+                    {
                         title: 'ID',
                         dataIndex: 'id'
                     },

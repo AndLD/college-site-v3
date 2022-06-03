@@ -18,6 +18,13 @@ function ArticlesTable() {
         <Table
             dataSource={tableData}
             columns={[
+                // TODO: Refactor (dublication)
+                {
+                    title: '#',
+                    render: (_, row, index) =>
+                        index + 1 + (pagination.current - 1) * pagination.pageSize,
+                    width: 70
+                },
                 {
                     title: 'Title',
                     dataIndex: 'title',
@@ -26,7 +33,7 @@ function ArticlesTable() {
                             {title}
                         </a>
                     ),
-                    // width: 450,
+                    width: 450,
                     fixed: 'left'
                 },
                 {

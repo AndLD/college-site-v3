@@ -197,3 +197,8 @@ export interface IRequestFile {
     buffer: Buffer
     size: number
 }
+
+export interface IShortUser {
+    email: string
+    status: UserStatus
+}
