@@ -1,0 +1,19 @@
+version: '3'
+services:
+    postgres:
+        image: 'postgres:latest'
+        container_name: 'postgres-college-site-v3'
+        environment:
+            - POSTGRES_USER=${POSTGRES_USER}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+            - POSTGRES_DB=${POSTGRES_DB}
+        ports:
+            - '${POSTGRES_PORT}:5432'
+        volumes:
+            - ./volumes/postgres:/var/lib/postgresql/data
+
+    # redis:
+    #     image: 'redis:latest'
+    #     container_name: 'redis-college-site-v3'
+    #     ports:
+    #         - '6379:6379'

@@ -7,6 +7,8 @@ import { isHtml } from '../../utils/is-html'
 import { convertDocxToHtml } from '../../utils/convert-docx-to-html'
 import { getConnection } from './connection'
 
+const MIGRATION_PORTION_SIZE: number = 5
+
 interface IArticleV2 {
     id: number
     title: string
@@ -56,9 +58,11 @@ async function _getArticleFile(row: IArticleV2) {
                         articleFile.html = buffer
                     } else {
                         let convertResult
+
                         try {
                             convertResult = await convertDocxToHtml(buffer)
                         } catch {}
+
                         const html = convertResult?.value
 
                         if (html) {
@@ -190,18 +194,44 @@ async function migrateArticles(user: IShortUser, options: MigrationOptions) {
     const migrationResult: PostArticleResult[] = []
 
     try {
-        const { articleBodies, articleFiles }: GetArticlesResult = await _getArticles(options)
+        // Trying to get documents portionally by 10. In optimization order
+        for (let i = options.skip; i < options.skip + options.limit; i += MIGRATION_PORTION_SIZE) {
+            const portionOptions = {
+                limit: MIGRATION_PORTION_SIZE,
+                skip: i
+            }
 
-        for (const articleBody of articleBodies) {
-            const articleFile = articleFiles[articleBody.oldId]
-
-            const postArticleResult = await _postArticle(user, articleBody, articleFile)
-
-            migrationResult.push(postArticleResult)
+            const portionMigrationResult = await _migrateArticlesPortion(user, portionOptions)
+            migrationResult.push(...portionMigrationResult)
         }
+
+        return migrationResult
     } catch (e) {
         throw e
     }
+}
+
+async function _migrateArticlesPortion(user: IShortUser, options: MigrationOptions) {
+    const promises: Promise<PostArticleResult>[] = []
+    const { articleBodies, articleFiles }: GetArticlesResult = await _getArticles(options)
+
+    for (const articleBody of articleBodies) {
+        const articleFile = articleFiles[articleBody.oldId]
+
+        const promise = _postArticle(user, articleBody, articleFile)
+
+        promises.push(promise)
+    }
+
+    // TODO: Ensure we use a correct way to handle errors in Promise.allSettled
+    // TODO: Refactor (hard to read)
+    const portionMigrationResult = (
+        (await Promise.allSettled(promises)).filter(
+            (result: PromiseSettledResult<PostArticleResult>) => result.status === 'fulfilled'
+        ) as PromiseFulfilledResult<PostArticleResult>[]
+    ).map(({ value }) => value)
+
+    const migrationResult: PostArticleResult[] = portionMigrationResult
 
     return migrationResult
 }

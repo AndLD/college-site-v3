@@ -62,7 +62,7 @@ async function _fetchArticleDataNodeJs(
         const result: { [key: string]: string } = {}
 
         if (ext === 'pdf') {
-            result[filename] = await arrayBufferToBase64NodeJs(data)
+            result[filename] = arrayBufferToBase64NodeJs(data)
         } else if (ext === 'html') {
             result[filename] = await blob.text()
         }

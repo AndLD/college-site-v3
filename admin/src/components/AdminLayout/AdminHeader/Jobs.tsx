@@ -49,9 +49,14 @@ function Jobs() {
         if (socket) {
             setupJobsEvents(socket)
         }
+
+        if (Object.keys(jobs).length > 10) {
+            dropJobs('success')
+        }
     }, [jobs])
 
     function setupJobsEvents(socket: Socket) {
+        socket.removeAllListeners()
         socket.once('update-jobs', (newJobs: { [id: string]: IJob }) => {
             const successJobs: { [id: string]: IJob } = {}
             for (const id in jobs) {
@@ -71,11 +76,11 @@ function Jobs() {
         })
     }
 
-    function dropSuccessedJobs() {
+    function dropJobs(status: 'success' | 'exception') {
         const filtered: { [id: string]: IJob } = {}
 
         for (const id in jobs) {
-            if (jobs[id].status !== 'success') {
+            if (jobs[id].status !== status) {
                 filtered[id] = jobs[id]
             }
         }
@@ -107,9 +112,23 @@ function Jobs() {
                                         textAlign: 'right',
                                         cursor: 'pointer'
                                     }}
-                                    onClick={dropSuccessedJobs}
+                                    onClick={() => dropJobs('success')}
                                 >
                                     Drop successed
+                                </span>
+                            ) : null}{' '}
+                            {Object.keys(jobs).filter((id) => jobs[id].status === 'exception')
+                                .length > 0 ? (
+                                <span
+                                    style={{
+                                        color: '#1890ff',
+                                        width: '100%',
+                                        textAlign: 'right',
+                                        cursor: 'pointer'
+                                    }}
+                                    onClick={() => dropJobs('exception')}
+                                >
+                                    Drop failed
                                 </span>
                             ) : null}
                         </div>

@@ -189,7 +189,7 @@ export type MigrationOptions = {
     skip: number
     limit: number
     minOldId?: number
-    oldIds: number[]
+    oldIds?: number[]
 }
 
 export interface IRequestFile {

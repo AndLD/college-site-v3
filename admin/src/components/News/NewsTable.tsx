@@ -65,7 +65,8 @@ function NewsTable() {
                     title: '#',
                     render: (_, row, index) =>
                         index + 1 + (pagination.current - 1) * pagination.pageSize,
-                    width: 70
+                    width: 70,
+                    fixed: 'left'
                 },
                 {
                     title: 'Title',

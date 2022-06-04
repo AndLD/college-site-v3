@@ -342,7 +342,7 @@ async function replaceOldIds(docIds: string[], options?: Options) {
 }
 
 async function checkOldIdUsage(oldId: number) {
-    const where: Filter[] = [['oldId', '==', oldId.toString()]]
+    const where: Filter[] = [['oldId', '==', oldId]]
 
     const articleMetadatas = await _getMetadatasFromDB({ where })
 

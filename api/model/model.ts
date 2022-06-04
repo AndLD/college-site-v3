@@ -67,7 +67,7 @@ export const model = async ({
 
         if (error) return [null, error] as DefaultResult
     } else {
-        const { queryRef, metaQuertRef } = prepareQueryRef({
+        const { queryRef, metaQuertRef } = _prepareQueryRef({
             collection,
             where,
             docId,
@@ -93,9 +93,7 @@ export const model = async ({
 
         if (metaQuertRef) {
             try {
-                const metaResult = await metaQuertRef.get()
-
-                metaResult.forEach(() => total++)
+                total = (await metaQuertRef.get()).size
             } catch (e) {
                 throw 'Error getting total docs count!'
             }
@@ -145,7 +143,7 @@ const validateModelArgs = ({
         throw `validateModelArgs: Missing docId or docIds during "${action}" action`
 }
 
-const prepareQueryRef = ({
+const _prepareQueryRef = ({
     collection,
     where,
     docId,
@@ -198,7 +196,9 @@ const prepareQueryRef = ({
             .limit(pagination.results)
     }
 
-    if (action == 'get' && select) queryRef = queryRef.select(...select)
+    if (action == 'get' && select) {
+        queryRef = queryRef.select(...select)
+    }
 
     return {
         queryRef,
@@ -239,7 +239,7 @@ const makeBatchedDeletes = ({
 
 // Count documents of a collection
 export const getCollectionLength = async (collection: string) => {
-    return (await db.collection(collection).listDocuments())?.length
+    return (await db.collection(collection).select().get()).size
 }
 
 // Processing firebase response for different types of actions
@@ -296,7 +296,7 @@ const processFirebaseRes = async (
 // Is user document owner
 // const isUserOwner = (doc: Any, email: string) => doc.user == email
 
-// TODO Remove
+// TODO: Remove
 // "Есть ли у пользователя доступ": функция принимает первым аргументом документ / id документа, а вторым - email пользователя. Функция определяет есть ли у пользователя с email полномочия взаимодействовать с документом
 // const isUserHasAccess = async (data: string | Any, email: string, entity?: string) => {
 //     if (typeof data == 'string')
