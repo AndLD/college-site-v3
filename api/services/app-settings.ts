@@ -3,6 +3,18 @@ import path from 'path'
 
 const appSettingsPath = path.join(__dirname, '..', 'app-settings.json')
 
+function _init() {
+    if (!fs.existsSync(appSettingsPath)) {
+        const defaultSettings = {
+            selectedMenuId: null,
+            pinnedNewsIds: [],
+            actionAutoApproveEnabledForAdmins: []
+        }
+
+        fs.writeFileSync(appSettingsPath, JSON.stringify(defaultSettings))
+    }
+}
+
 // TODO: Add return type
 function get() {
     try {
@@ -40,6 +52,8 @@ function set(newSettings: any) {
         throw 'Failed to set appSettings with error: ' + e
     }
 }
+
+_init()
 
 export const appSettingsService = {
     get,

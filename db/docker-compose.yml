@@ -1,8 +1,8 @@
-version: '3'
+version: '3.0'
 services:
     postgres:
         image: 'postgres:latest'
-        container_name: 'postgres-college-site-v3'
+        container_name: '${COMPOSE_PROJECT_NAME}_postgres'
         environment:
             - POSTGRES_USER=${POSTGRES_USER}
             - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -10,10 +10,24 @@ services:
         ports:
             - '${POSTGRES_PORT}:5432'
         volumes:
+            - ./postgres.sql:/docker-entrypoint-initdb.d/db.sql
             - ./volumes/postgres:/var/lib/postgresql/data
+        restart: unless-stopped
+
+    pgadmin:
+        image: dpage/pgadmin4
+        container_name: '${COMPOSE_PROJECT_NAME}_pgadmin'
+        depends_on:
+            - postgres
+        ports:
+            - '${PGADMIN_PORT}:80'
+        environment:
+            - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+            - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+        restart: unless-stopped
 
     # redis:
     #     image: 'redis:latest'
-    #     container_name: 'redis-college-site-v3'
+    #     container_name: '${COMPOSE_PROJECT_NAME}_redis'
     #     ports:
     #         - '6379:6379'

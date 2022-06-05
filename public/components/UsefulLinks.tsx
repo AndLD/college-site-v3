@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 
 const defaultWidth = '70px'
 
@@ -56,48 +57,55 @@ function UsefulLinks() {
                 }}
             >
                 <div>
-                    <a href="https://www.president.gov.ua/">
-                        <img
-                            src="/images/useful-links/president.gif"
-                            alt="Президент України"
-                            style={usefulLinkStyle}
-                        />
-                    </a>
+                    <Link href="https://www.president.gov.ua/">
+                        <a>
+                            <img
+                                src="/images/useful-links/president.gif"
+                                alt="Президент України"
+                                style={usefulLinkStyle}
+                            />
+                        </a>
+                    </Link>
                 </div>
                 <div>
-                    <a href="https://www.kmu.gov.ua/">
-                        <img
-                            src="/images/useful-links/uryadoviy-portal.gif"
-                            alt="Урядовий портал"
-                            style={usefulLinkStyle}
-                        />
-                    </a>
+                    <Link href="https://www.kmu.gov.ua/">
+                        <a>
+                            <img
+                                src="/images/useful-links/uryadoviy-portal.gif"
+                                alt="Урядовий портал"
+                                style={usefulLinkStyle}
+                            />
+                        </a>
+                    </Link>
                 </div>
                 <div>
-                    <a href="https://rada.gov.ua/">
-                        <img
-                            src="/images/useful-links/rada.gif"
-                            alt="Верховна Рада України"
-                            style={usefulLinkStyle}
-                        />
-                    </a>
+                    <Link href="https://rada.gov.ua/">
+                        <a>
+                            <img
+                                src="/images/useful-links/rada.gif"
+                                alt="Верховна Рада України"
+                                style={usefulLinkStyle}
+                            />
+                        </a>
+                    </Link>
                 </div>
                 <div>
-                    <a href="https://mon.gov.ua/ua">
-                        <img
-                            src="/images/useful-links/ministerstvo-osviti.jpg"
-                            alt="Міністерство освіти і науки України"
-                            style={usefulLinkStyle}
-                        />
-                    </a>
+                    <Link href="https://mon.gov.ua/ua">
+                        <a>
+                            <img
+                                src="/images/useful-links/ministerstvo-osviti.jpg"
+                                alt="Міністерство освіти і науки України"
+                                style={usefulLinkStyle}
+                            />
+                        </a>
+                    </Link>
                 </div>
                 <div>
-                    <a
-                        href="https://play.google.com/store/apps/details?id=com.example33.admin.fragment8"
-                        style={{ textDecoration: 'underline', color: 'blue' }}
-                    >
-                        Завантажити додаток з розкладом
-                    </a>
+                    <Link href="https://play.google.com/store/apps/details?id=com.example33.admin.fragment8">
+                        <a style={{ textDecoration: 'underline', color: 'blue' }}>
+                            Завантажити додаток з розкладом
+                        </a>
+                    </Link>
                 </div>
             </div>
         </div>

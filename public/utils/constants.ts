@@ -1,4 +1,9 @@
-const HOST = 'http://127.0.0.1:8080'
+const HOST = `http://${
+    process.env.NODE_ENV === 'production'
+        ? process.env.API_DOCKER_CONTAINER_NAME || 'localhost'
+        : 'localhost'
+}:8080`
+
 export const publicRoute = `${HOST}/api/public`
 
 export const publicRoutes = {

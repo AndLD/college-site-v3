@@ -19,7 +19,11 @@ const bufferMetadata: {
 const clearBufferInterval = 15 // minutes
 const bufferMetadataExpiration = 30 // minutes
 
-function _initBufferMetadata() {
+function _init() {
+    if (!fs.existsSync(bufferFolderPath)) {
+        fs.mkdirSync(bufferFolderPath)
+    }
+
     const filesList = getFilesList().filter((filename) => !filename.includes('.zip'))
 
     const timestamp = Date.now()
@@ -178,7 +182,7 @@ function getTotalSize() {
     return parseFloat((size / 1024 / 1024).toFixed(2))
 }
 
-_initBufferMetadata()
+_init()
 
 export const bufferService = {
     addFile,

@@ -25,7 +25,7 @@ async function _fetchNewsMetadatas(count: number, tags?: string[]) {
 
         const newsMetadatas = response.data?.result
 
-        return newsMetadatas as INews[]
+        return (newsMetadatas as INews[]) || []
     } catch (e) {
         console.error(`Error getting news metadatas: ${e}`)
     }

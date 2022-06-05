@@ -106,6 +106,7 @@ function UsersTable() {
                 {
                     title: 'Description',
                     dataIndex: 'description',
+                    width: 300,
                     render: (description: string, row: any) => {
                         return (
                             <DescriptionCell

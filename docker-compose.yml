@@ -1,14 +1,20 @@
 version: '3.0'
 services:
     api:
+        container_name: ${COMPOSE_PROJECT_NAME}_api
         build: api/
         ports:
             - '8080:8080'
+        restart: unless-stopped
     admin:
+        container_name: ${COMPOSE_PROJECT_NAME}_admin
         build: admin/
         ports:
-            - '3000:3000'
+            - '3000:80'
+        restart: unless-stopped
     public:
+        container_name: ${COMPOSE_PROJECT_NAME}_public
         build: public/
         ports:
             - '80:80'
+        restart: unless-stopped

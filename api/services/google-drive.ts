@@ -11,6 +11,8 @@ import { Readable } from 'stream'
 import { bufferFolderPath, bufferService } from './buffer'
 import { ArticlesAllowedFileExtension, NewsAllowedFileExtension } from '../utils/types'
 
+import { promisifiedPipe } from '../utils/promisified-pipe'
+
 const logger = getLogger('services/google-drive')
 
 const drive = google.drive('v3')
@@ -132,16 +134,7 @@ async function _downloadFile(fileMetadata: {
     const dest = bufferService.getWriteStream(fileMetadata)
 
     try {
-        await new Promise((resolve, reject) => {
-            response.data
-                .on('end', () => {
-                    resolve(null)
-                })
-                .on('error', (err) => {
-                    reject(err)
-                })
-                .pipe(dest)
-        })
+        await promisifiedPipe(response.data, dest)
     } catch (e) {
         logger.error(`Error happened trying to download file [${filename}]: ${e}`)
         bufferService.deleteFile(filename)

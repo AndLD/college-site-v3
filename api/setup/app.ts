@@ -7,7 +7,6 @@ export function setupApp() {
     const app = express()
 
     app.use(helmet())
-
     app.use(express.json())
 
     const whitelist = process.env.WHITELIST_URLS
@@ -21,7 +20,6 @@ export function setupApp() {
         },
         credentials: true
     }
-
     app.use(cors(corsOptions as any))
     app.use(loggerMiddleware)
 

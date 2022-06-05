@@ -101,7 +101,7 @@ export async function getServerSideProps({ query }: GetServerSidePropsContext) {
         const ext = articleMetadata.data.html ? 'html' : 'pdf'
 
         const articleContent = await articlesService.fetchArticleContentById(id, ext)
-        if (!articleContent) {
+        if (!articleContent || !Object.keys(articleContent).length) {
             props.statusCode = 404
             return { props }
         }

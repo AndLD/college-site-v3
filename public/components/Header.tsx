@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import style from '../styles/Header.module.scss'
 
 // TODO: Replace 'img' tag for 'Image' component from 'next/image'
@@ -5,9 +6,11 @@ function Header() {
     return (
         <header id={style['container']}>
             <div id={style['logo']}>
-                <a href="/">
-                    <img src="/images/logo.png" alt="logo" />
-                </a>
+                <Link href="/">
+                    <a>
+                        <img src="/images/logo.png" alt="logo" />
+                    </a>
+                </Link>
             </div>
             <div id={style['title']}>
                 <div id={style['td1']}>

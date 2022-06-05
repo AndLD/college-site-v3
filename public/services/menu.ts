@@ -1,4 +1,4 @@
-import axios, { AxiosError } from 'axios'
+import axios from 'axios'
 import { publicRoutes } from '../utils/constants'
 import { menuUtils } from '../utils/menu'
 import { IMenuElement } from '../utils/types'

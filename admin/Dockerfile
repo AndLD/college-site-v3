@@ -1,13 +1,26 @@
-FROM node:14.17.0
+# build environment
+FROM node:16.13.1 as build
 
 WORKDIR /app
 
-COPY package.json /app
+ENV PATH /app/node_modules/.bin:$PATH
 
-RUN npm install
+COPY package*.json ./
 
-COPY . .
+RUN npm ci --silent
 
-EXPOSE 3000
+COPY . ./
 
-CMD ["npm", "start"]
+RUN npm run build
+
+# production environment
+FROM nginx:stable-alpine
+
+COPY --from=build /app/build /usr/share/nginx/html
+
+RUN rm /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

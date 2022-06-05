@@ -1,31 +1,34 @@
+import Link from 'next/link'
+import moment from 'moment'
+import { PushpinOutlined } from '@ant-design/icons'
 import { INewsCombined } from '../utils/types'
 import style from '../styles/Index.module.scss'
 import NewsImage from './NewsImage'
-import moment from 'moment'
-import { PushpinOutlined } from '@ant-design/icons'
 
 function News({ news }: { news: INewsCombined }) {
     return (
-        <a href={`/news/${news.metadata.id}`}>
-            <div className={style['single-new']}>
-                <div className={style['single-new-image']}>
-                    <NewsImage src={news.image} />
+        <Link href={`/news/${news.metadata.id}`}>
+            <a>
+                <div className={style['single-new']}>
+                    <div className={style['single-new-image']}>
+                        <NewsImage src={news.image} />
+                    </div>
+                    <div className={style['single-new-description']}>
+                        <p className={style['single-new-title']}>
+                            {news.metadata.pinned ? <PushpinOutlined /> : null}
+                            {news.metadata.title}
+                        </p>
+                        <p className={style['single-new-date-mobile']}>
+                            {moment(news.metadata.publicTimestamp).format('DD.MM.YYYY HH:mm')}
+                        </p>
+                        <p className={style['single-new-text']}>{news.metadata.description}</p>
+                        <p className={style['single-new-date']}>
+                            {moment(news.metadata.publicTimestamp).format('DD.MM.YYYY HH:mm')}
+                        </p>
+                    </div>
                 </div>
-                <div className={style['single-new-description']}>
-                    <p className={style['single-new-title']}>
-                        {news.metadata.pinned ? <PushpinOutlined /> : null}
-                        {news.metadata.title}
-                    </p>
-                    <p className={style['single-new-date-mobile']}>
-                        {moment(news.metadata.publicTimestamp).format('DD.MM.YYYY HH:mm')}
-                    </p>
-                    <p className={style['single-new-text']}>{news.metadata.description}</p>
-                    <p className={style['single-new-date']}>
-                        {moment(news.metadata.publicTimestamp).format('DD.MM.YYYY HH:mm')}
-                    </p>
-                </div>
-            </div>
-        </a>
+            </a>
+        </Link>
     )
 }
 

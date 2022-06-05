@@ -1,4 +1,4 @@
-import Image from 'next/image'
+import Link from 'next/link'
 import style from '../styles/Footer.module.scss'
 
 function Footer() {
@@ -29,18 +29,26 @@ function Footer() {
                 <div className={style['footer-social-block']}>
                     <div>Приєднуйся до нас:</div>
                     <div className={style['social-links']}>
-                        <a href="https://www.instagram.com/kk_nau/">
-                            <img src="/images/footer/instagram.png" alt="instagram" />
-                        </a>
-                        <a href="https://www.facebook.com/kknauofficial/?rf=1794013074244809">
-                            <img src="/images/footer/facebook.png" alt="facebook" />
-                        </a>
-                        <a href="https://www.youtube.com/channel/UCLWVYkhjvjMsyAwofwPY_zQ">
-                            <img src="/images/footer/youtube.png" alt="youtube" />
-                        </a>
-                        <a href="https://t.me/kk_nau">
-                            <img src="/images/footer/telegram.png" alt="telegram" />
-                        </a>
+                        <Link href="https://www.instagram.com/kk_nau/">
+                            <a>
+                                <img src="/images/footer/instagram.png" alt="instagram" />
+                            </a>
+                        </Link>
+                        <Link href="https://www.facebook.com/kknauofficial/?rf=1794013074244809">
+                            <a>
+                                <img src="/images/footer/facebook.png" alt="facebook" />
+                            </a>
+                        </Link>
+                        <Link href="https://www.youtube.com/channel/UCLWVYkhjvjMsyAwofwPY_zQ">
+                            <a>
+                                <img src="/images/footer/youtube.png" alt="youtube" />
+                            </a>
+                        </Link>
+                        <Link href="https://t.me/kk_nau">
+                            <a>
+                                <img src="/images/footer/telegram.png" alt="telegram" />
+                            </a>
+                        </Link>
                     </div>
                 </div>
             </div>

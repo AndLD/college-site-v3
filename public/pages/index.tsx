@@ -8,6 +8,7 @@ import NewsList from '../components/NewsList'
 import { newsService } from '../services/news'
 import { useEffect, useState } from 'react'
 import { isMobile } from 'react-device-detect'
+import Link from 'next/link'
 
 const MainPage: NextPage<IndexPageProps> = ({ menu, newsMetadatas }: IndexPageProps) => {
     const [news, setNews] = useState<INewsCombined[]>([])
@@ -39,14 +40,18 @@ const MainPage: NextPage<IndexPageProps> = ({ menu, newsMetadatas }: IndexPagePr
                         <div className={style['desk-wrapper-info-block']}>
                             <div className={style['desk']}>
                                 <div className={style['desk-title']}>
-                                    <a href="/article/2446">
-                                        <h3 className={style['red-link']}>
-                                            ОСОБЛИВОСТІ ВСТУПУ 2022
-                                        </h3>
-                                    </a>
+                                    <Link href="/article/2446">
+                                        <a>
+                                            <h3 className={style['red-link']}>
+                                                ОСОБЛИВОСТІ ВСТУПУ 2022
+                                            </h3>
+                                        </a>
+                                    </Link>
                                 </div>
                                 <div className={style['desk-title']}>
-                                    <a href="/article/2453">ДОВІДНИК ВСТУПНИКА 2022</a>
+                                    <Link href="/article/2453">
+                                        <a>ДОВІДНИК ВСТУПНИКА 2022</a>
+                                    </Link>
                                 </div>
                                 <div
                                     className={style['ribbon']}
@@ -75,38 +80,50 @@ const MainPage: NextPage<IndexPageProps> = ({ menu, newsMetadatas }: IndexPagePr
                                 <p>Фаховий молодший бакалавр:</p>
                                 <ul>
                                     <li>
-                                        <a href="/article/1981">
-                                            121 Інженерія програмного забезпечення
-                                        </a>
+                                        <Link href="/article/1981">
+                                            <a>121 Інженерія програмного забезпечення</a>
+                                        </Link>
                                     </li>
                                     <li>
-                                        <a href="/article/1983">123 Комп'ютерна інженерія</a>
+                                        <Link href="/article/1983">
+                                            <a>123 Комп'ютерна інженерія</a>
+                                        </Link>
                                     </li>
                                     <li>
-                                        <a href="/article/1971">
-                                            141 Електроенергетика, електротехніка та електромеханіка
-                                        </a>
+                                        <Link href="/article/1971">
+                                            <a>
+                                                141 Електроенергетика, електротехніка та
+                                                електромеханіка
+                                            </a>
+                                        </Link>
                                     </li>
                                     <li>
-                                        <a href="/article/1985">
-                                            151 Автоматизація та комп`ютерно-інтегровані технології
-                                        </a>
+                                        <Link href="/article/1985">
+                                            <a>
+                                                151 Автоматизація та комп`ютерно-інтегровані
+                                                технології
+                                            </a>
+                                        </Link>
                                     </li>
                                     <li>
-                                        <a href="/article/1977">
-                                            172 Телекомунікації та радіотехніка
-                                        </a>
+                                        <Link href="/article/1977">
+                                            <a>172 Телекомунікації та радіотехніка</a>
+                                        </Link>
                                     </li>
                                     <li>
-                                        <a href="/article/1972">173 Авіоніка</a>
+                                        <Link href="/article/1972">
+                                            <a>173 Авіоніка</a>
+                                        </Link>
                                     </li>
                                     <li>
-                                        <a href="/article/1976">
-                                            275 Транспортні технології (повітряний транспорт)
-                                        </a>
+                                        <Link href="/article/1976">
+                                            <a>275 Транспортні технології (повітряний транспорт)</a>
+                                        </Link>
                                     </li>
                                     <li>
-                                        <a href="/article/1973">272 Авіаційний транспорт</a>
+                                        <Link href="/article/1973">
+                                            <a>272 Авіаційний транспорт</a>
+                                        </Link>
                                     </li>
                                 </ul>
                             </div>
@@ -114,23 +131,32 @@ const MainPage: NextPage<IndexPageProps> = ({ menu, newsMetadatas }: IndexPagePr
                                 <p>Бакалавр:</p>
                                 <ul>
                                     <li>
-                                        <a href="/article/247">123 Комп'ютерна інженерія</a>
+                                        <Link href="/article/247">
+                                            <a>123 Комп'ютерна інженерія</a>
+                                        </Link>
                                     </li>
                                     <li>
-                                        <a href="/article/251">
-                                            141 Електроенергетика, електротехніка та електромеханіка
-                                        </a>
+                                        <Link href="/article/251">
+                                            <a>
+                                                141 Електроенергетика, електротехніка та
+                                                електромеханіка
+                                            </a>
+                                        </Link>
                                     </li>
                                     <li>
-                                        <a href="/article/255">
-                                            172 Телекомунікації та радіотехніка
-                                        </a>
+                                        <Link href="/article/255">
+                                            <a>172 Телекомунікації та радіотехніка</a>
+                                        </Link>
                                     </li>
                                     <li>
-                                        <a href="/article/259">272 Авіаційний транспорт</a>
+                                        <Link href="/article/259">
+                                            <a>272 Авіаційний транспорт</a>
+                                        </Link>
                                     </li>
                                     <li>
-                                        <a href="/article/170">073 Менеджмент</a>
+                                        <Link href="/article/170">
+                                            <a>073 Менеджмент</a>
+                                        </Link>
                                     </li>
                                 </ul>
                             </div>
@@ -145,33 +171,45 @@ const MainPage: NextPage<IndexPageProps> = ({ menu, newsMetadatas }: IndexPagePr
                                 <p>Фаховий молодший бакалавр:</p>
                                 <ul>
                                     <li>
-                                        <a href="/article/1983">123 Комп'ютерна інженерія</a>
+                                        <Link href="/article/1983">
+                                            <a>123 Комп'ютерна інженерія</a>
+                                        </Link>
                                     </li>
                                     <li>
-                                        <a href="/article/1971">
-                                            141 Електроенергетика, електротехніка та електромеханіка
-                                        </a>
+                                        <Link href="/article/1971">
+                                            <a>
+                                                141 Електроенергетика, електротехніка та
+                                                електромеханіка
+                                            </a>
+                                        </Link>
                                     </li>
                                     <li>
-                                        <a href="/article/1985">
-                                            151 Автоматизація та комп'ютерно-інтегровані технології
-                                        </a>
+                                        <Link href="/article/1985">
+                                            <a>
+                                                151 Автоматизація та комп`ютерно-інтегровані
+                                                технології
+                                            </a>
+                                        </Link>
                                     </li>
                                     <li>
-                                        <a href="/article/1977">
-                                            172 Телекомунікації та радіотехніка
-                                        </a>
+                                        <Link href="/article/1977">
+                                            <a>172 Телекомунікації та радіотехніка</a>
+                                        </Link>
                                     </li>
                                     <li>
-                                        <a href="/article/1972">173 Авіоніка</a>
+                                        <Link href="/article/1972">
+                                            <a>173 Авіоніка</a>
+                                        </Link>
                                     </li>
                                     <li>
-                                        <a href="/article/1976">
-                                            275 Транспортні технології (повітряний транспорт)
-                                        </a>
+                                        <Link href="/article/1976">
+                                            <a>275 Транспортні технології (повітряний транспорт)</a>
+                                        </Link>
                                     </li>
                                     <li>
-                                        <a href="/article/1973">272 Авіаційний транспорт</a>
+                                        <Link href="/article/1973">
+                                            <a>272 Авіаційний транспорт</a>
+                                        </Link>
                                     </li>
                                 </ul>
                             </div>
@@ -179,20 +217,27 @@ const MainPage: NextPage<IndexPageProps> = ({ menu, newsMetadatas }: IndexPagePr
                                 <p>Бакалавр:</p>
                                 <ul>
                                     <li>
-                                        <a href="/article/247">123 Комп'ютерна інженерія</a>
+                                        <Link href="/article/247">
+                                            <a>123 Комп'ютерна інженерія</a>
+                                        </Link>
                                     </li>
                                     <li>
-                                        <a href="/article/251">
-                                            141 Електроенергетика, електротехніка та електромеханіка
-                                        </a>
+                                        <Link href="/article/251">
+                                            <a>
+                                                141 Електроенергетика, електротехніка та
+                                                електромеханіка
+                                            </a>
+                                        </Link>
                                     </li>
                                     <li>
-                                        <a href="/article/255">
-                                            172 Телекомунікації та радіотехніка
-                                        </a>
+                                        <Link href="/article/255">
+                                            <a>172 Телекомунікації та радіотехніка</a>
+                                        </Link>
                                     </li>
                                     <li>
-                                        <a href="/article/259">272 Авіаційний транспорт</a>
+                                        <Link href="/article/259">
+                                            <a>272 Авіаційний транспорт</a>
+                                        </Link>
                                     </li>
                                 </ul>
                             </div>

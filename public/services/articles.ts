@@ -81,7 +81,7 @@ async function fetchArticleContentById(id: string, requiredExt: 'html' | 'pdf') 
 
         return newsContent
     } catch (e) {
-        console.error(`Error getting news content by id: ${e}`)
+        console.error(`Error getting article content by id: ${e}`)
     }
 
     return null

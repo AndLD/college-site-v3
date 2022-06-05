@@ -52,6 +52,7 @@ export default function MenuTableControls({
                 <Button
                     style={{ margin: '0 0 0 5px' }}
                     type="primary"
+                    // TODO: Forbid to delete selected menu
                     disabled={selectedRows.length === 0}
                 >
                     Delete

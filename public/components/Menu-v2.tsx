@@ -1,4 +1,5 @@
 import { useContext } from 'react'
+import Link from 'next/link'
 import { PublicLayoutContext } from '../contexts'
 import { IMenuElement } from '../utils/types'
 import style from '../styles/Menu-v2.module.scss'
@@ -17,9 +18,12 @@ function Menu() {
                         menu.map((menuElement) => menuUtils.convertMenuElement(menuElement, 0))
                     ) : (
                         <li>
-                            <a href="#">
-                                ⚠️ Menu not found. If you see that message contact administrator ⚠️
-                            </a>
+                            <Link href="#">
+                                <a>
+                                    ⚠️ Menu not found. If you see that message contact administrator
+                                    ⚠️
+                                </a>
+                            </Link>
                         </li>
                     )}
                 </ul>
