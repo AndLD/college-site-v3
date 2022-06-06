@@ -62,6 +62,12 @@ function updateTitle(id: string, title: string) {
     _emitJobUpdate(id)
 }
 
+function updatePercent(id: string, percent: number) {
+    jobs[id].percent = percent
+
+    _emitJobUpdate(id)
+}
+
 function updateStepTitle(id: string, title: string) {
     jobs[id].steps[jobs[id].currentStep].title = title
 
@@ -224,6 +230,7 @@ export const jobsService = {
     add,
     update,
     updateTitle,
+    updatePercent,
     updateStepTitle,
     updateStepDescription,
     nextStep,

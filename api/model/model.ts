@@ -48,67 +48,30 @@ function _validateConnectionOptions(connectionOptions: IConnectionOptions) {
     return true
 }
 
-async function _getClient() {
+async function _getPool() {
     if (!_validateConnectionOptions(connectionOptions)) {
         throw new Error('Invalid Postgres connection options')
     }
 
-    const client = new Client(connectionOptions)
+    if (!pool) {
+        pool = new Pool(connectionOptions)
 
-    await client.connect()
-
-    return client
-}
-
-function _query(queryStr: string): Promise<QueryResult<any>> {
-    return new Promise(async (resolve, reject) => {
-        const client = await _getClient()
-
-        client.on('end', () => {
-            resolve(result)
+        pool.on('error', (err) => {
+            logger.error('Postgres pool error:' + err)
         })
 
-        client.on('error', (err) => {
-            reject(err)
-        })
+        await pool.connect()
+    }
 
-        const result = await client.query(queryStr)
-
-        client.end()
-    })
+    return pool
 }
 
-// async function _getPool() {
-//     if (!_validateConnectionOptions(connectionOptions)) {
-//         throw new Error('Invalid Postgres connection options')
-//     }
+async function _query(queryStr: string): Promise<QueryResult<any>> {
+    const pool = await _getPool()
+    const result = await pool.query(queryStr)
 
-//     if (!pool) {
-//         pool = new Pool(connectionOptions)
-//     }
-
-//     if (!pool.connect()) {}
-
-//     return pool
-// }
-
-// function _query(queryStr: string): Promise<QueryResult<any>> {
-//     return new Promise(async (resolve, reject) => {
-//         const client = await _getClient()
-
-//         client.on('end', () => {
-//             resolve(result)
-//         })
-
-//         client.on('error', (err) => {
-//             reject(err)
-//         })
-
-//         const result = await client.query(queryStr)
-
-//         client.end()
-//     })
-// }
+    return result
+}
 
 export async function model(params: ModelArgs) {
     const {
@@ -156,7 +119,9 @@ export async function model(params: ModelArgs) {
 
         ;[mainResult, error] = await _processPostgresRes({ postgresRes, docId, action })
 
-        if (error) return [null, error] as DefaultResult
+        if (error) {
+            return [null, error] as DefaultResult
+        }
 
         if (metaQueryStr) {
             try {
@@ -391,10 +356,11 @@ function _prepareQueryStr({
             docId = getDocumentId()
         }
 
-        queryStr = escape(`INSERT INTO ${collection}(id, metadata) VALUES ($I, %L) RETURNING *`, [
-            docId,
-            JSON.stringify(obj)
-        ])
+        // TODO: Handle error
+        queryStr = escape(
+            `INSERT INTO ${collection}(id, metadata) VALUES ('${docId}', %L) RETURNING *`,
+            [JSON.stringify(obj)]
+        )
     } else if (action === 'update') {
         if (!(obj && Object.keys(obj).length)) {
             throw new Error('"obj" is empty. Unable to perform update query')
@@ -537,11 +503,9 @@ export function getDocumentId() {
 
 export async function ping() {
     try {
-        const client = await _getClient()
+        await _getPool()
 
-        logger.info('Postgres connected successfully')
-
-        await client.end()
+        logger.info('Postgres successfully connected.')
     } catch (e) {
         logger.error('Unable to ping Postgres:', e)
     }

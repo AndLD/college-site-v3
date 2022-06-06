@@ -10,7 +10,10 @@ function JobsCollapse({ jobs }: { jobs: { [id: string]: IJob } }) {
                 const percent =
                     jobs[id].status === 'success'
                         ? 100
-                        : Math.round((100 * jobs[id].currentStep) / jobs[id].steps.length)
+                        : Math.round(
+                              jobs[id].percent ||
+                                  (100 * jobs[id].currentStep) / jobs[id].steps.length
+                          )
 
                 return (
                     <Collapse.Panel

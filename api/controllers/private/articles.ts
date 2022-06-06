@@ -145,30 +145,32 @@ async function postArticle(req: any, res: Response) {
         status: req.user._doc.status
     }
 
-    const jobId = jobsService.add(
-        user.email,
-        jobsUtils.templates.articles.post.title,
-        jobsUtils.templates.articles.post.steps
-    )
+    const jobId = req.isSimulation
+        ? null
+        : jobsService.add(
+              user.email,
+              jobsUtils.templates.articles.post.title,
+              jobsUtils.templates.articles.post.steps
+          )
 
     const timestamp = Date.now()
 
     const body: IArticlePost = JSON.parse(req.body.json)
 
-    jobsService.nextStep(jobId)
+    jobId && jobsService.nextStep(jobId)
 
-    if (body.oldId) {
+    if (!req.isSimulation && body.oldId) {
         // TODO: Rename the variable :)
         const sameOldIdArticleIds = await articlesService.checkOldIdUsage(body.oldId)
         if (sameOldIdArticleIds.length) {
-            jobsService.error(jobId)
+            jobId && jobsService.error(jobId)
             return res.status(400).json({
                 error: `"oldId" is used by articles [${sameOldIdArticleIds.join(', ')}]`
             })
         }
     }
 
-    jobsService.nextStep(jobId)
+    jobId && jobsService.nextStep(jobId)
 
     try {
         var file = req.file && _processArticleFile(req.file)
@@ -177,14 +179,14 @@ async function postArticle(req: any, res: Response) {
             throw new Error('File missed')
         }
     } catch (e: any) {
-        jobsService.error(jobId)
+        jobId && jobsService.error(jobId)
         logger.error(e)
         return res.status(400).json({
             error: e.toString()
         })
     }
 
-    jobsService.nextStep(jobId)
+    jobId && jobsService.nextStep(jobId)
 
     const data: ArticleData = {}
     data[file.ext as ArticlesAllowedFileExtension] = true
@@ -193,7 +195,7 @@ async function postArticle(req: any, res: Response) {
     }
 
     const docId = getDocumentId()
-    jobsService.updateStepDescription(jobId, docId)
+    jobId && jobsService.updateStepDescription(jobId, docId)
 
     const articleMetadata: IArticle = {
         ...body,
@@ -203,12 +205,12 @@ async function postArticle(req: any, res: Response) {
     }
     if (body.publicTimestamp) articleMetadata.publicTimestamp = timestamp
 
-    jobsService.nextStep(jobId)
+    jobId && jobsService.nextStep(jobId)
 
-    jobsService.updateTitle(jobId, `Article [${articleMetadata.title}, ${docId}] adding`)
+    jobId && jobsService.updateTitle(jobId, `Article [${articleMetadata.title}, ${docId}] adding`)
 
     const actionId = getDocumentId()
-    jobsService.updateStepDescription(jobId, actionId)
+    jobId && jobsService.updateStepDescription(jobId, actionId)
 
     const actionMetadata: IAction = {
         entity: 'articles',
@@ -224,7 +226,7 @@ async function postArticle(req: any, res: Response) {
         timestamp
     }
 
-    jobsService.nextStep(jobId)
+    jobId && jobsService.nextStep(jobId)
 
     // If action auto approve disabled for current admin
     if (
@@ -234,30 +236,30 @@ async function postArticle(req: any, res: Response) {
         actionMetadata.status = 'pending'
     }
 
-    if (actionMetadata.status === 'pending') {
+    if (jobId && actionMetadata.status === 'pending') {
         jobsService.updateTitle(
             jobId,
             `Requesting to ADD Article [${articleMetadata.title}, ${docId}]`
         )
         jobsService.updateStepDescription(jobId, 'Auto approve unavailable')
-    } else {
+    } else if (jobId) {
         jobsService.updateStepDescription(jobId, 'Auto approve available')
     }
 
-    jobsService.nextStep(jobId)
+    jobId && jobsService.nextStep(jobId)
 
     try {
         await actionsService.addAction(actionId, actionMetadata, file)
 
         if (actionMetadata.status === 'pending') {
-            jobsService.removeNextSteps(jobId)
-            jobsService.success(jobId)
+            jobId && jobsService.removeNextSteps(jobId)
+            jobId && jobsService.success(jobId)
             return res.json({
                 result: { actionId }
             })
         }
 
-        jobsService.nextStep(jobId)
+        jobId && jobsService.nextStep(jobId)
 
         try {
             var result = await articlesService.addArticle(docId, articleMetadata, file)
@@ -266,14 +268,15 @@ async function postArticle(req: any, res: Response) {
             throw e
         }
     } catch (e: any) {
-        jobsService.error(jobId)
+        jobId && jobsService.error(jobId)
         logger.error(e)
         return res.status(500).json({
             error: e.toString()
         })
     }
 
-    jobsService.success(jobId)
+    jobId && jobsService.success(jobId)
+
     return res.json({
         result
     })

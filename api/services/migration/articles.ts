@@ -1,11 +1,23 @@
 // Migration from MySQL to Firestore & Google Drive
 
 import filetype from 'magic-bytes.js'
-import { IRequestFile, IShortUser, MigrationOptions } from '../../utils/types'
+import {
+    IRequestFile,
+    IShortUser,
+    MigrationOptions,
+    MigrationResult,
+    PostArticleResult
+} from '../../utils/types'
 import { privateArticlesControllers } from '../../controllers/private/articles'
 import { isHtml } from '../../utils/is-html'
 import { convertDocxToHtml } from '../../utils/convert-docx-to-html'
-import { getConnection } from './connection'
+import { getPool } from './connection'
+import { getLogger } from '../../utils/logger'
+import { storeMigrationResult } from './result'
+import { jobsService } from '../jobs'
+import { articlesService } from '../articles'
+
+const logger = getLogger('services/migration/articles')
 
 const MIGRATION_PORTION_SIZE: number = parseInt(process.env.MIGRATION_PORTION_SIZE || '2')
 
@@ -27,13 +39,20 @@ type ArticleContent = {
 type GetArticlesResult = {
     articleBodies: IMigrationArticleBody[]
     articleFiles: { [id: string]: ArticleContent }
+    errors: IMigrationError[]
 }
-
-type PostArticleResult = { oldId: number; status: number; resBody: any }
 
 interface IMigrationArticleBody {
     title: string
     oldId: number
+}
+
+interface IMigrationError {
+    oldId: number
+    status: number
+    resBody: {
+        error: string
+    }
 }
 
 async function _getArticleFile(row: IArticleV2) {
@@ -95,41 +114,63 @@ async function _getArticleFile(row: IArticleV2) {
     return articleFile
 }
 
-function _getArticles({
-    skip,
-    limit,
-    minOldId,
-    oldIds
-}: MigrationOptions): Promise<GetArticlesResult> {
+function _getArticles({ limit, minOldId, oldIds }: MigrationOptions): Promise<GetArticlesResult> {
     const table = 'articles'
 
     const oldIdsClause = oldIds?.length ? oldIds.map((oldId) => `id = ${oldId}`).join(' OR ') : ''
-    const minOldIdClause = minOldId ? `id > ${minOldId}` : ''
-    const whereClause = minOldId || oldIds ? `WHERE ${minOldIdClause} ${oldIdsClause}` : ''
+    const minOldIdClause = minOldId ? `id >= ${minOldId}` : ''
+    const whereClause = minOldId || oldIds ? ` WHERE ${minOldIdClause} ${oldIdsClause}` : ''
 
-    const queryString = `SELECT * FROM ${table} ${whereClause} LIMIT ${limit} OFFSET ${skip}`
+    const queryStr = `SELECT * FROM ${table}${whereClause} LIMIT ${limit}`
 
     const articleBodies: IMigrationArticleBody[] = []
     const articleFiles: { [id: string]: ArticleContent } = {}
+    const errors: IMigrationError[] = []
 
-    return new Promise((resolve, reject) => {
-        getConnection().query(queryString, async (err, result: IArticleV2[]) => {
+    logger.info('Performing MySQL query: ' + queryStr)
+
+    // TODO: Refactor (replace callback-based MySQL library for promise-based)
+    return new Promise(async (resolve, reject) => {
+        getPool().query(queryStr, async (err, result: IArticleV2[]) => {
             if (err) {
                 return reject(new Error(err.message))
             }
 
-            for (const row of result) {
+            for (let i = 0; i < result.length; i++) {
+                const row = result[i]
+
+                const oldId = row.id
+
+                const error = await _checkOldIdUsage(oldId)
+                if (error) {
+                    errors.push(error)
+                    continue
+                }
+
                 articleBodies.push({
                     title: row.title,
-                    oldId: row.id
+                    oldId
                 })
 
                 articleFiles[row.id] = await _getArticleFile(row)
             }
 
-            resolve({ articleBodies, articleFiles })
+            resolve({ articleBodies, articleFiles, errors })
         })
     })
+}
+
+async function _checkOldIdUsage(oldId: number): Promise<IMigrationError | undefined> {
+    const dublicateOldIdArticleIds = await articlesService.checkOldIdUsage(oldId)
+    if (dublicateOldIdArticleIds.length) {
+        return {
+            oldId,
+            status: 400,
+            resBody: {
+                error: `"oldId" is used by articles [${dublicateOldIdArticleIds.join(', ')}]`
+            }
+        }
+    }
 }
 
 async function _postArticle(
@@ -191,31 +232,57 @@ async function _postArticle(
 }
 
 async function migrateArticles(user: IShortUser, options: MigrationOptions) {
-    const migrationResult: PostArticleResult[] = []
+    const migrationResult: MigrationResult = []
+
+    logger.info('Articles migration started')
+
+    const jobId = await jobsService.add(user.email, 'Articles migration', [{ title: 'Migration' }])
+
+    let lastOldIdProcessed: number | undefined
 
     try {
-        // Trying to get documents portionally by 10. In optimization order
-        for (let i = options.skip; i < options.skip + options.limit; i += MIGRATION_PORTION_SIZE) {
+        // Trying to get documents portionally. In optimization order
+        for (let i = 0; i < options.limit; i += MIGRATION_PORTION_SIZE) {
+            const left = options.limit - i
+            const limit = left < MIGRATION_PORTION_SIZE ? left : MIGRATION_PORTION_SIZE
+
             const portionOptions = {
-                limit: MIGRATION_PORTION_SIZE,
-                skip: i,
-                // TODO: Remove
+                limit,
+                minOldId: lastOldIdProcessed || options.minOldId,
+                // TODO: Investigate the behavior
                 oldIds: options.oldIds
             }
 
             const portionMigrationResult = await _migrateArticlesPortion(user, portionOptions)
             migrationResult.push(...portionMigrationResult)
+
+            const message = `Articles migrated: ${migrationResult.length}/${options.limit}`
+            logger.info(message)
+            jobsService.updateStepDescription(jobId, message)
+            const progressPercent = (i * 100) / options.limit
+            jobsService.updatePercent(jobId, progressPercent)
+
+            lastOldIdProcessed = portionMigrationResult[portionMigrationResult.length - 1].oldId
         }
+
+        storeMigrationResult(migrationResult)
+
+        const successMigrationsCount = migrationResult.filter((res) => res.status === 200).length
+        const newStepDescription = `Migrated ${successMigrationsCount}/${options.limit}`
+
+        jobsService.updateStepDescription(jobId, newStepDescription)
+        jobsService.success(jobId)
 
         return migrationResult
     } catch (e) {
+        jobsService.error(jobId)
         throw e
     }
 }
 
 async function _migrateArticlesPortion(user: IShortUser, options: MigrationOptions) {
     const promises: Promise<PostArticleResult>[] = []
-    const { articleBodies, articleFiles }: GetArticlesResult = await _getArticles(options)
+    const { articleBodies, articleFiles, errors }: GetArticlesResult = await _getArticles(options)
 
     for (const articleBody of articleBodies) {
         const articleFile = articleFiles[articleBody.oldId]
@@ -233,9 +300,9 @@ async function _migrateArticlesPortion(user: IShortUser, options: MigrationOptio
         ) as PromiseFulfilledResult<PostArticleResult>[]
     ).map(({ value }) => value)
 
-    const migrationResult: PostArticleResult[] = portionMigrationResult
+    portionMigrationResult.push(...errors)
 
-    return migrationResult
+    return portionMigrationResult
 }
 
 export const articlesMigrationService = {

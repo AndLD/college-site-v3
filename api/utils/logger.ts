@@ -6,7 +6,7 @@ log4js.configure({
     appenders: {
         file: {
             type: 'file',
-            filename: `logs/${moment(Date.now()).format('DD.MM.YYYY HH:mm:ss')}.log`
+            filename: `logs/${moment(Date.now()).format('DD.MM.YYYY_HH-mm-ss')}.log`
         },
         con: { type: 'console' }
     },

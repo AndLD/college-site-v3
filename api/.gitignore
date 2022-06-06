@@ -3,3 +3,4 @@ ts-built
 .env
 buffer/
 logs/
+results/

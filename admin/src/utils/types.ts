@@ -167,6 +167,7 @@ export interface IJob {
     currentStep: number
     status: JobStatus
     user: string
+    percent?: number
 }
 
 export type JobStatus = 'success' | 'normal' | 'exception' | 'active'

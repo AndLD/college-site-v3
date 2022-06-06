@@ -9,23 +9,14 @@ import { entities } from '../../utils/constants'
 const logger = getLogger('controller/private/migration')
 
 function _parseMigrationOptions(req: Request): MigrationOptions {
-    let { skip, limit, minOldId, oldIds } = req.query as {
-        skip?: string | number
+    let { limit, minOldId, oldIds } = req.query as {
         limit?: string | number
         minOldId?: string | number
         oldIds?: string | number[]
     }
 
-    if (!skip && !limit) {
+    if (!limit || !minOldId) {
         throw new Error('Bad value')
-    }
-
-    if (skip) {
-        skip = parseInt(skip as string)
-
-        if (isNaN(skip)) {
-            throw new Error('Bad value')
-        }
     }
 
     limit = parseInt(limit as string)
@@ -56,7 +47,7 @@ function _parseMigrationOptions(req: Request): MigrationOptions {
         }
     }
 
-    return { skip, limit, minOldId, oldIds } as MigrationOptions
+    return { limit, minOldId, oldIds } as MigrationOptions
 }
 
 async function postMigration(req: any, res: Response) {

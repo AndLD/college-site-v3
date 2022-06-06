@@ -66,8 +66,7 @@ export type ModelArgs = {
     order?: [string, string]
     action: ModelAction
     obj?: Any
-    triggers?: ControllerTrigger[]
-    noRecursion?: boolean
+    // triggers?: ControllerTrigger[]
 }
 export type Entity = IMenuBlock & IArticle & IUser & IAction & INews
 export type EntityName = 'menu' | 'articles' | 'news' | 'users' | 'actions' | 'app-settings'
@@ -174,6 +173,7 @@ export interface IJob {
     currentStep: number
     status: JobStatus
     user: string
+    percent?: number
 }
 
 export type JobStatus = 'success' | 'normal' | 'exception' | 'active'
@@ -187,9 +187,8 @@ export type JobStep = {
 export type JobUpdateBody = { currentStep?: number; status?: JobStatus }
 
 export type MigrationOptions = {
-    skip: number
     limit: number
-    minOldId?: number
+    minOldId: number
     oldIds?: number[]
 }
 
@@ -210,6 +209,11 @@ export interface IConnectionOptions {
     user: string | undefined
     password: string | undefined
     database: string | undefined
+    connectionLimit?: number
 }
 
 export type WhereOperator = 'OR' | 'AND'
+
+export type PostArticleResult = { oldId: number; status: number; resBody: any }
+
+export type MigrationResult = PostArticleResult[]
