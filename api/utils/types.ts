@@ -3,6 +3,7 @@
 import { NextFunction, Request, Response } from 'express'
 import { IArticle } from './interfaces/articles/articles'
 import { IMenuBlock } from './interfaces/menu/menu'
+import { INews } from './interfaces/news/news'
 import { IUser } from './interfaces/users/users'
 
 export type Any = { [key: string]: any }
@@ -27,8 +28,6 @@ export type Filter =
     | [string, 'in', string[]]
     | [string, '!=', string]
     | [FirebaseFirestore.FieldPath, '==', string]
-// TODO: Remove:
-// | [string, 'like', string]
 
 export type ArrayContainsFilter = [string, 'array-contains', string]
 export type UpdateSchema = [string, UpdateOperator, string | number][]
@@ -58,6 +57,8 @@ export type ModelArgs = {
     email?: string
     collection: string
     where?: Filter[]
+    // TODO: Remove
+    whereOperator?: WhereOperator
     docId?: string
     docIds?: string[]
     pagination?: Pagination
@@ -68,11 +69,11 @@ export type ModelArgs = {
     triggers?: ControllerTrigger[]
     noRecursion?: boolean
 }
-export type Entity = IMenuBlock & IArticle & IUser
+export type Entity = IMenuBlock & IArticle & IUser & IAction & INews
 export type EntityName = 'menu' | 'articles' | 'news' | 'users' | 'actions' | 'app-settings'
 export type ModelResult = {
     mainResult: { [key: string]: any } | null
-    _triggersResult?: any
+    // _triggersResult?: any
     _meta?: {
         pagination?: { [key in keyof Pagination | 'total']: any }
     }
@@ -202,3 +203,13 @@ export interface IShortUser {
     email: string
     status: UserStatus
 }
+
+export interface IConnectionOptions {
+    host: string | undefined
+    port: number | undefined
+    user: string | undefined
+    password: string | undefined
+    database: string | undefined
+}
+
+export type WhereOperator = 'OR' | 'AND'

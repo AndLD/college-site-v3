@@ -8,14 +8,14 @@ import {
     IAction,
     ModelResult,
     NewsFileData,
-    NewsAllowedFileExtension
+    NewsAllowedFileExtension,
+    WhereOperator
 } from '../utils/types'
 import { getLogger } from '../utils/logger'
 import { articlesService } from './articles'
 import { googleDriveService } from './google-drive'
 import { ArticleData, IArticle } from '../utils/interfaces/articles/articles'
 import { notificationService } from './notification'
-import { firebase } from '../configs/firebase-config'
 import { newsService } from './news'
 import { INews, NewsData } from '../utils/interfaces/news/news'
 
@@ -304,7 +304,9 @@ async function _updateActionMetadata(actionId: string, newStatus: ActionStatus, 
         throw new Error('Action status update failed with error: ' + modelError.msg)
     }
 
-    if (!modelResult?.mainResult?.id) {
+    const updatedActionId = modelResult?.mainResult?.id
+
+    if (!updatedActionId) {
         throw new Error(
             `Something went wrong. No ID in result of action [${actionId}] status update`
         )
@@ -345,7 +347,10 @@ async function getConflicts({
         | [string, '!=', string]
     )[]
 
-    const where: ActionConflictsWhereCondition = [['status', '==', 'pending']]
+    const where: ActionConflictsWhereCondition = [
+        ['status', '==', 'pending'],
+        ['action', '!=', 'add']
+    ]
 
     if (actionId) {
         const actionMetadata = await _getMetadataById(actionId)
@@ -356,10 +361,7 @@ async function getConflicts({
 
         const ids = actionMetadata.payloadIds
 
-        where.push(
-            [firebase.documentId.toString(), '!=', actionId],
-            ['payloadIds', 'array-contains-any', ids]
-        )
+        where.push(['id', '!=', actionId], ['payloadIds', 'array-contains-any', ids])
     } else if (articleId || newsId) {
         where.push(['payloadIds', 'array-contains', (articleId || newsId) as string])
     }

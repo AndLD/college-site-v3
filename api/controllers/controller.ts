@@ -1,3 +1,5 @@
+// TODO: Remove controller triggers & controller callbacks support
+
 import { Request, Response } from 'express'
 import { model } from '../model/model'
 import { appSettingsService } from '../services/app-settings'
@@ -8,15 +10,15 @@ import { tryCatch } from '../utils/decorators'
 import {
     Any,
     Controller,
-    ControllerTrigger,
+    // ControllerTrigger,
     HttpMethod,
     DefaultResult,
     LogicOperator,
     Filter,
     ModelResult,
-    ControllerCallbackCaller,
+    // ControllerCallbackCaller,
     Error,
-    CallControllerCallbacksResults,
+    // CallControllerCallbacksResults,
     Pagination,
     ArrayContainsFilter
 } from '../utils/types'
@@ -38,12 +40,11 @@ export const controller = tryCatch(async function (req: Request, res: Response) 
         select,
         order,
         obj,
-        // files,
         entity,
         email,
-        where,
-        controllerTriggers,
-        controllerCallbacks
+        where
+        // controllerTriggers,
+        // controllerCallbacks
     } = reqData as {
         method: HttpMethod
         id: string
@@ -53,12 +54,11 @@ export const controller = tryCatch(async function (req: Request, res: Response) 
         select?: string[]
         order?: [string, string]
         obj: Any
-        // files: MyFile[]
         entity: string
         email: string
         where: Filter[]
-        controllerTriggers: undefined | ControllerTrigger[]
-        controllerCallbacks: undefined | ControllerCallbackCaller[]
+        // controllerTriggers: undefined | ControllerTrigger[]
+        // controllerCallbacks: undefined | ControllerCallbackCaller[]
     }
 
     let replacedId: string | undefined
@@ -71,10 +71,6 @@ export const controller = tryCatch(async function (req: Request, res: Response) 
             ;[replacedId] = (await newsService.replaceOldIds([id])) as string[]
         }
     }
-
-    // const whereUserIsOwner: Filter = ['user', '==', email]
-    // const findByUserEmail: boolean = (method == 'GET' || method == 'PUT' || method == 'DELETE') && !id
-    // if (findByUserEmail) where.push(whereUserIsOwner)
 
     if (method == 'GET' && !id && singleResult)
         return res.json({
@@ -90,24 +86,24 @@ export const controller = tryCatch(async function (req: Request, res: Response) 
         obj,
         entity,
         email,
-        where,
-        controllerTriggers
+        where
+        // controllerTriggers
     })) as [ModelResult | null, Error | null]
     if (modelError)
         return res.status(modelError.code || 500).json({
             error: modelError.msg
         })
 
-    const [callbacksResults, callbackError]: CallControllerCallbacksResults = await callCallbacks(
-        controllerCallbacks,
-        modelResult as ModelResult
-    )
-    if (callbackError)
-        return res.status(callbackError.code || 500).json({
-            error: callbackError.msg
-        })
+    // const [callbacksResults, callbackError]: CallControllerCallbacksResults = await callCallbacks(
+    //     controllerCallbacks,
+    //     modelResult as ModelResult
+    // )
+    // if (callbackError)
+    //     return res.status(callbackError.code || 500).json({
+    //         error: callbackError.msg
+    //     })
 
-    if (modelResult?._triggersResult) delete modelResult._triggersResult
+    // if (modelResult?._triggersResult) delete modelResult._triggersResult
 
     let meta
     if (modelResult?._meta) {
@@ -117,8 +113,8 @@ export const controller = tryCatch(async function (req: Request, res: Response) 
 
     return res.json({
         result: modelResult?.mainResult,
-        meta,
-        additionalResults: callbacksResults?.length && callbacksResults
+        meta
+        // additionalResults: callbacksResults?.length && callbacksResults
     })
 } as Controller)
 
@@ -131,9 +127,9 @@ const controllerMethods = {
         select,
         order,
         entity,
-        where,
-        controllerTriggers
-    }: {
+        where
+    }: // controllerTriggers
+    {
         email: string
         id?: string
         ids?: string[]
@@ -142,7 +138,7 @@ const controllerMethods = {
         order?: [string, string]
         entity: string
         where?: Filter[]
-        controllerTriggers?: ControllerTrigger[]
+        // controllerTriggers?: ControllerTrigger[]
     }) =>
         await model({
             email,
@@ -153,26 +149,26 @@ const controllerMethods = {
             pagination,
             select,
             order,
-            action: 'get',
-            triggers: controllerTriggers
+            action: 'get'
+            // triggers: controllerTriggers
         }),
 
     POST: async ({
         obj,
         entity,
-        email,
-        controllerTriggers
-    }: {
+        email
+    }: // controllerTriggers
+    {
         obj: Any
         entity: string
         email: string
-        controllerTriggers?: ControllerTrigger[]
+        // controllerTriggers?: ControllerTrigger[]
     }) =>
         await model({
             collection: entity,
             action: 'add',
-            obj: { ...obj, timestamp: Date.now(), user: email },
-            triggers: controllerTriggers
+            obj: { ...obj, timestamp: Date.now(), user: email }
+            // triggers: controllerTriggers
         }),
 
     PUT: async ({
@@ -180,15 +176,15 @@ const controllerMethods = {
         id,
         obj,
         entity,
-        findByUserEmail,
-        controllerTriggers
-    }: {
+        findByUserEmail
+    }: // controllerTriggers
+    {
         email: string
         id?: string
         obj: Any
         entity: string
         findByUserEmail?: boolean
-        controllerTriggers?: ControllerTrigger[]
+        // controllerTriggers?: ControllerTrigger[]
     }) =>
         await model({
             email,
@@ -198,30 +194,30 @@ const controllerMethods = {
             obj: {
                 ...obj,
                 lastUpdateTimestamp: Date.now()
-            },
-            triggers: controllerTriggers
+            }
+            // triggers: controllerTriggers
         }),
 
     DELETE: async ({
         email,
         id,
         ids,
-        entity,
-        controllerTriggers
-    }: {
+        entity
+    }: // controllerTriggers
+    {
         email: string
         id: string
         ids: string[]
         entity: string
-        controllerTriggers?: ControllerTrigger[]
+        // controllerTriggers?: ControllerTrigger[]
     }) => {
         const [result, error] = await model({
             email,
             collection: entity,
             docId: id,
             docIds: ids,
-            action: 'delete',
-            triggers: controllerTriggers
+            action: 'delete'
+            // triggers: controllerTriggers
         })
         return error ? [null, error] : [result, null]
     }
@@ -274,20 +270,6 @@ const parseReq = (req: any) => {
 
     const obj: Any = req.body
 
-    // // TODO: Получить req.headers['content-type'] для сравнения в 260 строке этого файла
-    // // Тело запроса
-    // const obj: Any = req.headers['content-type']?.includes('multipart/form-data')
-    //     ? JSON.parse(req.body.json)
-    //     : req.body
-    // // TODO: ОСТАНОВКА ЗДЕСЬ: передавать переменную files в return, определять последовательность действий с googleDrive и передавать файлы в сервис googleDrive, после чего послать запрос на добавление документа в Firestore
-    // const files: MyFile[] = req.headers['content-type']?.includes('multipart/form-data')
-    //     ? req.files.map((file: MyFile) => ({
-    //           mimetype: file.mimetype,
-    //           body: file.buffer,
-    //           size: file.size
-    //       }))
-    //     : undefined
-
     // Получение "сущности", которая является названием коллекции в БД (entity)
     const entity: string = req.entity
     // Получение почты авторизованного пользователя
@@ -299,8 +281,8 @@ const parseReq = (req: any) => {
     // where - блок условий для поиска по базе
     const where = filters
 
-    const controllerTriggers = req.controllerTriggers
-    const controllerCallbacks = req.controllerCallbacks
+    // const controllerTriggers = req.controllerTriggers
+    // const controllerCallbacks = req.controllerCallbacks
 
     return [
         {
@@ -312,12 +294,11 @@ const parseReq = (req: any) => {
             select,
             order,
             obj,
-            // files,
             entity,
             email,
-            where,
-            controllerTriggers,
-            controllerCallbacks
+            where
+            // controllerTriggers,
+            // controllerCallbacks
         },
         null
     ]
@@ -390,21 +371,21 @@ function parseFilters({
 
 /* Обработка "влекущих действий" (controllerCallbacks) - действий, которые должны произойти после основного запроса
     Например, при проведении операции должна быть добавлена операция, а потом изменено состояния баланса учавствующих в ней кошельков */
-const callCallbacks = async (
-    callbacks: ControllerCallbackCaller[] | undefined,
-    modelResult: ModelResult
-) => {
-    if (!callbacks) return [null, null] as CallControllerCallbacksResults
+// const callCallbacks = async (
+//     callbacks: ControllerCallbackCaller[] | undefined,
+//     modelResult: ModelResult
+// ) => {
+//     if (!callbacks) return [null, null] as CallControllerCallbacksResults
 
-    const results: Any[] = []
+//     const results: Any[] = []
 
-    for (const callback of callbacks)
-        if (typeof callback == 'function') {
-            const [result, error] = await callback(modelResult)
-            if (error) return [null, error] as CallControllerCallbacksResults
+//     for (const callback of callbacks)
+//         if (typeof callback == 'function') {
+//             const [result, error] = await callback(modelResult)
+//             if (error) return [null, error] as CallControllerCallbacksResults
 
-            if (result) results.push(result)
-        }
+//             if (result) results.push(result)
+//         }
 
-    return [results, null] as CallControllerCallbacksResults
-}
+//     return [results, null] as CallControllerCallbacksResults
+// }

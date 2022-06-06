@@ -1,10 +1,13 @@
 import { Any } from '../utils/types'
-import { firebase } from '../configs/firebase-config'
+import { firebaseAuth } from '../configs/firebase-config'
 import { NextFunction, Response } from 'express'
 import { model } from '../model/model'
 import { IUser } from '../utils/interfaces/users/users'
 import { getAllCompatibleInputForString } from '../utils/keywords'
 import { notificationService } from '../services/notification'
+import { getLogger } from '../utils/logger'
+
+const logger = getLogger('middlewares/auth')
 
 export async function isAuthorized(req: any, res: Response, next: NextFunction) {
     if (!req.headers.authorization) return res.sendStatus(401)
@@ -12,7 +15,7 @@ export async function isAuthorized(req: any, res: Response, next: NextFunction) 
     const token: string = req.headers.authorization.split(' ')[1] as string
 
     try {
-        const decodeValue: Any = await firebase.admin.auth().verifyIdToken(token)
+        const decodeValue: Any = await firebaseAuth().verifyIdToken(token)
         if (!decodeValue) return res.sendStatus(401)
 
         req.user = decodeValue
@@ -64,6 +67,7 @@ export async function isAuthorized(req: any, res: Response, next: NextFunction) 
     } catch (e) {
         // TODO: Отражать на фронте сообщение о том, что сессия истекла
         // e.errorInfo.code == 'auth/id-token-expired'
+        logger.error(e)
         return res.sendStatus(401)
     }
 }

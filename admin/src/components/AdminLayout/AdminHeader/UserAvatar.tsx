@@ -1,18 +1,23 @@
 import { UserOutlined } from '@ant-design/icons'
 import { Avatar } from 'antd'
 import jwtDecode from 'jwt-decode'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { ITokenData } from '../../../utils/types'
 
 function UserAvatar() {
     const token = useSelector((state: any) => state.app.token)
     const [avatarLoaded, setAvatarLoaded] = useState(false)
+    const [src, setState] = useState<string>()
+
+    useEffect(() => {
+        getAvatarSrc()
+    }, [])
 
     function getAvatarSrc() {
         try {
             const src = (jwtDecode(token) as ITokenData).picture
-            return src
+            setState(src)
         } catch (e) {
             console.log(e)
         }
@@ -25,7 +30,7 @@ function UserAvatar() {
             icon={
                 <>
                     <img
-                        src={getAvatarSrc()}
+                        src={src}
                         onLoad={() => setAvatarLoaded(true)}
                         alt="Avatar"
                         style={{ display: avatarLoaded ? 'inline' : 'none' }}

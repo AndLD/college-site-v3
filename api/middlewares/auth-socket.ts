@@ -1,6 +1,6 @@
 import { Socket } from 'socket.io'
 import { ExtendedError } from 'socket.io/dist/namespace'
-import { firebase } from '../configs/firebase-config'
+import { firebaseAuth } from '../configs/firebase-config'
 import { model } from '../model/model'
 import { notificationService } from '../services/notification'
 import { getAllCompatibleInputForString } from '../utils/keywords'
@@ -21,8 +21,7 @@ export function isAuthorized(socket: MySocket, next: (err?: ExtendedError | unde
     const token: string = socket.handshake.headers.authorization?.split(' ')[1] as string
 
     try {
-        firebase.admin
-            .auth()
+        firebaseAuth()
             .verifyIdToken(token)
             .then((decodeValue: Any) => {
                 if (!decodeValue) {

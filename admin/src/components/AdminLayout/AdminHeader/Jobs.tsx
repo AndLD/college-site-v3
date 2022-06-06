@@ -1,8 +1,8 @@
 import { DeploymentUnitOutlined } from '@ant-design/icons'
 import { Badge, Checkbox, Empty, Popover, Skeleton, Tooltip } from 'antd'
-import { useEffect, useReducer, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { io, Socket } from 'socket.io-client'
+import { Socket } from 'socket.io-client'
 import { IJob } from '../../../utils/types'
 import JobsCollapse from './JobsCollapse'
 
@@ -51,7 +51,7 @@ function Jobs() {
         }
 
         if (Object.keys(jobs).length > 10) {
-            dropJobs('success')
+            dropJobs()
         }
     }, [jobs])
 
@@ -76,11 +76,14 @@ function Jobs() {
         })
     }
 
-    function dropJobs(status: 'success' | 'exception') {
+    function dropJobs(status?: 'success' | 'exception') {
         const filtered: { [id: string]: IJob } = {}
 
         for (const id in jobs) {
-            if (jobs[id].status !== status) {
+            if (
+                jobs[id].status !== status ||
+                (!status && (jobs[id].status === 'success' || jobs[id].status === 'exception'))
+            ) {
                 filtered[id] = jobs[id]
             }
         }

@@ -8,7 +8,7 @@ export default Router()
     // Users getting
     .get('/', hasAdminStatus, controller)
     // Authorized user getting
-    .get('/authorized', hasModeratorStatus, (req: any, res: Response) => {
+    .get('/authorized', (req: any, res: Response) => {
         const user = req.user._doc
 
         return res.json({ result: user })

@@ -7,7 +7,7 @@ import { isHtml } from '../../utils/is-html'
 import { convertDocxToHtml } from '../../utils/convert-docx-to-html'
 import { getConnection } from './connection'
 
-const MIGRATION_PORTION_SIZE: number = 5
+const MIGRATION_PORTION_SIZE: number = parseInt(process.env.MIGRATION_PORTION_SIZE || '2')
 
 interface IArticleV2 {
     id: number
@@ -103,7 +103,7 @@ function _getArticles({
 }: MigrationOptions): Promise<GetArticlesResult> {
     const table = 'articles'
 
-    const oldIdsClause = oldIds?.length ? oldIds.map((oldId) => `id == ${oldId}`).join(' OR ') : ''
+    const oldIdsClause = oldIds?.length ? oldIds.map((oldId) => `id = ${oldId}`).join(' OR ') : ''
     const minOldIdClause = minOldId ? `id > ${minOldId}` : ''
     const whereClause = minOldId || oldIds ? `WHERE ${minOldIdClause} ${oldIdsClause}` : ''
 
@@ -198,7 +198,9 @@ async function migrateArticles(user: IShortUser, options: MigrationOptions) {
         for (let i = options.skip; i < options.skip + options.limit; i += MIGRATION_PORTION_SIZE) {
             const portionOptions = {
                 limit: MIGRATION_PORTION_SIZE,
-                skip: i
+                skip: i,
+                // TODO: Remove
+                oldIds: options.oldIds
             }
 
             const portionMigrationResult = await _migrateArticlesPortion(user, portionOptions)

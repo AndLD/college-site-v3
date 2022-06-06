@@ -1,6 +1,5 @@
 import { Response } from 'express'
 import JSZip from 'jszip'
-import { firebase } from '../../configs/firebase-config'
 import { actionsService } from '../../services/actions'
 import { appSettingsService } from '../../services/app-settings'
 import { articlesService } from '../../services/articles'
@@ -30,6 +29,7 @@ import {
 import fs from 'fs'
 import { v4 as uuidv4 } from 'uuid'
 import { tryCatch } from '../../utils/decorators'
+import { getDocumentId } from '../../model/model'
 
 const logger = getLogger('controller/private/articles')
 
@@ -192,7 +192,7 @@ async function postArticle(req: any, res: Response) {
         data.html = true
     }
 
-    const docId = firebase.db.collection('articles').doc().id
+    const docId = getDocumentId()
     jobsService.updateStepDescription(jobId, docId)
 
     const articleMetadata: IArticle = {
@@ -207,7 +207,7 @@ async function postArticle(req: any, res: Response) {
 
     jobsService.updateTitle(jobId, `Article [${articleMetadata.title}, ${docId}] adding`)
 
-    const actionId = firebase.db.collection('actions').doc().id
+    const actionId = getDocumentId()
     jobsService.updateStepDescription(jobId, actionId)
 
     const actionMetadata: IAction = {
@@ -333,7 +333,7 @@ async function putArticle(req: any, res: Response) {
         articleMetadataUpdate.data = data
     }
 
-    const actionId = firebase.db.collection('actions').doc().id
+    const actionId = getDocumentId()
 
     const actionMetadata: IAction = {
         entity: 'articles',
@@ -398,7 +398,7 @@ async function deleteArticle(req: any, res: Response) {
         return res.sendStatus(404)
     }
 
-    const actionId = firebase.db.collection('actions').doc().id
+    const actionId = getDocumentId()
 
     const keywords = [...getAllCompatibleInputForString(actionId)]
     for (const id of ids) {

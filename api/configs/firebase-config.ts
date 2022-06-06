@@ -4,6 +4,12 @@ import { ServiceAccount } from '../utils/types'
 
 const logger = getLogger('configs/firebase-config')
 
+var firebaseData: {
+    admin: {
+        auth: (app?: admin.app.App | undefined) => admin.auth.Auth
+    }
+}
+
 try {
     if (process.env.CLIENT_EMAIL && process.env.PRIVATE_KEY && process.env.PROJECT_ID) {
         admin.initializeApp({
@@ -14,23 +20,15 @@ try {
             } as ServiceAccount)
         })
 
-        logger.info('Firestore successfully connected.')
+        logger.info('Firebase successfully connected.')
     } else throw new Error('Firebase configs not found in ".env"!')
 
-    var firebaseData: {
-        admin: {
-            auth: (app?: admin.app.App | undefined) => admin.auth.Auth
-        }
-        db: FirebaseFirestore.Firestore
-        documentId: FirebaseFirestore.FieldPath
-    } = {
-        admin,
-        db: admin.firestore(),
-        documentId: admin.firestore.FieldPath.documentId()
+    firebaseData = {
+        admin
     }
 } catch (e) {
     logger.error('Firestore connection failure: ', e)
     process.exit(1)
 }
 
-export const firebase = firebaseData
+export const firebaseAuth = firebaseData.admin.auth

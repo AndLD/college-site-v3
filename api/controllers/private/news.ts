@@ -17,11 +17,11 @@ import { v4 as uuidv4 } from 'uuid'
 import { getLogger } from '../../utils/logger'
 import { INews, INewsPost, INewsPut, INewsUpdate, NewsData } from '../../utils/interfaces/news/news'
 import { newsAllowedFileTypes } from '../../utils/constants'
-import { firebase } from '../../configs/firebase-config'
 import { getAllCompatibleInputForString } from '../../utils/keywords'
 import { appSettingsService } from '../../services/app-settings'
 import { actionsService } from '../../services/actions'
 import { tryCatch } from '../../utils/decorators'
+import { getDocumentId } from '../../model/model'
 
 const logger = getLogger('controller/private/news')
 
@@ -179,8 +179,8 @@ async function postNews(req: any, res: Response) {
     }
     if (body.publicTimestamp) newsMetadata.publicTimestamp = timestamp
 
-    const docId = firebase.db.collection('news').doc().id
-    const actionId = firebase.db.collection('actions').doc().id
+    const docId = getDocumentId()
+    const actionId = getDocumentId()
 
     const actionMetadata: IAction = {
         entity: 'news',
@@ -286,7 +286,7 @@ async function putNews(req: any, res: Response) {
         newsMetadataUpdate.data = data
     }
 
-    const actionId = firebase.db.collection('actions').doc().id
+    const actionId = getDocumentId()
 
     const actionMetadata: IAction = {
         entity: 'news',
@@ -359,7 +359,7 @@ async function deleteNews(req: any, res: Response) {
         return res.sendStatus(404)
     }
 
-    const actionId = firebase.db.collection('actions').doc().id
+    const actionId = getDocumentId()
 
     const keywords = [...getAllCompatibleInputForString(actionId)]
     for (const id of ids) {

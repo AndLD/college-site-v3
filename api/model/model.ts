@@ -1,134 +1,185 @@
-import { firebase } from '../configs/firebase-config'
+import { Client, Pool, QueryResult } from 'pg'
+import { generate as generateDocumentId } from 'rand-token'
+import escape from 'pg-escape'
+import { getLogger } from '../utils/logger'
 import {
     Any,
-    ControllerTrigger,
-    ControllerTriggerArgs,
     DefaultResult,
+    Entity,
     Filter,
+    IConnectionOptions,
     ModelAction,
     ModelArgs,
     ModelResult,
-    Pagination
+    Pagination,
+    WhereOperator
 } from '../utils/types'
 
-const { db, documentId } = firebase
+const logger = getLogger('model/postgres')
 
-if (!db || !documentId) {
-    throw '"db" or "documentId" variables are undefined'
+interface IRow {
+    id: string
+    metadata: any
 }
 
-// TODO: Refactor & Optimization: Separate "model" function into small functions. Use TRANSACTIONS, BATCH and BULK requests
-export const model = async ({
-    email,
-    collection,
-    where,
-    docId,
-    docIds,
-    pagination,
-    select,
-    order,
-    action,
-    obj,
-    triggers /*, noRecursion*/
-}: ModelArgs) => {
-    validateModelArgs({ where, docId, action })
-    let mainResult, triggersResult, error
-    let total = 0
+const port: string | undefined = process.env.POSTGRES_PORT
+const connectionOptions: IConnectionOptions = {
+    host: process.env.POSTGRES_HOST,
+    port: port?.length && parseInt(port),
+    user: process.env.POSTGRES_USER,
+    password: process.env.POSTGRES_PASSWORD,
+    database: process.env.POSTGRES_DB
+}
 
-    // Perform triggers
-    if (triggers) {
-        ;[triggersResult, error] = await callTriggers(triggers, {
-            email,
-            docId,
-            obj
-        } as ControllerTriggerArgs)
-        if (error) return [null, error] as DefaultResult
+let pool: Pool | null = null
+
+function _validateConnectionOptions(connectionOptions: IConnectionOptions) {
+    const isAllOptionsFound =
+        connectionOptions.host &&
+        connectionOptions.port &&
+        connectionOptions.user &&
+        connectionOptions.password &&
+        connectionOptions.database
+
+    if (!isAllOptionsFound) {
+        return false
     }
 
-    // // Если GET, не указан ID, рекурсия позволена
-    // if (!docId && action == 'get' && !noRecursion) {
-    //     ;[result, error] = await module.exports.model({ collection, where, action, noRecursion: true })
-    //     if (error) return [null, error] as DefaultResult
-    // }
+    return true
+}
 
-    // // Если GET || PUT || DELETE, указан email, указан ID
-    // // При получении, изменении, удалении объекта по id необходимо проверить, есть у юзера доступ к данному объекту
-    // if (/*email && */ docId && (action == 'get' || action == 'update' || action == 'delete')) {
-    //     ;[result, error] = await module.exports.model({ collection, docId, action: 'get' })
-    //     if (error) return [null, error] as DefaultResult
-    //     if (result) {
-    //         // Проверка, есть ли у юзера доступ к объекту
-    //         // if (!(await isUserHasAccess(result, email))) return [null, errors.USER_HAS_NO_RIGHTS] as DefaultResult
-    //     } else return [null, errors.DOC_NOT_FOUND] as DefaultResult
-    // }
+async function _getClient() {
+    if (!_validateConnectionOptions(connectionOptions)) {
+        throw new Error('Invalid Postgres connection options')
+    }
+
+    const client = new Client(connectionOptions)
+
+    await client.connect()
+
+    return client
+}
+
+function _query(queryStr: string): Promise<QueryResult<any>> {
+    return new Promise(async (resolve, reject) => {
+        const client = await _getClient()
+
+        client.on('end', () => {
+            resolve(result)
+        })
+
+        client.on('error', (err) => {
+            reject(err)
+        })
+
+        const result = await client.query(queryStr)
+
+        client.end()
+    })
+}
+
+// async function _getPool() {
+//     if (!_validateConnectionOptions(connectionOptions)) {
+//         throw new Error('Invalid Postgres connection options')
+//     }
+
+//     if (!pool) {
+//         pool = new Pool(connectionOptions)
+//     }
+
+//     if (!pool.connect()) {}
+
+//     return pool
+// }
+
+// function _query(queryStr: string): Promise<QueryResult<any>> {
+//     return new Promise(async (resolve, reject) => {
+//         const client = await _getClient()
+
+//         client.on('end', () => {
+//             resolve(result)
+//         })
+
+//         client.on('error', (err) => {
+//             reject(err)
+//         })
+
+//         const result = await client.query(queryStr)
+
+//         client.end()
+//     })
+// }
+
+export async function model(params: ModelArgs) {
+    const {
+        collection,
+        where,
+        whereOperator,
+        docId,
+        docIds,
+        pagination,
+        select,
+        order,
+        action,
+        obj
+    } = params
+
+    _validateModelArgs({ where, docId, action })
+
+    let mainResult, error
+    let total = 0
 
     if (action === 'delete' && docIds) {
-        ;[mainResult, error] = await makeBatchedDeletes({ collection, docIds, action })
+        ;[mainResult, error] = await _makeBatchedDeletes({ collection, docIds, action })
 
-        if (error) return [null, error] as DefaultResult
+        if (error) {
+            return [null, error] as DefaultResult
+        }
     } else {
-        const { queryRef, metaQuertRef } = _prepareQueryRef({
+        const { queryStr, metaQueryStr } = _prepareQuery({
             collection,
             where,
+            whereOperator,
             docId,
             docIds,
             pagination,
             select,
             order,
-            action
+            action,
+            obj
         })
 
-        // Making request
-        const firebaseRes = await queryRef[docId && action == 'add' ? 'set' : action](obj)
+        logger.info('Performing Postgres query:', queryStr)
 
-        ;[mainResult, error] = await processFirebaseRes(
-            firebaseRes,
-            collection,
-            docId,
-            action,
-            mainResult
-        )
+        // TODO: Handle error
+        const postgresRes = await _query(queryStr)
+
+        ;[mainResult, error] = await _processPostgresRes({ postgresRes, docId, action })
 
         if (error) return [null, error] as DefaultResult
 
-        if (metaQuertRef) {
+        if (metaQueryStr) {
             try {
-                total = (await metaQuertRef.get()).size
+                logger.info('Performing Postgres query (metaQueryStr):', metaQueryStr)
+                total = parseInt((await _query(metaQueryStr)).rows[0].count)
             } catch (e) {
-                throw 'Error getting total docs count!'
+                throw new Error('Error getting total docs count!')
             }
         }
     }
 
-    let result: ModelResult =
-        action == 'add' || action == 'update' ? { ...mainResult } : { mainResult }
+    const result: ModelResult = { mainResult }
 
-    if (triggersResult && Object.keys(triggersResult as Any).length)
-        result._triggersResult = triggersResult
-
-    if (pagination)
+    if (pagination) {
         result._meta = {
-            ...result._meta,
-            // TODO: в pagination.total нужно задавать количество не всех документов коллекции, а тех, которые соответствуют фильтрам и сортировке
             pagination: { ...pagination, total: total || (await getCollectionLength(collection)) }
         }
+    }
     return [result, null] as DefaultResult
 }
 
-const callTriggers = async (triggers: ControllerTrigger[], args: ControllerTriggerArgs) => {
-    const results = {}
-
-    for (const trigger of triggers) {
-        const [result, error] = await trigger(args)
-        if (error) return [null, error]
-        Object.assign(results, result)
-    }
-
-    return [results, null]
-}
-
 // TODO: Validate all "model" function parameters
-const validateModelArgs = ({
+function _validateModelArgs({
     where,
     docId,
     action
@@ -136,79 +187,14 @@ const validateModelArgs = ({
     where?: Filter[]
     docId?: string
     action: ModelAction
-}) => {
+}) {
     if (['add', 'update', 'delete'].includes(action) && where)
         throw 'validateModelArgs: Incorrect mix: action & where'
     if (action == 'update' && !docId)
         throw `validateModelArgs: Missing docId or docIds during "${action}" action`
 }
 
-const _prepareQueryRef = ({
-    collection,
-    where,
-    docId,
-    docIds,
-    pagination,
-    select,
-    order,
-    action
-}: {
-    collection: string
-    where?: Filter[]
-    docId?: string
-    docIds?: string[]
-    pagination?: Pagination
-    select?: string[]
-    order?: [string, string]
-    action: ModelAction
-}) => {
-    let queryRef: any = db.collection(collection)
-    let metaQuertRef: any
-
-    // PUT & DELETE
-    if (action == 'update' || action == 'delete' || (action == 'add' && docId)) {
-        queryRef = queryRef.doc(docId)
-    } else if (action == 'get' && docId) {
-        queryRef = queryRef.where(documentId, '==', docId)
-    } else if (action == 'get' && docIds) {
-        queryRef = queryRef.where(documentId, 'in', docIds)
-    }
-
-    // GET
-    if (where && action == 'get') {
-        for (const whereArgs of where) {
-            queryRef = queryRef.where(...whereArgs)
-        }
-    }
-
-    if (action == 'get' && pagination) {
-        // TODO: Уязвимость: первым элементом массива order может быть любая строка, необходимо валидировать на соответствие полям получаемой сущности
-        if (order && (order[1] === 'desc' || order[1] === 'asc')) {
-            queryRef = queryRef.orderBy(...order)
-        } else {
-            // TODO: При использовании оператора фильтра 'like' необходимо выполнять сортировку только по ключу, к которому относится 'like'
-            queryRef = queryRef.orderBy('timestamp')
-        }
-        metaQuertRef = queryRef.select()
-
-        queryRef = queryRef
-            .offset((pagination.page - 1) * pagination.results)
-            .limit(pagination.results)
-    }
-
-    if (action == 'get' && select) {
-        queryRef = queryRef.select(...select)
-    }
-
-    return {
-        queryRef,
-        metaQuertRef
-    }
-}
-
-// TODO: Refactor
-// For multiple deletion only
-const makeBatchedDeletes = ({
+async function _makeBatchedDeletes({
     collection,
     docIds,
     action
@@ -216,8 +202,8 @@ const makeBatchedDeletes = ({
     collection: string
     docIds: string[]
     action: ModelAction
-}) => {
-    if (action !== 'delete') {
+}) {
+    if (action != 'delete') {
         return [
             null,
             {
@@ -227,90 +213,336 @@ const makeBatchedDeletes = ({
         ]
     }
 
-    const batch = db.batch()
-
-    for (const id of docIds) {
-        batch[action](db.collection(collection).doc(id))
+    if (!docIds?.length) {
+        return [
+            null,
+            {
+                msg: 'Incorrect docIds: docIds should be specified for makeBatchedDeletes function',
+                code: 500
+            }
+        ]
     }
 
-    // TODO: Add "await" before batch.commit()
-    return [batch.commit(), null]
+    try {
+        await _query(
+            `DELETE FROM ${collection} WHERE id IN (${docIds
+                .map((docId) => `'${docId}'`)
+                .join(',')})`
+        )
+
+        return [null, null]
+    } catch (e) {
+        logger.error('Error trying to perform makeBatchedDeletes query: ' + e)
+        return [null, e]
+    }
 }
 
-// Count documents of a collection
-export const getCollectionLength = async (collection: string) => {
-    return (await db.collection(collection).select().get()).size
+function _prepareQuery({
+    collection,
+    where,
+    whereOperator,
+    docId,
+    docIds,
+    pagination,
+    select,
+    order,
+    action,
+    obj
+}: {
+    collection: string
+    where?: Filter[]
+    whereOperator?: WhereOperator
+    docId?: string
+    docIds?: string[]
+    pagination?: Pagination
+    select?: string[]
+    order?: [string, string]
+    action: ModelAction
+    obj?: Any
+}): {
+    queryStr: string
+    metaQueryStr?: string
+} {
+    // TODO: Handle error
+    const sanitizedWhereClauses = _getSanitizedWhereClauses({
+        action,
+        where,
+        whereOperator,
+        docId,
+        docIds
+    })
+
+    let offset: number | undefined
+    let limit: number | undefined
+    let orderBy: string | undefined
+
+    let metaQueryStr: string | undefined
+
+    if (action === 'get' && pagination) {
+        offset = (pagination.page - 1) * pagination.results
+        limit = pagination.results
+
+        if (order && (order[1] === 'desc' || order[1] === 'asc')) {
+            orderBy = [`metadata->'${order[0]}'`, order[1].toUpperCase()].join(' ')
+        } else {
+            orderBy = `metadata->'timestamp'`
+        }
+
+        const wherePiece = sanitizedWhereClauses ? ` WHERE ${sanitizedWhereClauses}` : ''
+
+        metaQueryStr = `SELECT COUNT(*) FROM ${collection}${wherePiece}`
+    }
+
+    let preparedSelect: string | undefined
+
+    if (action === 'get' && select) {
+        // TODO: Refactor (make easier)
+        preparedSelect = select
+            .map((field) => {
+                if (field === 'id') {
+                    return field
+                } else {
+                    return `metadata->'${field}' AS ${field}`
+                }
+            })
+            .join(', ')
+    }
+
+    const queryStr = _prepareQueryStr({
+        collection,
+        action,
+        docId,
+        preparedSelect,
+        sanitizedWhereClauses,
+        offset,
+        limit,
+        orderBy,
+        obj
+    })
+
+    return { queryStr, metaQueryStr }
 }
 
-// Processing firebase response for different types of actions
-const processFirebaseRes = async (
-    firebaseRes: Any,
-    collection: string,
-    docId: string | undefined,
-    action: ModelAction,
-    result: any
-) => {
-    let error
+function _getSanitizedWhereClauses({
+    action,
+    where,
+    whereOperator,
+    docId,
+    docIds
+}: {
+    action: ModelAction
+    where?: Filter[]
+    whereOperator?: WhereOperator
+    docId?: string
+    docIds?: string[]
+}) {
+    const whereClauses: Filter[] = []
+    let sanitizedWhereClauses: string | undefined
 
-    if (!result) result = []
+    if ((action === 'update' || action === 'delete' || action === 'get') && docId) {
+        whereClauses.push(['id', '==', docId])
+    } else if (action === 'get' && docIds) {
+        whereClauses.push(['id', 'in', docIds])
+    }
+    if (action === 'get' && where) {
+        whereClauses.push(...where)
+    }
+    if (whereClauses.length) {
+        sanitizedWhereClauses = _prepareWhereClauses(whereClauses, whereOperator)
+    }
+
+    return sanitizedWhereClauses
+}
+
+function _prepareQueryStr({
+    collection,
+    action,
+    docId,
+    preparedSelect,
+    sanitizedWhereClauses,
+    offset,
+    limit,
+    orderBy,
+    obj
+}: {
+    collection: string
+    action: ModelAction
+    docId?: string
+    preparedSelect?: string
+    sanitizedWhereClauses?: string
+    offset?: number
+    limit?: number
+    orderBy?: string
+    obj?: Any
+}) {
+    let queryStr: string = ''
+
+    const wherePiece = sanitizedWhereClauses ? ` WHERE ${sanitizedWhereClauses}` : ''
+
+    if (action === 'get') {
+        const selectPiece = preparedSelect || '*'
+
+        const orderByPiece = orderBy ? ` ORDER BY ${orderBy}` : ''
+        const limitOffsetPiece = offset && limit ? ` LIMIT ${limit} OFFSET ${offset}` : ''
+
+        queryStr = `SELECT ${selectPiece} FROM ${collection}${wherePiece}${orderByPiece}${limitOffsetPiece}`
+    } else if (action === 'add') {
+        if (!docId) {
+            docId = getDocumentId()
+        }
+
+        queryStr = escape(`INSERT INTO ${collection}(id, metadata) VALUES ($I, %L) RETURNING *`, [
+            docId,
+            JSON.stringify(obj)
+        ])
+    } else if (action === 'update') {
+        if (!(obj && Object.keys(obj).length)) {
+            throw new Error('"obj" is empty. Unable to perform update query')
+        }
+
+        const setPiece = `SET ${Object.keys(obj).map((field) => {
+            const value = JSON.stringify(obj[field])
+            return `metadata['${field}'] = '${value}'`
+        })}`
+
+        queryStr = `UPDATE ${collection} ${setPiece}${wherePiece} RETURNING *`
+    } else if (action === 'delete') {
+        queryStr = `DELETE FROM ${collection} WHERE id = '${docId}'`
+    }
+
+    return queryStr
+}
+
+function _prepareWhereClauses(whereClauses: Filter[], whereOperator?: WhereOperator): string {
+    const sanitized: string[] = []
+
+    for (const whereClause of whereClauses) {
+        sanitized.push(_prepareWhereClause(whereClause))
+    }
+
+    const operator = whereOperator || 'AND'
+
+    return sanitized.join(` ${operator} `)
+}
+
+function _prepareWhereClause(whereClause: Filter): string {
+    let [field, operator, value]: any = whereClause
+
+    let isFieldArray: boolean | undefined
+    let isTimestamp: boolean | undefined
+
+    if (field != 'id') {
+        isFieldArray = ['payloadIds', 'keywords'].includes(field)
+        isTimestamp = field.toLowerCase && field.toLowerCase().includes('timestamp')
+
+        if (isFieldArray) {
+            field = `metadata::jsonb->>'${field}'`
+        } else if (isTimestamp) {
+            field = `(metadata::jsonb->>'${field}'::text)::bigint`
+        } else {
+            field = `metadata::jsonb->>'${field}'::text`
+        }
+    }
+
+    if (typeof operator === 'number') {
+        throw new Error(`Numeric filter operator not supported`)
+    }
+
+    switch (operator) {
+        case '==':
+            operator = '='
+            break
+        case 'in':
+            operator = 'IN'
+            break
+        case 'array-contains':
+            operator = 'LIKE'
+            break
+        case 'array-contains-any':
+            throw new Error(`Filter operator "${operator}" not supported`)
+    }
+
+    if (Array.isArray(value)) {
+        value = value.map((v) => `'${v}'`).join(', ')
+        return `${field} ${operator} (${value})`
+    } else {
+        // TODO: Support integer arrays
+        if (isFieldArray) {
+            value = `'%"${value}"%'::text`
+        } else if (isTimestamp) {
+            value = `${value}::bigint`
+        } else {
+            value = `'${value}'::text`
+        }
+        return `${field} ${operator} ${value}`
+    }
+}
+
+// TODO: Handle errors
+async function _processPostgresRes({
+    postgresRes,
+    docId,
+    action
+}: {
+    postgresRes: Any
+    docId: string | undefined
+    action: ModelAction
+}) {
+    let result = null
 
     switch (action) {
         case 'get':
-            firebaseRes.forEach((doc: Any) => {
-                if (docId)
-                    result = {
-                        id: doc.id,
-                        ...doc.data()
-                    }
-                else
-                    result.push({
-                        id: doc.id,
-                        ...doc.data()
-                    })
-            })
+            if (docId) {
+                const row = postgresRes.rows[0]
+                if (row) {
+                    result = _factoryRowToEntity(row)
+                }
+            } else {
+                const rows = postgresRes.rows
+                result = rows.map(_factoryRowToEntity)
+            }
             break
         case 'add':
-            if (!docId) {
-                result = firebaseRes.path.split('/')
-                var id = result[result.length - 1]
-            }
-            ;[result, error] = await module.exports.model({
-                collection,
-                docId: docId || id,
-                action: 'get'
-            })
-            if (error) return [null, error]
+            result = _factoryRowToEntity(postgresRes.rows[0])
             break
         case 'update':
-            ;[result, error] = await module.exports.model({ collection, docId, action: 'get' })
-            if (error) return [null, error]
-            break
-        case 'delete':
+            result = _factoryRowToEntity(postgresRes.rows[0])
             break
     }
 
     return [Array.isArray(result) ? (result.length > 0 ? result : null) : result, null]
 }
 
-// TODO: Remove
-// Is user document owner
-// const isUserOwner = (doc: Any, email: string) => doc.user == email
+// TODO: Move to utils
+function _factoryRowToEntity(row: IRow): Entity {
+    if (row.metadata) {
+        return { id: row.id, ...row.metadata }
+    } else {
+        if ((row as any).lastupdatetimestamp) {
+            ;(row as any).lastUpdateTimestamp = (row as any).lastupdatetimestamp
+            delete (row as any).lastupdatetimestamp
+        }
 
-// TODO: Remove
-// "Есть ли у пользователя доступ": функция принимает первым аргументом документ / id документа, а вторым - email пользователя. Функция определяет есть ли у пользователя с email полномочия взаимодействовать с документом
-// const isUserHasAccess = async (data: string | Any, email: string, entity?: string) => {
-//     if (typeof data == 'string')
-//         data = await module.exports.model({ collection: entity, docId: data, action: 'get' })
-//     if (typeof data == 'object') {
-//         if (isUserOwner(data, email)) return [true, null]
-//         else {
-//             const [result, error] = await module.exports.model({
-//                 collection: 'users',
-//                 where: [['email', '==', data.user]],
-//                 action: 'get'
-//             })
-//             if (error) return [null, error]
-//             return [result[0].friends.includes(email), null]
-//         }
-//     } else throw 'isUserHasAccess: Incorrect "doc"'
-// }
+        return row as any
+    }
+}
+
+export async function getCollectionLength(collection: string) {
+    return (await _query(`SELECT COUNT(*) FROM ${collection}`)).rows[0].count
+}
+
+export function getDocumentId() {
+    return generateDocumentId(20)
+}
+
+export async function ping() {
+    try {
+        const client = await _getClient()
+
+        logger.info('Postgres connected successfully')
+
+        await client.end()
+    } catch (e) {
+        logger.error('Unable to ping Postgres:', e)
+    }
+}
