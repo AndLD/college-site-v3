@@ -1,7 +1,8 @@
-// Migration from MySQL to Firestore & Google Drive
+// Migration from MySQL to Postgres & Google Drive
 
 import filetype from 'magic-bytes.js'
 import {
+    IMigrationError,
     IRequestFile,
     IShortUser,
     MigrationOptions,
@@ -19,7 +20,7 @@ import { articlesService } from '../articles'
 
 const logger = getLogger('services/migration/articles')
 
-const MIGRATION_PORTION_SIZE: number = parseInt(process.env.MIGRATION_PORTION_SIZE || '2')
+const MIGRATION_PORTION_SIZE: number = parseInt(process.env.MIGRATION_PORTION_SIZE || '20')
 
 const table = 'articles'
 
@@ -46,14 +47,6 @@ type GetArticlesResult = {
 interface IMigrationArticleBody {
     title: string
     oldId: number
-}
-
-interface IMigrationError {
-    oldId: number
-    status: number
-    resBody: {
-        error: string
-    }
 }
 
 async function _getArticleFile(row: IArticleV2) {

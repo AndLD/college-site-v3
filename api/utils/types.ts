@@ -217,3 +217,11 @@ export type WhereOperator = 'OR' | 'AND'
 export type PostArticleResult = { oldId: number; status: number; resBody: any }
 
 export type MigrationResult = PostArticleResult[]
+
+export interface IMigrationError {
+    oldId: number
+    status: number
+    resBody: {
+        error: string
+    }
+}

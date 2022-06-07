@@ -398,7 +398,7 @@ function _prepareWhereClause(whereClause: Filter): string {
     let isTimestamp: boolean | undefined
 
     if (field != 'id') {
-        isFieldArray = ['payloadIds', 'keywords'].includes(field)
+        isFieldArray = ['payloadIds', 'keywords', 'tags'].includes(field)
         isTimestamp = field.toLowerCase && field.toLowerCase().includes('timestamp')
 
         if (isFieldArray) {
