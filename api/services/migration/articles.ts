@@ -21,6 +21,8 @@ const logger = getLogger('services/migration/articles')
 
 const MIGRATION_PORTION_SIZE: number = parseInt(process.env.MIGRATION_PORTION_SIZE || '2')
 
+const table = 'articles'
+
 interface IArticleV2 {
     id: number
     title: string
@@ -39,7 +41,6 @@ type ArticleContent = {
 type GetArticlesResult = {
     articleBodies: IMigrationArticleBody[]
     articleFiles: { [id: string]: ArticleContent }
-    errors: IMigrationError[]
 }
 
 interface IMigrationArticleBody {
@@ -114,26 +115,26 @@ async function _getArticleFile(row: IArticleV2) {
     return articleFile
 }
 
-function _getArticles({ limit, minOldId, oldIds }: MigrationOptions): Promise<GetArticlesResult> {
-    const table = 'articles'
-
+function _getArticleOldIds({
+    limit,
+    minOldId,
+    oldIds
+}: MigrationOptions): Promise<{ oldIds: number[]; errors: IMigrationError[] }> {
     const oldIdsClause = oldIds?.length ? oldIds.map((oldId) => `id = ${oldId}`).join(' OR ') : ''
     const minOldIdClause = minOldId ? `id >= ${minOldId}` : ''
     const whereClause = minOldId || oldIds ? ` WHERE ${minOldIdClause} ${oldIdsClause}` : ''
 
-    const queryStr = `SELECT * FROM ${table}${whereClause} LIMIT ${limit}`
+    const queryStr = `SELECT id FROM ${table}${whereClause} LIMIT ${limit}`
 
-    const articleBodies: IMigrationArticleBody[] = []
-    const articleFiles: { [id: string]: ArticleContent } = {}
     const errors: IMigrationError[] = []
+    const validOldIds: number[] = []
 
     logger.info('Performing MySQL query: ' + queryStr)
 
-    // TODO: Refactor (replace callback-based MySQL library for promise-based)
     return new Promise(async (resolve, reject) => {
-        getPool().query(queryStr, async (err, result: IArticleV2[]) => {
+        getPool().query(queryStr, async (err, result: { id: number }[]) => {
             if (err) {
-                return reject(new Error(err.message))
+                return reject(err)
             }
 
             for (let i = 0; i < result.length; i++) {
@@ -144,8 +145,36 @@ function _getArticles({ limit, minOldId, oldIds }: MigrationOptions): Promise<Ge
                 const error = await _checkOldIdUsage(oldId)
                 if (error) {
                     errors.push(error)
-                    continue
+                } else {
+                    validOldIds.push(oldId)
                 }
+            }
+
+            resolve({ oldIds: validOldIds, errors })
+        })
+    })
+}
+
+function _getArticles(oldIds: number[]): Promise<GetArticlesResult> {
+    const whereClause = 'WHERE ' + oldIds.map((id) => `id = ${id}`).join(' OR ')
+    const queryStr = `SELECT * FROM ${table} ${whereClause}`
+
+    const articleBodies: IMigrationArticleBody[] = []
+    const articleFiles: { [id: string]: ArticleContent } = {}
+
+    logger.info('Performing MySQL query: ' + queryStr)
+
+    // TODO: Refactor (replace callback-based MySQL library for promise-based)
+    return new Promise(async (resolve, reject) => {
+        getPool().query(queryStr, async (err, result: IArticleV2[]) => {
+            if (err) {
+                return reject(err)
+            }
+
+            for (let i = 0; i < result.length; i++) {
+                const row = result[i]
+
+                const oldId = row.id
 
                 articleBodies.push({
                     title: row.title,
@@ -155,7 +184,7 @@ function _getArticles({ limit, minOldId, oldIds }: MigrationOptions): Promise<Ge
                 articleFiles[row.id] = await _getArticleFile(row)
             }
 
-            resolve({ articleBodies, articleFiles, errors })
+            resolve({ articleBodies, articleFiles })
         })
     })
 }
@@ -232,23 +261,29 @@ async function _postArticle(
 }
 
 async function migrateArticles(user: IShortUser, options: MigrationOptions) {
-    const migrationResult: MigrationResult = []
-
     logger.info('Articles migration started')
+
+    const migrationResult: MigrationResult = []
 
     const jobId = await jobsService.add(user.email, 'Articles migration', [{ title: 'Migration' }])
 
     let lastOldIdProcessed: number | undefined
 
     try {
+        const whereClause = `WHERE id > ${options.minOldId}`
+        const availableLimit = await _getAvailableLimit(whereClause)
+
+        // TODO: Change variable name :)
+        const validLimit = availableLimit < options.limit ? availableLimit : options.limit
+
         // Trying to get documents portionally. In optimization order
-        for (let i = 0; i < options.limit; i += MIGRATION_PORTION_SIZE) {
-            const left = options.limit - i
+        for (let i = 0; i < validLimit; i += MIGRATION_PORTION_SIZE) {
+            const left = validLimit - i
             const limit = left < MIGRATION_PORTION_SIZE ? left : MIGRATION_PORTION_SIZE
 
             const portionOptions = {
                 limit,
-                minOldId: lastOldIdProcessed || options.minOldId,
+                minOldId: lastOldIdProcessed ? lastOldIdProcessed + 1 : options.minOldId,
                 // TODO: Investigate the behavior
                 oldIds: options.oldIds
             }
@@ -256,40 +291,53 @@ async function migrateArticles(user: IShortUser, options: MigrationOptions) {
             const portionMigrationResult = await _migrateArticlesPortion(user, portionOptions)
             migrationResult.push(...portionMigrationResult)
 
-            const message = `Articles migrated: ${migrationResult.length}/${options.limit}`
+            const message = `Articles processed: ${i + limit}/${validLimit}`
             logger.info(message)
-            jobsService.updateStepDescription(jobId, message)
-            const progressPercent = (i * 100) / options.limit
-            jobsService.updatePercent(jobId, progressPercent)
 
-            lastOldIdProcessed = portionMigrationResult[portionMigrationResult.length - 1].oldId
+            if (i >= validLimit - MIGRATION_PORTION_SIZE) {
+                const successMigrationsCount = migrationResult.filter(
+                    (res) => res.status === 200
+                ).length
+                const message = `Articles migrated successfully: ${successMigrationsCount}/${validLimit}`
+                logger.info(message)
+                const newStepDescription = message
+
+                jobsService.updateStepDescription(jobId, newStepDescription)
+                jobsService.success(jobId)
+            } else {
+                const progressPercent = ((i + MIGRATION_PORTION_SIZE) * 100) / validLimit
+                jobsService.updatePercent(jobId, progressPercent)
+
+                jobsService.updateStepDescription(jobId, message)
+
+                lastOldIdProcessed = portionMigrationResult[portionMigrationResult.length - 1].oldId
+            }
         }
 
         storeMigrationResult(migrationResult)
 
-        const successMigrationsCount = migrationResult.filter((res) => res.status === 200).length
-        const newStepDescription = `Migrated ${successMigrationsCount}/${options.limit}`
-
-        jobsService.updateStepDescription(jobId, newStepDescription)
-        jobsService.success(jobId)
-
         return migrationResult
     } catch (e) {
         jobsService.error(jobId)
+        logger.error(e)
         throw e
     }
 }
 
 async function _migrateArticlesPortion(user: IShortUser, options: MigrationOptions) {
     const promises: Promise<PostArticleResult>[] = []
-    const { articleBodies, articleFiles, errors }: GetArticlesResult = await _getArticles(options)
+    const { oldIds, errors } = await _getArticleOldIds(options)
 
-    for (const articleBody of articleBodies) {
-        const articleFile = articleFiles[articleBody.oldId]
+    if (oldIds.length) {
+        const { articleBodies, articleFiles }: GetArticlesResult = await _getArticles(oldIds)
 
-        const promise = _postArticle(user, articleBody, articleFile)
+        for (const articleBody of articleBodies) {
+            const articleFile = articleFiles[articleBody.oldId]
 
-        promises.push(promise)
+            const promise = _postArticle(user, articleBody, articleFile)
+
+            promises.push(promise)
+        }
     }
 
     // TODO: Ensure we use a correct way to handle errors in Promise.allSettled
@@ -303,6 +351,22 @@ async function _migrateArticlesPortion(user: IShortUser, options: MigrationOptio
     portionMigrationResult.push(...errors)
 
     return portionMigrationResult
+}
+
+async function _getAvailableLimit(whereClause: string): Promise<number> {
+    const queryStr = `SELECT COUNT(*) FROM ${table} ${whereClause}`
+
+    return new Promise(async (resolve, reject) => {
+        getPool().query(queryStr, async (err, result: [{ 'COUNT(*)': number }]) => {
+            if (err) {
+                return reject(err)
+            }
+
+            const count = result[0]['COUNT(*)']
+
+            resolve(count)
+        })
+    })
 }
 
 export const articlesMigrationService = {

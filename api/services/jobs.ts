@@ -3,8 +3,6 @@ import EventEmitter from 'events'
 import { v4 as uuidv4 } from 'uuid'
 import { jobsUtils } from '../utils/jobs'
 
-// const timestamp = Date.now()
-
 const jobs: { [key: string]: IJob } = {}
 
 const jobsEventEmitter = new EventEmitter()
