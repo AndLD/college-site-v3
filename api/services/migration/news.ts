@@ -9,53 +9,56 @@ import {
     MigrationResult,
     MigrationPostResult
 } from '../../utils/types'
-import { privateArticlesControllers } from '../../controllers/private/articles'
 import { isHtml } from '../../utils/is-html'
 import { convertDocxToHtml } from '../../utils/convert-docx-to-html'
 import { getPool } from './connection'
 import { getLogger } from '../../utils/logger'
 import { storeMigrationResult } from './result'
 import { jobsService } from '../jobs'
-import { articlesService } from '../articles'
+import { newsService } from '../news'
+import { privateNewsControllers } from '../../controllers/private/news'
+import { entities } from '../../utils/constants'
 
-const logger = getLogger('services/migration/articles')
+const logger = getLogger('services/migration/news')
 
 const MIGRATION_PORTION_SIZE: number = parseInt(process.env.MIGRATION_PORTION_SIZE || '20')
 
-const table = 'articles'
+const table = 'news'
 
-interface IArticleV2 {
+interface INewsV2 {
     id: number
     title: string
+    tags: string
     html: string | null
     docx: Buffer | null
-    viewMode: 'html' | 'docx_to_html' | 'pdf'
-    fileFormat: 'html' | 'docx' | 'pdf'
+    addDate: Date // 'YYYY-MM-DD'
 }
 
-type ArticleContent = {
+type NewsContent = {
     html?: Buffer
     docx?: Buffer
-    pdf?: Buffer
 }
 
-type GetArticlesResult = {
-    articleBodies: IMigrationArticleBody[]
-    articleFiles: { [id: string]: ArticleContent }
+type GetNewsResult = {
+    newsBodies: IMigrationNewsBody[]
+    newsFiles: { [id: string]: NewsContent }
 }
 
-interface IMigrationArticleBody {
+interface IMigrationNewsBody {
     title: string
     oldId: number
+    publicTimestamp: number
+    inlineMainImage: boolean
+    tags?: string[]
 }
 
-async function _getArticleFile(row: IArticleV2) {
-    const articleFile: ArticleContent = {}
+async function _getNewsFile(row: INewsV2) {
+    const newsFile: NewsContent = {}
 
     if (row.html && !row.docx) {
         const buffer = Buffer.from(row.html)
 
-        articleFile.html = buffer
+        newsFile.html = buffer
     } else if (row.docx) {
         const buffer = row.docx
 
@@ -67,7 +70,7 @@ async function _getArticleFile(row: IArticleV2) {
                     const str = buffer.toString()
 
                     if (isHtml(str)) {
-                        articleFile.html = buffer
+                        newsFile.html = buffer
                     } else {
                         let convertResult
 
@@ -78,16 +81,13 @@ async function _getArticleFile(row: IArticleV2) {
                         const html = convertResult?.value
 
                         if (html) {
-                            articleFile.docx = buffer
+                            newsFile.docx = buffer
                         } else if (row.html) {
-                            articleFile.html = Buffer.from(row.html)
+                            newsFile.html = Buffer.from(row.html)
                         } else {
-                            throw new Error('Article content not found at MySQL')
+                            throw new Error('News content not found at MySQL')
                         }
                     }
-                    break
-                } else if (guessedFile.extension === 'pdf') {
-                    articleFile.pdf = buffer
                     break
                 }
             }
@@ -96,7 +96,7 @@ async function _getArticleFile(row: IArticleV2) {
                 const str = buffer.toString()
 
                 if (isHtml(str)) {
-                    articleFile.html = buffer
+                    newsFile.html = buffer
                 }
             }
         } catch (e) {
@@ -104,10 +104,10 @@ async function _getArticleFile(row: IArticleV2) {
         }
     }
 
-    return articleFile
+    return newsFile
 }
 
-function _getArticleOldIds({
+function _getNewsOldIds({
     limit,
     minOldId,
     oldIds
@@ -147,18 +147,18 @@ function _getArticleOldIds({
     })
 }
 
-function _getArticles(oldIds: number[]): Promise<GetArticlesResult> {
+function _getNews(oldIds: number[]): Promise<GetNewsResult> {
     const whereClause = 'WHERE ' + oldIds.map((id) => `id = ${id}`).join(' OR ')
     const queryStr = `SELECT * FROM ${table} ${whereClause}`
 
-    const articleBodies: IMigrationArticleBody[] = []
-    const articleFiles: { [id: string]: ArticleContent } = {}
+    const newsBodies: IMigrationNewsBody[] = []
+    const newsFiles: { [id: string]: NewsContent } = {}
 
     logger.info('Performing MySQL query: ' + queryStr)
 
     // TODO: Refactor (replace callback-based MySQL library for promise-based)
     return new Promise(async (resolve, reject) => {
-        getPool().query(queryStr, async (err, result: IArticleV2[]) => {
+        getPool().query(queryStr, async (err, result: INewsV2[]) => {
             if (err) {
                 return reject(err)
             }
@@ -167,48 +167,53 @@ function _getArticles(oldIds: number[]): Promise<GetArticlesResult> {
                 const row = result[i]
 
                 const oldId = row.id
+                const publicTimestamp = row.addDate.getTime()
+                const tags = row.tags ? row.tags.split(',') : []
 
-                articleBodies.push({
+                newsBodies.push({
                     title: row.title,
-                    oldId
+                    tags,
+                    oldId,
+                    publicTimestamp,
+                    inlineMainImage: true
                 })
 
-                articleFiles[oldId] = await _getArticleFile(row)
+                newsFiles[oldId] = await _getNewsFile(row)
             }
 
-            resolve({ articleBodies, articleFiles })
+            resolve({ newsBodies: newsBodies, newsFiles: newsFiles })
         })
     })
 }
 
 async function _checkOldIdUsage(oldId: number): Promise<IMigrationError | undefined> {
-    const dublicateOldIdArticleIds = await articlesService.checkOldIdUsage(oldId)
-    if (dublicateOldIdArticleIds.length) {
+    const dublicateOldIdNewsIds = await newsService.checkOldIdUsage(oldId)
+    if (dublicateOldIdNewsIds.length) {
         return {
             oldId,
             status: 400,
             resBody: {
-                error: `"oldId" is used by articles [${dublicateOldIdArticleIds.join(', ')}]`
+                error: `"oldId" is used by news [${dublicateOldIdNewsIds.join(', ')}]`
             }
         }
     }
 }
 
-async function _postArticle(
+async function _postNews(
     user: IShortUser,
-    articleBody: IMigrationArticleBody,
-    articleFile: ArticleContent
+    newsBody: IMigrationNewsBody,
+    newsFile: NewsContent
 ): Promise<MigrationPostResult> {
-    if (!(articleFile.html || articleFile.docx || articleFile.pdf)) {
-        throw new Error('No article content provided')
+    if (!(newsFile.html || newsFile.docx)) {
+        throw new Error('No news content provided')
     }
 
-    const ext = Object.keys(articleFile)[0] as 'html' | 'docx' | 'pdf'
-    const buffer = articleFile[ext] as Buffer
+    const ext = Object.keys(newsFile)[0] as 'html' | 'docx'
+    const buffer = newsFile[ext] as Buffer
     const size = buffer.byteLength
 
     const file: IRequestFile = {
-        originalname: `migrated-article.${ext}`,
+        originalname: `migrated-news.${ext}`,
         buffer,
         size
     }
@@ -222,11 +227,11 @@ async function _postArticle(
             }
         },
         body: {
-            json: JSON.stringify(articleBody)
+            json: JSON.stringify(newsBody)
         },
-        file,
+        files: { file: [file] },
         method: 'POST',
-        originalUrl: '/api/private/article',
+        originalUrl: '/api/private/news',
         isSimulation: true
     }
 
@@ -247,17 +252,17 @@ async function _postArticle(
         }
     }
 
-    await privateArticlesControllers.postArticle(req as any, res as any)
+    await privateNewsControllers.postNews(req as any, res as any)
 
-    return { oldId: articleBody.oldId, status: res.statusCode, resBody: res.resBody }
+    return { oldId: newsBody.oldId, status: res.statusCode, resBody: res.resBody }
 }
 
-async function migrateArticles(user: IShortUser, options: MigrationOptions) {
-    logger.info('Articles migration started')
+async function migrateNews(user: IShortUser, options: MigrationOptions) {
+    logger.info('News migration started')
 
     const migrationResult: MigrationResult = []
 
-    const jobId = await jobsService.add(user.email, 'Articles migration', [{ title: 'Migration' }])
+    const jobId = await jobsService.add(user.email, 'News migration', [{ title: 'Migration' }])
 
     let lastOldIdProcessed: number | undefined
 
@@ -280,17 +285,17 @@ async function migrateArticles(user: IShortUser, options: MigrationOptions) {
                 oldIds: options.oldIds
             }
 
-            const portionMigrationResult = await _migrateArticlesPortion(user, portionOptions)
+            const portionMigrationResult = await _migrateNewsPortion(user, portionOptions)
             migrationResult.push(...portionMigrationResult)
 
-            const message = `Articles processed: ${i + limit}/${validLimit}`
+            const message = `News processed: ${i + limit}/${validLimit}`
             logger.info(message)
 
             if (i >= validLimit - MIGRATION_PORTION_SIZE) {
                 const successMigrationsCount = migrationResult.filter(
                     (res) => res.status === 200
                 ).length
-                const message = `Articles migrated successfully: ${successMigrationsCount}/${validLimit}`
+                const message = `News migrated successfully: ${successMigrationsCount}/${validLimit}`
                 logger.info(message)
                 const newStepDescription = message
 
@@ -306,7 +311,7 @@ async function migrateArticles(user: IShortUser, options: MigrationOptions) {
             }
         }
 
-        storeMigrationResult('articles', migrationResult)
+        storeMigrationResult('news', migrationResult)
 
         return migrationResult
     } catch (e) {
@@ -316,17 +321,17 @@ async function migrateArticles(user: IShortUser, options: MigrationOptions) {
     }
 }
 
-async function _migrateArticlesPortion(user: IShortUser, options: MigrationOptions) {
+async function _migrateNewsPortion(user: IShortUser, options: MigrationOptions) {
     const promises: Promise<MigrationPostResult>[] = []
-    const { oldIds, errors } = await _getArticleOldIds(options)
+    const { oldIds, errors } = await _getNewsOldIds(options)
 
     if (oldIds.length) {
-        const { articleBodies, articleFiles }: GetArticlesResult = await _getArticles(oldIds)
+        const { newsBodies, newsFiles }: GetNewsResult = await _getNews(oldIds)
 
-        for (const articleBody of articleBodies) {
-            const articleFile = articleFiles[articleBody.oldId]
+        for (const newsBody of newsBodies) {
+            const newsFile = newsFiles[newsBody.oldId]
 
-            const promise = _postArticle(user, articleBody, articleFile)
+            const promise = _postNews(user, newsBody, newsFile)
 
             promises.push(promise)
         }
@@ -361,6 +366,6 @@ async function _getAvailableLimit(whereClause: string): Promise<number> {
     })
 }
 
-export const articlesMigrationService = {
-    migrateArticles
+export const newsMigrationService = {
+    migrateNews
 }

@@ -214,9 +214,9 @@ export interface IConnectionOptions {
 
 export type WhereOperator = 'OR' | 'AND'
 
-export type PostArticleResult = { oldId: number; status: number; resBody: any }
+export type MigrationPostResult = { oldId: number; status: number; resBody: any }
 
-export type MigrationResult = PostArticleResult[]
+export type MigrationResult = MigrationPostResult[]
 
 export interface IMigrationError {
     oldId: number

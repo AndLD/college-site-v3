@@ -1,10 +1,11 @@
 import { Request, Response } from 'express'
 import { getLogger } from '../../utils/logger'
-import { MigrationOptions } from '../../utils/types'
+import { MigrationOptions, MigrationResult } from '../../utils/types'
 import { articlesMigrationService } from '../../services/migration/articles'
 import { tryCatch } from '../../utils/decorators'
 import { appSettingsService } from '../../services/app-settings'
 import { entities } from '../../utils/constants'
+import { newsMigrationService } from '../../services/migration/news'
 
 const logger = getLogger('controller/private/migration')
 
@@ -81,7 +82,13 @@ async function postMigration(req: any, res: Response) {
         return res.sendStatus(400)
     }
 
-    const result = await articlesMigrationService.migrateArticles(user, migrationOptions)
+    let result: MigrationResult | null = null
+
+    if (entity === entities.ARTICLES) {
+        result = await articlesMigrationService.migrateArticles(user, migrationOptions)
+    } else if (entity === entities.NEWS) {
+        result = await newsMigrationService.migrateNews(user, migrationOptions)
+    }
 
     res.json({
         result

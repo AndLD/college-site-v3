@@ -199,11 +199,10 @@ async function postArticle(req: any, res: Response) {
 
     const articleMetadata: IArticle = {
         ...body,
-        publicTimestamp: timestamp,
+        publicTimestamp: body.publicTimestamp || timestamp,
         data,
         user: user.email
     }
-    if (body.publicTimestamp) articleMetadata.publicTimestamp = timestamp
 
     jobId && jobsService.nextStep(jobId)
 

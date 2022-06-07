@@ -152,7 +152,7 @@ async function postNews(req: any, res: Response) {
         })
     }
 
-    if (body.oldId) {
+    if (!req.isSimulation && body.oldId) {
         // TODO: Rename the variable :)
         const sameOldIdNewsIds = await newsService.checkOldIdUsage(body.oldId)
         if (sameOldIdNewsIds.length) {
@@ -173,11 +173,10 @@ async function postNews(req: any, res: Response) {
 
     const newsMetadata: INews = {
         ...body,
-        publicTimestamp: timestamp,
+        publicTimestamp: body.publicTimestamp || timestamp,
         data,
         user: user.email
     }
-    if (body.publicTimestamp) newsMetadata.publicTimestamp = timestamp
 
     const docId = getDocumentId()
     const actionId = getDocumentId()
