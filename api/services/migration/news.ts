@@ -17,7 +17,6 @@ import { storeMigrationResult } from './result'
 import { jobsService } from '../jobs'
 import { newsService } from '../news'
 import { privateNewsControllers } from '../../controllers/private/news'
-import { entities } from '../../utils/constants'
 
 const logger = getLogger('services/migration/news')
 
