@@ -6,7 +6,7 @@ import './App.scss'
 import AppRouter from './components/AppRouter'
 import { setAuth, setSocket, setToken, setUser } from './store/actions'
 import axios, { AxiosError, AxiosResponse } from 'axios'
-import { privateRoutes } from './utils/constants'
+import { API_URL, privateRoutes } from './utils/constants'
 import { errorNotification } from './utils/notifications'
 import { IUser } from './utils/types'
 import { io } from 'socket.io-client'
@@ -28,7 +28,7 @@ function App() {
     }
 
     useEffect(() => {
-        const socket = io('http://localhost:8080', {
+        const socket = io(API_URL, {
             withCredentials: true,
             reconnectionDelay: 1000
         })

@@ -1,6 +1,6 @@
-const HOST = 'http://127.0.0.1:8080'
-export const privateRoute = `${HOST}/api/private`
-export const publicRoute = `${HOST}/api/public`
+export const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080'
+export const privateRoute = `${API_URL}/api/private`
+export const publicRoute = `${API_URL}/api/public`
 
 export const privateRoutes = {
     MENU: `${privateRoute}/menu`,
