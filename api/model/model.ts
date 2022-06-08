@@ -1,4 +1,4 @@
-import { Client, Pool, QueryResult } from 'pg'
+import { Pool, QueryResult } from 'pg'
 import { generate as generateDocumentId } from 'rand-token'
 import escape from 'pg-escape'
 import { getLogger } from '../utils/logger'

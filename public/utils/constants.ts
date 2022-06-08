@@ -1,7 +1,7 @@
 const HOST =
     process.env.API_URL ||
     `http://${
-        process.env.ENVIRONMENT === 'prod'
+        process.env.NODE_ENV === 'production'
             ? process.env.API_DOCKER_CONTAINER_NAME || 'localhost'
             : 'localhost'
     }:8080`

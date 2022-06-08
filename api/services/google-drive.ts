@@ -30,19 +30,11 @@ jwtToken.authorize((err: any) => {
 
 // TODO: Wrap each function of googleDrive service with try-catch
 function _getFolderIdByEntity(entity: 'articles' | 'news') {
-    if (environment === 'dev') {
-        if (entity === 'articles') {
-            return googleDrive.testArticlesFolderId
-        } else if (entity === 'news') {
-            return googleDrive.testNewsFolderId
-        }
-    } else if (environment === 'prod') {
-        if (entity === 'articles') {
-            return googleDrive.articlesFolderId
-        } else if (entity === 'news') {
-            return googleDrive.newsFolderId
-        }
-    } else throw 'Invalid "environment" variable!'
+    if (entity === 'articles') {
+        return googleDrive.articlesFolderId
+    } else if (entity === 'news') {
+        return googleDrive.newsFolderId
+    }
 }
 
 async function getFilesMetadataByDocIds(

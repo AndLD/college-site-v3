@@ -1,20 +1,21 @@
 version: '3.0'
 services:
+    nginx:
+        container_name: college-site-v3_nginx
+        hostname: college-site-v3_nginx
+        build: .
+        ports:
+            - '80:80'
+        depends_on:
+            - api
+            - public
     api:
         container_name: college-site-v3_api
+        hostname: college-site-v3_api
         build: api/
-        ports:
-            - '8080:8080'
-        restart: unless-stopped
-    admin:
-        container_name: college-site-v3_admin
-        build: admin/
-        ports:
-            - '3000:80'
         restart: unless-stopped
     public:
         container_name: college-site-v3_public
+        hostname: college-site-v3_public
         build: public/
-        ports:
-            - '80:80'
         restart: unless-stopped

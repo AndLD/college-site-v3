@@ -7,8 +7,6 @@ WORKDIR /app
 
 COPY package*.json ./
 
-# RUN npm ci --silent
-
 COPY ./admin/ ./
 
 RUN npm install

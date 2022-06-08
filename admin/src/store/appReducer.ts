@@ -22,10 +22,7 @@ const initialState = {
     actionModalVisibility: false,
     action: 'Add',
     env: {
-        publicUrl:
-            process.env.NODE_ENV === 'production'
-                ? process.env.REACT_APP_PROD_PUBLIC_URL
-                : process.env.REACT_APP_DEV_PUBLIC_URL
+        publicUrl: process.env.REACT_APP_PUBLIC_URL || 'http://localhost'
     }
 }
 

@@ -21,13 +21,13 @@ try {
         })
 
         logger.info('Firebase successfully connected.')
-    } else throw new Error('Firebase configs not found in ".env"!')
+    } else throw new Error(`Firebase configs not found in env file!`)
 
     firebaseData = {
         admin
     }
 } catch (e) {
-    logger.error('Firestore connection failure: ', e)
+    logger.error('Firestore connection failure: ' + e)
     process.exit(1)
 }
 
