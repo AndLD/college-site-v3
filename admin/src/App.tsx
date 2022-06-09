@@ -27,13 +27,17 @@ function App() {
             .catch((err: AxiosError) => errorNotification(err.message))
     }
 
-    useEffect(() => {
+    async function connectSocketServer() {
         const socket = io(API_URL, {
             withCredentials: true,
             reconnectionDelay: 1000
         })
 
         dispatch(setSocket(socket))
+    }
+
+    useEffect(() => {
+        connectSocketServer()
 
         getAuth().onIdTokenChanged((userCredentials: any) => {
             if (userCredentials) {
