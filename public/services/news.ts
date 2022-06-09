@@ -1,12 +1,13 @@
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import JSZip from 'jszip'
-import { publicRoutes } from '../utils/constants'
+import { publicRoutes } from '../utils/constants-backend'
 import { sortByTimestamp } from '../utils/functions'
 import { newsUtils } from '../utils/news'
 import { errorNotification } from '../utils/notifications'
 import { INews, INewsCombined } from '../utils/types'
 import { encode as arrayBufferToBase64NodeJs } from 'base64-arraybuffer'
 import { Blob as BlobNodeJs } from 'buffer'
+import { nginxPublicRoutes } from '../utils/constants-frontend'
 
 // TODO: Refactor hole file
 
@@ -45,7 +46,7 @@ async function _fetchNewsData(
     }
 
     try {
-        const response: AxiosResponse = await axios(`${publicRoutes.NEWS}/download`, {
+        const response: AxiosResponse = await axios(`${nginxPublicRoutes.NEWS}/download`, {
             params: {
                 ids: newsIds.join(',')
             },

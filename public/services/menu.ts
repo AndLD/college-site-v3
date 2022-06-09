@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { publicRoutes } from '../utils/constants'
+import { publicRoutes } from '../utils/constants-backend'
 import { menuUtils } from '../utils/menu'
 import { IMenuElement } from '../utils/types'
 

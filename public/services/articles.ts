@@ -1,7 +1,7 @@
 import axios, { AxiosResponse } from 'axios'
 import { Blob as BlobNodeJs } from 'buffer'
 import { encode as arrayBufferToBase64NodeJs } from 'base64-arraybuffer'
-import { publicRoutes } from '../utils/constants'
+import { publicRoutes } from '../utils/constants-backend'
 import { IArticle } from '../utils/types'
 
 async function fetchArticleMetadataById(id: string) {

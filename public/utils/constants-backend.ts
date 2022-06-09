@@ -1,4 +1,4 @@
-const HOST =
+const API_URL =
     process.env.API_URL ||
     `http://${
         process.env.NODE_ENV === 'production'
@@ -6,7 +6,7 @@ const HOST =
             : 'localhost'
     }:8080`
 
-export const publicRoute = `${HOST}/api/public`
+export const publicRoute = `${API_URL}/api/public`
 
 export const publicRoutes = {
     MENU: `${publicRoute}/menu`,
