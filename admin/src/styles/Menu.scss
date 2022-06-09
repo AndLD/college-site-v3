@@ -1,0 +1,43 @@
+.menu-table-status-cell {
+    position: relative;
+
+    .menu-table-status-cell-show-on-parent-hover {
+        position: absolute;
+        visibility: hidden;
+        width: 100%;
+        top: 0;
+        left: 0;
+    }
+
+    &:hover {
+        .menu-table-status-cell-hide-on-parent-hover {
+            visibility: hidden;
+        }
+
+        .menu-table-status-cell-show-on-parent-hover {
+            visibility: visible;
+        }
+    }
+}
+
+.menu-description-action {
+    visibility: hidden;
+}
+
+.menu-description:hover {
+    .menu-description-action {
+        visibility: visible;
+    }
+}
+
+.menu-tree-element {
+    .menu-tree-element-action {
+        visibility: hidden;
+    }
+
+    &:hover {
+        .menu-tree-element-action {
+            visibility: visible;
+        }
+    }
+}

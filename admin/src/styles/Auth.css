@@ -1,0 +1,119 @@
+/* Скольжение формы авторизации */
+@keyframes auth-form-sliding {
+    from {
+        opacity: 0;
+        padding-top: 35vh;
+    }
+    to {
+        opacity: 1;
+        padding-top: 15vh;
+    }
+}
+/* Скольжение градиента */
+@keyframes background-sliding {
+    from {
+        background-size: 300vw;
+    }
+    to {
+        background-size: 100vw;
+    }
+}
+
+/* Скольжение фоновой картинки */
+@keyframes background-image-sliding {
+    from {
+        background-position-x: 25vw;
+    }
+    to {
+        background-position-x: 0vw;
+    }
+}
+
+/* Скольжение фоновой картинки бесконечно */
+@keyframes background-image-sliding-idle {
+    0% {
+        background-position-x: 0vw;
+    }
+    50% {
+        background-position-x: 15vw;
+    }
+    100% {
+        background-position-x: 0vw;
+    }
+}
+
+/* Слой для отображения картинки на фоне */
+.background-image-layer {
+    background: url('../assets/images/Auth/authBackground.jpg') no-repeat;
+    background-size: cover;
+    /* backdrop-filter: blur(100px); */
+    margin: 0;
+    height: 100vh;
+
+    animation: background-image-sliding 2s ease;
+}
+/* Слой для отображения градиента на фоне */
+.background-gradient-layer {
+    background-size: cover;
+    background: linear-gradient(to right, rgb(0, 39, 102) 35%, rgba(0, 0, 0, 0) 90%) no-repeat;
+    background-position: 0 0;
+    background-size: 100vw;
+    height: 100vh;
+
+    animation: background-sliding 2s ease;
+}
+
+/* Оболочка формы авторизации */
+.auth-wrapper {
+    max-width: 30%;
+    padding-bottom: 60px;
+    padding-top: 15vh;
+
+    animation: auth-form-sliding 1.5s ease-in-out;
+}
+.auth-wrapper h1,
+h2 {
+    text-align: center;
+}
+/* Строка над кнопкой авторизации */
+.auth-wrapper h1 {
+    font-size: 35px;
+}
+/* Строка под кнопкой авторизации */
+.auth-wrapper h2 {
+    font-size: 18px;
+    width: 75%;
+    margin: auto;
+}
+
+/* Форма авторизации */
+.auth-form {
+    /* background-color: rgb(53,59,80); */
+    background-color: whitesmoke;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    margin-left: 30%;
+    padding: 5% 0 10% 0;
+    /* color: whitesmoke; */
+    color: rgb(53, 59, 80);
+    text-align: center;
+    transition: all ease 0.3s;
+}
+/* Логотип Google */
+.auth-form .google-btn img {
+    max-width: 100%;
+    transition: inherit;
+}
+
+/* Кнопка авторизации */
+.auth-form .google-btn {
+    transition: all ease 0.5s;
+    width: 30%;
+    margin: auto;
+    cursor: pointer;
+}
+.auth-form .google-btn:hover {
+    transform: rotateZ(-10deg);
+}
+.auth-form .google-btn:hover img {
+    transform: scale(1.1);
+}

@@ -1,0 +1,42 @@
+@import '~antd/dist/antd.css';
+
+.trigger {
+    padding: 0 24px;
+    font-size: 20px;
+    line-height: 64px;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.notifications {
+    // margin: 0 5px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.trigger:hover,
+.notifications:hover,
+.blue-color-on-hover:hover {
+    color: #1890ff;
+    transition: color 0.3s;
+}
+
+.logo {
+    min-height: 50px;
+    text-align: center;
+    margin: 16px;
+    color: white;
+    font-size: 17px;
+    /* background: rgba(255, 255, 255, 0.3); */
+    img {
+        min-width: 50px;
+        width: 50%;
+        cursor: pointer;
+        transition: all ease 0.3s;
+    }
+}
+
+.site-layout .site-layout-background {
+    background: #fff;
+}

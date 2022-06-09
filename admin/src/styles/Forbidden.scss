@@ -1,0 +1,29 @@
+.forbidden-background-image {
+    background-image: url(../assets/images/Auth/authBackground.jpg);
+    background-repeat: no-repeat;
+    background-size: cover;
+
+    .forbidden-container {
+        text-align: center;
+        height: 100vh;
+        backdrop-filter: blur(20px);
+        // backgro
+
+        color: white;
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+
+        .title {
+            font-size: 10vw;
+        }
+
+        .small-message {
+            font-size: 1.5vw;
+        }
+
+        .message {
+            font-size: 3vw;
+        }
+    }
+}

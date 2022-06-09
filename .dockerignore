@@ -1,0 +1,8 @@
+admin/node_modules
+admin/.circleci
+admin/.vscode
+admin/.idea
+admin/.git
+admin/.gitignore
+admin/Dockerfile
+admin/README.md

@@ -1,0 +1,19 @@
+.news-table-pinned-cell {
+    position: relative;
+    padding: 15px 0;
+    cursor: pointer;
+
+    .news-table-pinned-cell-show-on-parent-hover {
+        display: none;
+    }
+
+    &:hover {
+        .news-table-pinned-cell-hide-on-parent-hover {
+            display: none;
+        }
+
+        .news-table-pinned-cell-show-on-parent-hover {
+            display: block;
+        }
+    }
+}

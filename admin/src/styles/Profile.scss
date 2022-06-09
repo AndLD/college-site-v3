@@ -1,0 +1,11 @@
+.user-description-action {
+    // visibility: hidden;
+    display: none;
+}
+
+.user-description:hover {
+    .user-description-action {
+        // visibility: visible;
+        display: inline;
+    }
+}

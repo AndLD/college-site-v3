@@ -1,0 +1,188 @@
+@import 'variables.scss';
+
+#container {
+    display: flex;
+
+    padding-top: 1%;
+    padding-bottom: 1%;
+
+    // max-height: 22vh;
+
+    #logo {
+        // flex: 1; // закомментировано for Mozilla
+
+        text-align: center;
+
+        max-height: 10vh; // for Mozilla
+
+        @media screen and(min-width: 1600px) {
+            max-height: 30vh;
+        }
+
+        @media screen and(min-width: 1900px) {
+            max-height: 25vh;
+        }
+
+        @media screen and(min-width: 481px) {
+            width: 20%; // for Mozilla
+        }
+
+        img {
+            max-height: 100%;
+            height: 100%;
+            @media screen and (max-width: 480px) {
+                width: 100px;
+                height: 100px;
+            }
+        }
+    }
+
+    #title {
+        // flex: 6; // закомментировано for Mozilla
+
+        @media screen and(max-width: 1900px) {
+            line-height: 1.4;
+        }
+
+        text-align: center;
+
+        min-height: inherit;
+        // height: 100%;
+        @media screen and(min-width: 481px) {
+            width: 80%; // for Mozilla
+        }
+
+        font-family: $titleFont;
+        font-weight: bold;
+
+        text-transform: uppercase;
+
+        #td1 {
+            border-radius: 1rem 1rem 0 0;
+        }
+
+        :nth-child(1) {
+            background-color: $menuFocusedColor;
+
+            padding-left: 5%;
+            padding-right: 5%;
+            padding-top: 18px;
+            padding-bottom: 18px;
+            @media screen and (max-width: 480px) {
+                padding-top: 13px;
+                padding-bottom: 13px;
+            }
+
+            text-align: left;
+
+            font-size: 1.8vw;
+            @media screen and (min-width: 1900px) {
+                font-size: 1.5vw;
+            }
+            @media screen and (max-width: 480px) {
+                text-align: center;
+                font-size: 3vw;
+            }
+            color: white;
+            letter-spacing: 0.35rem;
+            @media screen and (min-width: 1900px) {
+                letter-spacing: 0.2rem;
+            }
+            @media screen and (max-width: 480px) {
+                letter-spacing: 0.2rem;
+            }
+        }
+
+        :nth-child(2) {
+            background-color: rgb(252, 214, 5);
+
+            padding-left: 5%;
+            padding-right: 5%;
+
+            padding-top: 14px;
+            padding-bottom: 14px;
+
+            text-align: left;
+
+            font-size: 1.7vw;
+            @media screen and (min-width: 1800px) {
+                font-size: 1.4vw;
+            }
+            @media screen and (min-width: 2200px) {
+                font-size: 2.2vw;
+            }
+            @media screen and (max-width: 480px) {
+                text-align: center;
+                font-size: 9vw;
+            }
+            color: black;
+            letter-spacing: 0.3rem;
+            // @media screen and (min-width: 1800px) {
+            //     letter-spacing: 0.35rem;
+            // }
+            @media screen and (max-width: 480px) {
+                letter-spacing: 0.1rem;
+            }
+        }
+    }
+}
+@font-face {
+    font-family: exo2; /* Идентификатор шрифта */
+    src: url(/fonts/exo2medium.ttf); /* Путь к файлу со шрифтом */
+}
+
+@media screen and (max-width: 480px) {
+    #container {
+        flex-direction: column;
+        #title {
+            max-height: 50%;
+
+            :nth-child(2) {
+                font-size: 2vw;
+                @media screen and (min-width: 1900px) {
+                    font-size: 1vw;
+                }
+                letter-spacing: 2;
+                @media screen and (min-width: 1900px) {
+                    letter-spacing: 1;
+                }
+
+                @media screen and (max-width: 480px) {
+                    font-size: 3vw;
+                    letter-spacing: 0.1rem;
+                }
+            }
+        }
+    }
+}
+
+@media screen and (max-width: 320px) {
+    #container {
+        flex-direction: column;
+
+        height: 40%;
+        // #logo {
+        //     min-height: 20vh;
+        //     max-height: 20vw;
+        // }
+
+        #title {
+            max-height: 40%;
+
+            :nth-child(1) {
+                letter-spacing: 0.3rem;
+                @media screen and (min-width: 1900px) {
+                    letter-spacing: 0.2rem;
+                }
+            }
+
+            :nth-child(2) {
+                font-size: 3vw;
+                @media screen and (min-width: 1900px) {
+                    font-size: 2vw;
+                }
+                letter-spacing: 0;
+            }
+        }
+    }
+}
