@@ -41,7 +41,8 @@ export default function AdminHeader() {
                                 </Menu.Item>
                             </Menu>
                         }
-                        placement="bottom"
+                        // TODO: Investigate why during the build this required to be 'bottomCenter', but after 'npm run dev' Ant-Design says we should use 'bottom'
+                        placement="bottomCenter"
                         arrow
                         trigger={['click']}
                     >
