@@ -36,7 +36,7 @@ services:
         volumes:
             - ./db/postgres.sql:/docker-entrypoint-initdb.d/db.sql
             - ./db/volumes/postgres:/var/lib/postgresql/data
-        restart: unless-stoppeds
+        restart: unless-stopped
 
     # redis:
     #     image: 'redis:latest'
