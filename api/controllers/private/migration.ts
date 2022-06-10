@@ -95,6 +95,32 @@ async function postMigration(req: any, res: Response) {
     })
 }
 
+async function getUnmigratedOldIds(req: any, res: Response) {
+    const entity: string = req.params.entity
+
+    if (entity !== entities.ARTICLES && entity !== entities.NEWS) {
+        return res.status(400).json({
+            error: 'Bad entity'
+        })
+    }
+
+    let result: number[] = []
+
+    if (entity === entities.ARTICLES) {
+        result = await articlesMigrationService.getUnmigratedArticleOldIds()
+    } else if (entity === entities.NEWS) {
+        result = await newsMigrationService.getUnmigratedNewsOldIds()
+    }
+
+    res.json({
+        result: {
+            total: result.length,
+            result
+        }
+    })
+}
+
 export const privateMigrationControllers = {
-    postMigration: tryCatch(postMigration)
+    postMigration: tryCatch(postMigration),
+    getUnmigratedOldIds: tryCatch(getUnmigratedOldIds)
 }

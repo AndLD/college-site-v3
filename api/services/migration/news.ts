@@ -7,7 +7,8 @@ import {
     IShortUser,
     MigrationOptions,
     MigrationResult,
-    MigrationPostResult
+    MigrationPostResult,
+    Error
 } from '../../utils/types'
 import { isHtml } from '../../utils/is-html'
 import { convertDocxToHtml } from '../../utils/convert-docx-to-html'
@@ -17,6 +18,7 @@ import { storeMigrationResult } from './result'
 import { jobsService } from '../jobs'
 import { newsService } from '../news'
 import { privateNewsControllers } from '../../controllers/private/news'
+import { model } from '../../model/model'
 
 const logger = getLogger('services/migration/news')
 
@@ -365,6 +367,59 @@ async function _getAvailableLimit(whereClause: string): Promise<number> {
     })
 }
 
+async function getUnmigratedNewsOldIds(): Promise<number[]> {
+    const totalOldIds = await _getNewsOldIdsFromMySql()
+    const migratedOldIds = await _getNewsOldIdsFromPostgres()
+
+    const unmigratedNewsOldIds: number[] = []
+
+    for (const oldId of totalOldIds) {
+        if (!migratedOldIds.includes(oldId)) {
+            unmigratedNewsOldIds.push(oldId)
+        }
+    }
+
+    return unmigratedNewsOldIds
+}
+
+async function _getNewsOldIdsFromPostgres(): Promise<number[]> {
+    const [modelResult, modelError] = (await model({
+        collection: 'news',
+        action: 'get',
+        select: ['oldId']
+        // TODO: Refactor (set type)
+    })) as [any, Error | null]
+
+    if (modelError) {
+        throw new Error('Error getting migrated news oldIds: ' + modelError.msg)
+    }
+
+    if (!modelResult?.mainResult) {
+        return []
+    }
+
+    const result = modelResult.mainResult.map((row: { oldid: number }) => row['oldid'])
+
+    return result as number[]
+}
+
+async function _getNewsOldIdsFromMySql(): Promise<number[]> {
+    const queryStr = `SELECT id FROM ${table}`
+
+    return new Promise(async (resolve, reject) => {
+        getPool().query(queryStr, async (err, rows: { id: number }[]) => {
+            if (err) {
+                return reject(err)
+            }
+
+            const result = rows.map((row) => row.id)
+
+            resolve(result)
+        })
+    })
+}
+
 export const newsMigrationService = {
-    migrateNews
+    migrateNews,
+    getUnmigratedNewsOldIds
 }

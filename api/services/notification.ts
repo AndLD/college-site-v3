@@ -1,4 +1,5 @@
-import { Telegraf } from 'telegraf'
+import { Context, Telegraf } from 'telegraf'
+import { Update } from 'telegraf/typings/core/types/typegram'
 import { getLogger } from '../utils/logger'
 import { Error, IAction } from '../utils/types'
 
@@ -13,12 +14,16 @@ if (!token) {
     process.exit(1)
 }
 
-const bot = new Telegraf(token)
+const bot: Telegraf<Context<Update>> | null = new Telegraf(token)
 bot.launch().then(() => {
     logger.info('Telegram bot successfully connected.')
 })
 
 function _sendMessage(message: string) {
+    if (!bot) {
+        return
+    }
+
     if (!channelId) {
         const errorMsg = 'Telegram channelId not provided'
         logger.error(errorMsg)
@@ -29,6 +34,10 @@ function _sendMessage(message: string) {
 }
 
 function sendNewActionNotification(actionId: string, actionMetadata: IAction) {
+    if (!bot) {
+        return
+    }
+
     let message: string = `New action [${actionId}]`
 
     let entityName: string = '⚠️ UNKNOWN ENTITY'
@@ -54,18 +63,30 @@ function sendNewActionNotification(actionId: string, actionMetadata: IAction) {
 }
 
 function sendNewUserNofication(name: string, email: string) {
+    if (!bot) {
+        return
+    }
+
     const message = `New user [${name}, ${email}] registered in the system`
 
     _sendMessage(message)
 }
 
 function sendError({ code, msg }: Error, payload: string) {
+    if (!bot) {
+        return
+    }
+
     const message = `🚨 ERROR [${code}]: ${msg}: ${payload}`
 
     _sendMessage(message)
 }
 
 function sendWarning(message: string) {
+    if (!bot) {
+        return
+    }
+
     message = `⚠️ WARNING: ${message}`
 
     _sendMessage(message)
