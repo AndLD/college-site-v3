@@ -7,7 +7,9 @@ import {
     IShortUser,
     MigrationOptions,
     MigrationResult,
-    MigrationPostResult
+    MigrationPostResult,
+    ModelResult,
+    Error
 } from '../../utils/types'
 import { privateArticlesControllers } from '../../controllers/private/articles'
 import { isHtml } from '../../utils/is-html'
@@ -17,6 +19,7 @@ import { getLogger } from '../../utils/logger'
 import { storeMigrationResult } from './result'
 import { jobsService } from '../jobs'
 import { articlesService } from '../articles'
+import { model } from '../../model/model'
 
 const logger = getLogger('services/migration/articles')
 
@@ -361,6 +364,59 @@ async function _getAvailableLimit(whereClause: string): Promise<number> {
     })
 }
 
+async function getUnmigratedArticleOldIds(): Promise<number[]> {
+    const totalOldIds = await _getArticleOldIdsFromMySql()
+    const migratedOldIds = await _getArticleOldIdsFromPostgres()
+
+    const unmigratedArticleOldIds: number[] = []
+
+    for (const oldId of totalOldIds) {
+        if (!migratedOldIds.includes(oldId)) {
+            unmigratedArticleOldIds.push(oldId)
+        }
+    }
+
+    return unmigratedArticleOldIds
+}
+
+async function _getArticleOldIdsFromPostgres(): Promise<number[]> {
+    const [modelResult, modelError] = (await model({
+        collection: 'articles',
+        action: 'get',
+        select: ['oldId']
+        // TODO: Refactor (set type)
+    })) as [any, Error | null]
+
+    if (modelError) {
+        throw new Error('Error getting migrated article oldIds: ' + modelError.msg)
+    }
+
+    if (!modelResult?.mainResult) {
+        return []
+    }
+
+    const result = modelResult.mainResult.map((row: { oldid: number }) => row['oldid'])
+
+    return result as number[]
+}
+
+async function _getArticleOldIdsFromMySql(): Promise<number[]> {
+    const queryStr = `SELECT id FROM ${table}`
+
+    return new Promise(async (resolve, reject) => {
+        getPool().query(queryStr, async (err, rows: { id: number }[]) => {
+            if (err) {
+                return reject(err)
+            }
+
+            const result = rows.map((row) => row.id)
+
+            resolve(result)
+        })
+    })
+}
+
 export const articlesMigrationService = {
-    migrateArticles
+    migrateArticles,
+    getUnmigratedArticleOldIds
 }
