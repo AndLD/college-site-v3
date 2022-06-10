@@ -302,7 +302,7 @@ async function migrateArticles(user: IShortUser, options: MigrationOptions) {
 
                 jobsService.updateStepDescription(jobId, message)
 
-                lastOldIdProcessed = portionMigrationResult[portionMigrationResult.length - 1].oldId
+                lastOldIdProcessed = Math.max(...portionMigrationResult.map(({ oldId }) => oldId))
             }
         }
 
