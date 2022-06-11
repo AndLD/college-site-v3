@@ -4,3 +4,4 @@ ts-built
 buffer/
 logs/
 results/
+app-settings.json
