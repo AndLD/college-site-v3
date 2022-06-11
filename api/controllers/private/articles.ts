@@ -230,7 +230,9 @@ async function postArticle(req: any, res: Response) {
     // If action auto approve disabled for current admin
     if (
         user.status === 'admin' &&
-        !appSettingsService.get().actionAutoApproveEnabledForAdmins?.includes(user.email)
+        !(
+            await appSettingsService[await appSettingsService.appSettingsMode].get()
+        ).actionAutoApproveEnabledForAdmins?.includes(user.email)
     ) {
         actionMetadata.status = 'pending'
     }
@@ -354,7 +356,9 @@ async function putArticle(req: any, res: Response) {
     // If action auto approve disabled for current admin
     if (
         user.status === 'admin' &&
-        !appSettingsService.get().actionAutoApproveEnabledForAdmins?.includes(user.email)
+        !(
+            await appSettingsService[await appSettingsService.appSettingsMode].get()
+        ).actionAutoApproveEnabledForAdmins?.includes(user.email)
     ) {
         actionMetadata.status = 'pending'
     }
@@ -421,7 +425,9 @@ async function deleteArticle(req: any, res: Response) {
     // If action auto approve disabled for current admin
     if (
         user.status === 'admin' &&
-        !appSettingsService.get().actionAutoApproveEnabledForAdmins?.includes(user.email)
+        !(
+            await appSettingsService[await appSettingsService.appSettingsMode].get()
+        ).actionAutoApproveEnabledForAdmins?.includes(user.email)
     ) {
         actionMetadata.status = 'pending'
     }

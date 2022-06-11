@@ -25,7 +25,7 @@ import {
 
 export const controller = tryCatch(async function (req: Request, res: Response) {
     // Parse data from request
-    const [reqData, parseReqError] = parseReq(req) as DefaultResult
+    const [reqData, parseReqError] = (await parseReq(req)) as DefaultResult
     if (parseReqError)
         return res.status(parseReqError.code).json({
             error: parseReqError.msg
@@ -223,7 +223,7 @@ const controllerMethods = {
     }
 }
 
-const parseReq = (req: any) => {
+const parseReq = async (req: any) => {
     // Метод запроса
     const method: HttpMethod = req.method
 
@@ -231,7 +231,7 @@ const parseReq = (req: any) => {
     const settingsQuery: [string, string, string] | undefined = req.query.settings?.split(',')
     let idFromSettings: string | number | undefined
     if (settingsQuery && settingsQuery[0] === 'id' && settingsQuery[1] === '==') {
-        const settings = appSettingsService.get()
+        const settings = await appSettingsService[await appSettingsService.appSettingsMode].get()
         idFromSettings = settings[settingsQuery[2]]
     }
 

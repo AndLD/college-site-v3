@@ -14,10 +14,10 @@ if (!token) {
     process.exit(1)
 }
 
-const bot: Telegraf<Context<Update>> | null = new Telegraf(token)
-bot.launch().then(() => {
-    logger.info('Telegram bot successfully connected.')
-})
+const bot: Telegraf<Context<Update>> | null = null //new Telegraf(token)
+// bot.launch().then(() => {
+//     logger.info('Telegram bot successfully connected.')
+// })
 
 function _sendMessage(message: string) {
     if (!bot) {

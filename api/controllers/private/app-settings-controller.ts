@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { tryCatch } from '../../utils/decorators'
-import { appSettingsService } from '../../services/app-settings'
+import { appSettingsService } from '../../services/app-settings/index'
 import { Any, HttpMethod } from '../../utils/types'
 
 type RequestData = {
@@ -28,10 +28,10 @@ export const appSettingsController = tryCatch(async function (req: Request, res:
     let result
     switch (method) {
         case 'GET':
-            result = appSettingsService.get()
+            result = await appSettingsService[await appSettingsService.appSettingsMode].get()
             break
         case 'PUT':
-            result = appSettingsService.set(obj)
+            result = await appSettingsService[await appSettingsService.appSettingsMode].set(obj)
     }
 
     return res.json({

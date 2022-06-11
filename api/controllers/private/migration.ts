@@ -65,9 +65,9 @@ async function postMigration(req: any, res: Response) {
         })
     }
 
-    const isAutoApproveEnabled = appSettingsService
-        .get()
-        .actionAutoApproveEnabledForAdmins.includes(user.email)
+    const isAutoApproveEnabled = (
+        await appSettingsService[await appSettingsService.appSettingsMode].get()
+    ).actionAutoApproveEnabledForAdmins.includes(user.email)
 
     if (!isAutoApproveEnabled) {
         return res.status(403).json({

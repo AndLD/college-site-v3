@@ -198,7 +198,9 @@ async function postNews(req: any, res: Response) {
     // If action auto approve disabled for current admin
     if (
         user.status === 'admin' &&
-        !appSettingsService.get().actionAutoApproveEnabledForAdmins?.includes(user.email)
+        !(
+            await appSettingsService[await appSettingsService.appSettingsMode].get()
+        ).actionAutoApproveEnabledForAdmins?.includes(user.email)
     ) {
         actionMetadata.status = 'pending'
     }
@@ -304,7 +306,9 @@ async function putNews(req: any, res: Response) {
     // If action auto approve disabled for current admin
     if (
         user.status === 'admin' &&
-        !appSettingsService.get().actionAutoApproveEnabledForAdmins?.includes(user.email)
+        !(
+            await appSettingsService[await appSettingsService.appSettingsMode].get()
+        ).actionAutoApproveEnabledForAdmins?.includes(user.email)
     ) {
         actionMetadata.status = 'pending'
     }
@@ -344,7 +348,8 @@ async function deleteNews(req: any, res: Response) {
             error: '"ids" query param is missed!'
         })
 
-    const pinnedNewsIds = appSettingsService.get().pinnedNewsIds
+    const pinnedNewsIds = (await appSettingsService[await appSettingsService.appSettingsMode].get())
+        .pinnedNewsIds
     for (const id of ids) {
         if (pinnedNewsIds.includes(id)) {
             return res.status(400).json({
@@ -379,7 +384,9 @@ async function deleteNews(req: any, res: Response) {
     // If action auto approve disabled for current admin
     if (
         user.status === 'admin' &&
-        !appSettingsService.get().actionAutoApproveEnabledForAdmins?.includes(user.email)
+        !(
+            await appSettingsService[await appSettingsService.appSettingsMode].get()
+        ).actionAutoApproveEnabledForAdmins?.includes(user.email)
     ) {
         actionMetadata.status = 'pending'
     }

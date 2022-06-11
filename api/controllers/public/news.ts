@@ -98,8 +98,10 @@ async function getDownloadNews(req: any, res: Response) {
     })
 }
 
-function getPinnedNewsIds(_: Request, res: Response) {
-    const pinnedNewsIds = appSettingsService.get().pinnedNewsIds || []
+async function getPinnedNewsIds(_: Request, res: Response) {
+    const pinnedNewsIds =
+        (await appSettingsService[await appSettingsService.appSettingsMode].get()).pinnedNewsIds ||
+        []
 
     res.json({
         result: pinnedNewsIds
