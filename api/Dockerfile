@@ -12,8 +12,6 @@ COPY . .
 
 RUN npm run build
 
-VOLUME ./app-settings.json ./ts-built/app-settings.json
-
 EXPOSE 8080
 
 CMD ["npm", "run", "prod"]
