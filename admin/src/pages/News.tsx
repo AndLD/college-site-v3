@@ -31,7 +31,7 @@ function News() {
     useEffect(() => {
         document.title = 'Admin News'
 
-        fetchNews(pagination, undefined, 'timestamp,desc')
+        fetchNews(pagination, undefined, 'publicTimestamp,desc')
     }, [])
 
     function fetchNews(pagination: any, filters?: string, order?: string) {
@@ -82,7 +82,7 @@ function News() {
                 successNotification(msg)
 
                 if (!actionId) {
-                    fetchNews(pagination, undefined, 'timestamp,desc')
+                    fetchNews(pagination, undefined, 'publicTimestamp,desc')
                 }
 
                 setSelectedRows([])

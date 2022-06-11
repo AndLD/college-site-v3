@@ -163,7 +163,8 @@ function NewsTable() {
                     align: 'center',
                     render: (value: number) => value && new Date(value).toLocaleString(),
                     sorter: (row1: any, row2: any) => row1.publicTimestamp - row2.publicTimestamp,
-                    sortDirections: ['ascend', 'descend']
+                    sortDirections: ['ascend', 'descend'],
+                    defaultSortOrder: 'descend'
                 },
                 {
                     title: 'Timestamp',
@@ -172,8 +173,7 @@ function NewsTable() {
                     align: 'center',
                     render: (value: number) => value && new Date(value).toLocaleString(),
                     sorter: (row1: any, row2: any) => row1.timestamp - row2.timestamp,
-                    sortDirections: ['descend'],
-                    defaultSortOrder: 'descend'
+                    sortDirections: ['descend']
                 },
                 {
                     title: 'Last update timestamp',
