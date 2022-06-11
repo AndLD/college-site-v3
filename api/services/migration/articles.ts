@@ -55,7 +55,7 @@ interface IMigrationArticleBody {
 async function _getArticleFile(row: IArticleV2) {
     const articleFile: ArticleContent = {}
 
-    if (row.html && !row.docx) {
+    if ((row.html && !row.docx) || row.html === '') {
         const buffer = Buffer.from(row.html)
 
         articleFile.html = buffer

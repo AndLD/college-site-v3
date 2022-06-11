@@ -25,7 +25,7 @@ export default function NewsTableControls() {
         dispatch(setActionModalVisibility(true))
         dispatch(
             setActionSuccessCallback(() => {
-                fetchNews(pagination)
+                fetchNews(pagination, undefined, 'publicTimestamp,desc')
                 setSelectedRows([])
             })
         )

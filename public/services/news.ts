@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import JSZip from 'jszip'
 import { publicRoutes } from '../utils/constants-backend'
-import { sortByTimestamp } from '../utils/functions'
+import { sortByPublicTimestamp } from '../utils/functions'
 import { newsUtils } from '../utils/news'
 import { errorNotification } from '../utils/notifications'
 import { INews, INewsCombined } from '../utils/types'
@@ -17,7 +17,7 @@ async function _fetchNewsMetadatas(count: number, tags?: string[]) {
             params: {
                 page: 1,
                 results: count,
-                order: 'timestamp,desc',
+                order: 'publicTimestamp,desc',
                 filters: tags?.length
                     ? tags.map((tag) => `tags,contains,${tag}`).join(';')
                     : undefined
@@ -248,7 +248,8 @@ async function _fetchNewsMetadatasByIdsAndTags(ids: string[], tags?: string[]) {
                 ids: ids.join(','),
                 filters: tags?.length
                     ? tags.map((tag) => `tags,contains,${tag}`).join(';')
-                    : undefined
+                    : undefined,
+                order: 'publicTimestamp,desc'
             }
         })
 
@@ -299,7 +300,9 @@ async function fetchNewsMetadatas(count: number, tags?: string[]) {
         }
     }
 
-    resultPinnedNewsMetadatas = resultPinnedNewsMetadatas.sort(sortByTimestamp).slice(0, count)
+    resultPinnedNewsMetadatas = resultPinnedNewsMetadatas
+        .sort(sortByPublicTimestamp)
+        .slice(0, count)
 
     // Mark pinned news
     resultPinnedNewsMetadatas = resultPinnedNewsMetadatas.map((metadata) => ({
@@ -309,7 +312,7 @@ async function fetchNewsMetadatas(count: number, tags?: string[]) {
 
     const readyNewsMetadatas = [
         ...resultPinnedNewsMetadatas,
-        ...resultNewsMetadatas.sort(sortByTimestamp)
+        ...resultNewsMetadatas.sort(sortByPublicTimestamp)
     ].slice(0, count)
 
     return readyNewsMetadatas
