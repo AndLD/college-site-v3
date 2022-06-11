@@ -12,7 +12,7 @@ COPY . .
 
 RUN npm run build
 
-COPY ./app-settings.json ./ts-built/
+VOLUME ./app-settings.json ./ts-built/app-settings.json
 
 EXPOSE 8080
 
