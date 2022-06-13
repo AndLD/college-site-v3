@@ -1,4 +1,4 @@
-import { Response, Router } from 'express'
+import { Router } from 'express'
 import { controller } from '../../controllers/controller'
 import multer from 'multer'
 import { privateNewsControllers } from '../../controllers/private/news'
