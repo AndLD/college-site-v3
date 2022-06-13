@@ -3,8 +3,6 @@ FROM node:16.13.1 as build
 
 WORKDIR /app
 
-# ENV PATH /app/node_modules/.bin:$PATH
-
 COPY package*.json ./
 
 COPY ./admin/ ./
