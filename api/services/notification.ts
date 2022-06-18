@@ -1,5 +1,6 @@
 import { Context, Telegraf } from 'telegraf'
 import { Update } from 'telegraf/typings/core/types/typegram'
+import { environment } from '../utils/constants'
 import { getLogger } from '../utils/logger'
 import { Error, IAction } from '../utils/types'
 
@@ -14,10 +15,12 @@ if (!token) {
     process.exit(1)
 }
 
-const bot: Telegraf<Context<Update>> | null = new Telegraf(token)
-bot.launch().then(() => {
-    logger.info('Telegram bot successfully connected.')
-})
+const bot: Telegraf<Context<Update>> | null = environment === 'test' ? null : new Telegraf(token)
+if (bot) {
+    bot.launch().then(() => {
+        logger.info('Telegram bot successfully connected.')
+    })
+}
 
 function _sendMessage(message: string) {
     if (!bot) {

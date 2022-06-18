@@ -1,3 +1,3 @@
 {
-    "ignore": ["app-settings.json", "results"]
+    "ignore": ["app-settings.json", "results", "tests"]
 }

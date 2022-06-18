@@ -6,10 +6,14 @@ import { IUser } from '../utils/interfaces/users/users'
 import { getAllCompatibleInputForString } from '../utils/keywords'
 import { notificationService } from '../services/notification'
 import { getLogger } from '../utils/logger'
+import { environment } from '../utils/constants'
+import jwt from 'jwt-simple'
 
 const logger = getLogger('middlewares/auth')
 
-export async function isAuthorized(req: any, res: Response, next: NextFunction) {
+const jwtSecret = process.env.JWT_SECRET || 'secret'
+
+async function isUserAuthorized(req: any, res: Response, next: NextFunction) {
     if (!req.headers.authorization) return res.sendStatus(401)
 
     const token: string = req.headers.authorization.split(' ')[1] as string
@@ -71,6 +75,71 @@ export async function isAuthorized(req: any, res: Response, next: NextFunction) 
         return res.sendStatus(401)
     }
 }
+
+async function mockIsUserAuthorized(req: any, res: Response, next: NextFunction) {
+    if (!req.headers.authorization) return res.sendStatus(401)
+
+    const token: string = req.headers.authorization.split(' ')[1] as string
+
+    try {
+        const decodeValue: Any = jwt.decode(token, jwtSecret)
+        if (!decodeValue) return res.sendStatus(401)
+
+        req.user = decodeValue
+
+        const [result, findUserError] = await model({
+            collection: 'users',
+            where: [['email', '==', req.user.email]],
+            action: 'get'
+        })
+
+        if (findUserError) {
+            return res.status(findUserError.code).json({
+                error: findUserError.msg
+            })
+        }
+
+        if (!result?.mainResult?.length) {
+            const newUser: IUser = {
+                email: req.user.email,
+                name: req.user.name,
+                status: req.user.status,
+                keywords: [
+                    ...getAllCompatibleInputForString(req.user.name),
+                    ...getAllCompatibleInputForString(req.user.email)
+                ],
+                timestamp: Date.now()
+            }
+
+            const [result, createUserError] = await model({
+                collection: 'users',
+                action: 'add',
+                obj: newUser
+            })
+
+            if (createUserError) {
+                return res.status(createUserError.code).json({
+                    error: createUserError.msg
+                })
+            }
+
+            notificationService.sendNewUserNofication(req.user.name, req.user.email)
+
+            req.user._doc = result?.mainResult
+        } else {
+            req.user._doc = result.mainResult[0]
+        }
+
+        next()
+    } catch (e) {
+        // TODO: Отражать на фронте сообщение о том, что сессия истекла
+        // e.errorInfo.code == 'auth/id-token-expired'
+        logger.error(e)
+        return res.sendStatus(401)
+    }
+}
+
+export const isAuthorized = environment === 'test' ? mockIsUserAuthorized : isUserAuthorized
 
 export function hasModeratorStatus(req: any, res: Response, next: NextFunction) {
     const status = req.user?._doc?.status

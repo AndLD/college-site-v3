@@ -5,7 +5,10 @@ export function useState(initialState?: any, ...subscribers: Subscriber[]) {
         state: initialState,
         setState(newState: any) {
             state.state = newState
-            for (const sub of subscribers) sub(newState)
+
+            for (const sub of subscribers) {
+                sub(newState)
+            }
         },
         subscribers
     }
