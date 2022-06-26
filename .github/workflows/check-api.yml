@@ -4,6 +4,9 @@ on:
     push:
         branches:
             - dev
+    pull_request:
+        branches:
+            - dev
 
 jobs:
     build:
@@ -19,8 +22,11 @@ jobs:
             - uses: actions/setup-node@v2
               with:
                   node-version: 16.13.1
-            - run: cd api
-            - run: npm i
-            - run: echo "${{ secrets.test }}" > .env.test
+            - run: |
+                  cd api
+                  npm i
+            - run: |
+                  cd api
+                  echo "${{ secrets.test }}" > .env.test
             - run: npm run test-server
             - run: npm run test
