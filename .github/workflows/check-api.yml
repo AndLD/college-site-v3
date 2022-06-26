@@ -1,0 +1,21 @@
+name: Check API
+
+on:
+    push:
+        branches:
+            - dev
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - run: docker-compose start postgres
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 16.13.1
+            - run: cd api
+            - run: npm i
+            - run: echo "${{secrets.test }}" > .env.test
+            - run: npm run test-server
+            - run: npm run test
