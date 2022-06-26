@@ -10,15 +10,12 @@ import { tryCatch } from '../utils/decorators'
 import {
     Any,
     Controller,
-    // ControllerTrigger,
     HttpMethod,
     DefaultResult,
     LogicOperator,
     Filter,
     ModelResult,
-    // ControllerCallbackCaller,
     Error,
-    // CallControllerCallbacksResults,
     Pagination,
     ArrayContainsFilter
 } from '../utils/types'
@@ -31,35 +28,20 @@ export const controller = tryCatch(async function (req: Request, res: Response) 
             error: parseReqError.msg
         })
 
-    const {
-        method,
-        id,
-        singleResult,
-        ids,
-        pagination,
-        select,
-        order,
-        obj,
-        entity,
-        email,
-        where
-        // controllerTriggers,
-        // controllerCallbacks
-    } = reqData as {
-        method: HttpMethod
-        id: string
-        singleResult: boolean
-        ids: string[]
-        pagination?: Pagination
-        select?: string[]
-        order?: [string, string]
-        obj: Any
-        entity: string
-        email: string
-        where: Filter[]
-        // controllerTriggers: undefined | ControllerTrigger[]
-        // controllerCallbacks: undefined | ControllerCallbackCaller[]
-    }
+    const { method, id, singleResult, ids, pagination, select, order, obj, entity, email, where } =
+        reqData as {
+            method: HttpMethod
+            id: string
+            singleResult: boolean
+            ids: string[]
+            pagination?: Pagination
+            select?: string[]
+            order?: [string, string]
+            obj: Any
+            entity: string
+            email: string
+            where: Filter[]
+        }
 
     let replacedId: string | undefined
 
@@ -72,10 +54,11 @@ export const controller = tryCatch(async function (req: Request, res: Response) 
         }
     }
 
-    if (method == 'GET' && !id && singleResult)
+    if (method == 'GET' && !id && singleResult) {
         return res.json({
             result: null
         })
+    }
 
     let [modelResult, modelError] = (await controllerMethods[method]({
         id: replacedId || id,
@@ -87,23 +70,12 @@ export const controller = tryCatch(async function (req: Request, res: Response) 
         entity,
         email,
         where
-        // controllerTriggers
     })) as [ModelResult | null, Error | null]
-    if (modelError)
+    if (modelError) {
         return res.status(modelError.code || 500).json({
             error: modelError.msg
         })
-
-    // const [callbacksResults, callbackError]: CallControllerCallbacksResults = await callCallbacks(
-    //     controllerCallbacks,
-    //     modelResult as ModelResult
-    // )
-    // if (callbackError)
-    //     return res.status(callbackError.code || 500).json({
-    //         error: callbackError.msg
-    //     })
-
-    // if (modelResult?._triggersResult) delete modelResult._triggersResult
+    }
 
     let meta
     if (modelResult?._meta) {
@@ -114,7 +86,6 @@ export const controller = tryCatch(async function (req: Request, res: Response) 
     return res.json({
         result: modelResult?.mainResult,
         meta
-        // additionalResults: callbacksResults?.length && callbacksResults
     })
 } as Controller)
 
@@ -128,8 +99,7 @@ const controllerMethods = {
         order,
         entity,
         where
-    }: // controllerTriggers
-    {
+    }: {
         email: string
         id?: string
         ids?: string[]
@@ -138,7 +108,6 @@ const controllerMethods = {
         order?: [string, string]
         entity: string
         where?: Filter[]
-        // controllerTriggers?: ControllerTrigger[]
     }) =>
         await model({
             email,
@@ -150,25 +119,13 @@ const controllerMethods = {
             select,
             order,
             action: 'get'
-            // triggers: controllerTriggers
         }),
 
-    POST: async ({
-        obj,
-        entity,
-        email
-    }: // controllerTriggers
-    {
-        obj: Any
-        entity: string
-        email: string
-        // controllerTriggers?: ControllerTrigger[]
-    }) =>
+    POST: async ({ obj, entity, email }: { obj: Any; entity: string; email: string }) =>
         await model({
             collection: entity,
             action: 'add',
             obj: { ...obj, timestamp: Date.now(), user: email }
-            // triggers: controllerTriggers
         }),
 
     PUT: async ({
@@ -177,14 +134,12 @@ const controllerMethods = {
         obj,
         entity,
         findByUserEmail
-    }: // controllerTriggers
-    {
+    }: {
         email: string
         id?: string
         obj: Any
         entity: string
         findByUserEmail?: boolean
-        // controllerTriggers?: ControllerTrigger[]
     }) =>
         await model({
             email,
@@ -195,7 +150,6 @@ const controllerMethods = {
                 ...obj,
                 lastUpdateTimestamp: Date.now()
             }
-            // triggers: controllerTriggers
         }),
 
     DELETE: async ({
@@ -203,13 +157,11 @@ const controllerMethods = {
         id,
         ids,
         entity
-    }: // controllerTriggers
-    {
+    }: {
         email: string
         id: string
         ids: string[]
         entity: string
-        // controllerTriggers?: ControllerTrigger[]
     }) => {
         const [result, error] = await model({
             email,
@@ -217,7 +169,6 @@ const controllerMethods = {
             docId: id,
             docIds: ids,
             action: 'delete'
-            // triggers: controllerTriggers
         })
         return error ? [null, error] : [result, null]
     }
@@ -281,9 +232,6 @@ const parseReq = (req: any) => {
     // where - блок условий для поиска по базе
     const where = filters
 
-    // const controllerTriggers = req.controllerTriggers
-    // const controllerCallbacks = req.controllerCallbacks
-
     return [
         {
             method,
@@ -297,8 +245,6 @@ const parseReq = (req: any) => {
             entity,
             email,
             where
-            // controllerTriggers,
-            // controllerCallbacks
         },
         null
     ]
@@ -318,13 +264,13 @@ function parseFilters({
             .map((filter: string) => {
                 const [key, operator, value] = filter.split(',') as [
                     string,
-                    LogicOperator | 'contains' | 'in' /* | 'like'*/,
+                    LogicOperator | 'contains' | 'in',
                     string
                 ]
 
                 let convertedValue: number | boolean | string = value
 
-                if (!['contains', 'in' /*, 'like'*/].includes(operator)) {
+                if (!['contains', 'in'].includes(operator)) {
                     const floatValue = parseFloat(value as string)
 
                     if (floatValue) {
@@ -337,55 +283,11 @@ function parseFilters({
                     return [key, 'array-contains', convertedValue as string]
                 } else if (operator === 'in') {
                     return [key, 'in', (convertedValue as string).split('.')]
-                }
-                //  else if (operator === 'like') {
-                //     return [key, 'like', convertedValue as string]
-                // }
-                else return [key, operator, convertedValue]
+                } else return [key, operator, convertedValue]
             })
-
-        // let key: string = ''
-        // let convertedValue: string = ''
-
-        // const index = filters.findIndex((filter: Filter) => {
-        //     if (filter[1] === 'like') {
-        //         key = filter[0]
-        //         convertedValue = filter[2]
-        //         return true
-        //     }
-        // })
-
-        // if (key && index > -1 && convertedValue)
-        //     filters.splice(
-        //         index,
-        //         1,
-        //         [key, '>=', convertedValue],
-        //         [key, '<=', convertedValue + '\uf8ff']
-        //     )
 
         return [filters, null]
     } catch (e) {
         return [null, errors.BAD_FILTERS]
     }
 }
-
-/* Обработка "влекущих действий" (controllerCallbacks) - действий, которые должны произойти после основного запроса
-    Например, при проведении операции должна быть добавлена операция, а потом изменено состояния баланса учавствующих в ней кошельков */
-// const callCallbacks = async (
-//     callbacks: ControllerCallbackCaller[] | undefined,
-//     modelResult: ModelResult
-// ) => {
-//     if (!callbacks) return [null, null] as CallControllerCallbacksResults
-
-//     const results: Any[] = []
-
-//     for (const callback of callbacks)
-//         if (typeof callback == 'function') {
-//             const [result, error] = await callback(modelResult)
-//             if (error) return [null, error] as CallControllerCallbacksResults
-
-//             if (result) results.push(result)
-//         }
-
-//     return [results, null] as CallControllerCallbacksResults
-// }

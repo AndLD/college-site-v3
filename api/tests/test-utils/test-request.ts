@@ -1,9 +1,6 @@
 import supertest from 'supertest'
 import jwt from 'jwt-simple'
-import { getLogger } from '../../utils/logger'
 import { Any, HttpMethod, SetStateFunction } from '../../utils/types'
-
-const logger = getLogger('tests/test-utils/makeRequest')
 
 const port = process.env.PORT || '8080'
 const host = process.env.HOST || 'localhost'
@@ -30,7 +27,8 @@ export async function testRequest(
         query,
         body,
         resBody,
-        resCode
+        resCode = 200,
+        auth = true
     }: {
         method?: HttpMethod
         route: string
@@ -39,6 +37,7 @@ export async function testRequest(
         body?: Any
         resBody?: Any
         resCode?: number
+        auth?: boolean
     },
     setId?: SetStateFunction
 ) {
@@ -50,18 +49,14 @@ export async function testRequest(
             : ''
     }`
 
-    try {
-        const res: supertest.Response = await server[method.toLowerCase()](url)
-            .set('Accept', /json/)
-            .set('Authorization', `Bearer ${token}`)
-            .send(body)
-            .expect(resCode || 200)
-            .expect('Content-Type', /json/)
+    const res: supertest.Response = await server[method.toLowerCase()](url)
+        .set('Accept', /json/)
+        .set('Authorization', auth ? `Bearer ${token}` : null)
+        .send(body)
+        .expect(resCode)
+    // .expect('Content-Type', /json/)
 
-        resBody && expect(res.body).toEqual(expect.objectContaining(resBody))
+    resBody && expect(res.body).toEqual(expect.objectContaining(resBody))
 
-        setId && setId(res.body.result?.id)
-    } catch (e) {
-        throw e
-    }
+    setId && setId(res.body.result?.id)
 }

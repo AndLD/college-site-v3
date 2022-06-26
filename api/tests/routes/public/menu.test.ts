@@ -4,25 +4,21 @@ import { menuRequests, settingsRequests } from '../../test-utils/requests'
 
 const route = '/api/public/menu'
 
-describe(`menuPublicRouter: ${route}`, () => {
+describe(`Menu Public Router: ${route}`, () => {
     describe('GET / --> selected menu-block', () => {
         let idState = useState()
 
-        beforeAll((done) => {
-            menuRequests
-                .defaultPost(idState.setState)
-                .then(() => settingsRequests.putSelectedMenuId(idState.state))
-                .then(done)
+        beforeAll(async () => {
+            await menuRequests.defaultPost(idState.setState)
+            await settingsRequests.putSelectedMenuId(idState.state)
         })
 
-        afterAll((done) => {
-            menuRequests
-                .defaultDelete(idState.state)
-                .then(() => settingsRequests.putSelectedMenuId(null))
-                .then(done)
+        afterAll(async () => {
+            await menuRequests.defaultDelete(idState.state)
+            await settingsRequests.putSelectedMenuId(null)
         })
 
-        it('default', (done) => {
+        it('default', async () => {
             const resBody = {
                 result: {
                     id: idState.state,
@@ -39,7 +35,7 @@ describe(`menuPublicRouter: ${route}`, () => {
                 }
             }
 
-            testRequest({ method: 'GET', route, resBody }, undefined).then(done)
+            await testRequest({ method: 'GET', route, resBody, auth: false })
         })
     })
 })

@@ -7,8 +7,8 @@
     "scripts": {
         "prod": "node ts-built/index",
         "dev": "nodemon index.ts",
-        "test-server": "NODE_ENV=test npm run dev",
-        "test": "env-cmd -f .env.test jest",
+        "test-server": "NODE_ENV=test nyc npm run dev",
+        "test": "env-cmd -f .env.test jest --runInBand --coverage",
         "build": "tsc"
     },
     "keywords": [
@@ -30,6 +30,7 @@
         "env-cmd": "^10.1.0",
         "jest": "^27.5.1",
         "nodemon": "^2.0.12",
+        "nyc": "^15.1.0",
         "supertest": "^6.1.6",
         "ts-jest": "^27.0.5",
         "ts-node": "^10.2.1",
