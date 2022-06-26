@@ -12,9 +12,17 @@ const logger = getLogger('services/google-drive')
 
 const drive = google.drive('v3')
 
+const GOOGLE_CLIENT_EMAIL = process.env.GOOGLE_CLIENT_EMAIL
+const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY
+
+if (!GOOGLE_CLIENT_EMAIL || !GOOGLE_PRIVATE_KEY) {
+    logger.error('GOOGLE_CLIENT_EMAIL or GOOGLE_PRIVATE_KEY not specified')
+    process.exit(1)
+}
+
 const jwtToken = new google.auth.JWT({
-    email: key.client_email,
-    key: key.private_key,
+    email: GOOGLE_CLIENT_EMAIL,
+    key: GOOGLE_PRIVATE_KEY,
     scopes: ['https://www.googleapis.com/auth/drive']
 })
 
