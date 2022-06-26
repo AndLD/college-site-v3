@@ -1,6 +1,5 @@
 import { google } from 'googleapis'
 import { getLogger } from '../utils/logger'
-import key from '../configs/service-account.json'
 import { defaultArticleOptions, defaultNewsOptions, googleDrive } from '../utils/constants'
 import { Readable } from 'stream'
 import { bufferFolderPath, bufferService } from './buffer'
