@@ -36,6 +36,8 @@ function init() {
     }
 }
 
+console.log(process.env)
+
 if (environment !== 'test') {
     init()
 }
