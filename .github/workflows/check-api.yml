@@ -22,11 +22,19 @@ jobs:
             - uses: actions/setup-node@v2
               with:
                   node-version: 16.13.1
-            - run: |
+            - name: npm i
+              run: |
                   cd api
                   npm i
-            - run: |
+            - name: Create .env.test file
+              run: |
                   cd api
                   echo "${{ secrets.test }}" > .env.test
-            - run: npm run test-server
-            - run: npm run test
+            - name: Start server for testing
+              run: |
+                  cd api 
+                  npm run test-server
+            - name: Run tests
+              run: |
+                  cd api
+                  npm run test
