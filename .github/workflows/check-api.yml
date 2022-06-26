@@ -11,7 +11,7 @@ jobs:
         steps:
             - uses: actions/checkout@v2
             - run: docker-compose start postgres
-            - uses: actions/setup-node@v4
+            - uses: actions/setup-node@v2
               with:
                   node-version: 16.13.1
             - run: cd api
