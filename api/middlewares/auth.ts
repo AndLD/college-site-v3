@@ -19,7 +19,9 @@ async function isUserAuthorized(req: any, res: Response, next: NextFunction) {
     const token: string = req.headers.authorization.split(' ')[1] as string
 
     try {
-        const decodeValue: Any = await firebaseAuth().verifyIdToken(token)
+        // TODO: Refactor (Take out firebaseAuth variable existence check from the function)
+        const decodeValue: Any | undefined =
+            firebaseAuth && (await firebaseAuth().verifyIdToken(token))
         if (!decodeValue) return res.sendStatus(401)
 
         req.user = decodeValue
