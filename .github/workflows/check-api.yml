@@ -32,7 +32,7 @@ jobs:
             - name: Create .env.test file
               run: |
                   cd api
-                  echo "${{ secrets.API_ENV_TEST }}" | base64 --decode > .env.test
+                  echo "${{ secrets.API_ENV_TEST }}" > .env.test
             - name: Start server for testing
               run: |
                   cd api 
