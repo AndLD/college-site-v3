@@ -36,7 +36,7 @@ function init() {
     }
 }
 
-console.log(process.env)
+console.log(process.env.GOOGLE_PRIVATE_KEY)
 
 if (environment !== 'test') {
     init()
