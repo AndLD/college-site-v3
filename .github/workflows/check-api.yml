@@ -37,7 +37,8 @@ jobs:
                   echo "$API_ENV_TEST" > .env.test
             - name: Start server for testing
               run: |
-                  cd api 
+                  cd api
+                  npm run build
                   npm run test-server &
             - name: Wait For HTTP Responses
               uses: cygnetdigital/wait_for_response@v2.0.0
