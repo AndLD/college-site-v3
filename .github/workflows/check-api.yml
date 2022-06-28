@@ -39,7 +39,7 @@ jobs:
               run: |
                   cd api 
                   npm run test-server &
-            - uses: cygnetdigital/wait_for_response@v2s
+            - uses: cygnetdigital/wait_for_response@v2
               with:
                   url: 'http://localhost:8081/api/private/menu'
                   timeout: 15000
