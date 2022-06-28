@@ -1,32 +1,44 @@
 import { Context, Telegraf } from 'telegraf'
 import { Update } from 'telegraf/typings/core/types/typegram'
+import { environment } from '../utils/constants'
 import { getLogger } from '../utils/logger'
 import { Error, IAction } from '../utils/types'
 
 const logger = getLogger('services/notification')
 
-const token = process.env.TELEGRAM_BOT_TOKEN
-const channelId = process.env.TELEGRAM_CHANNEL_ID
+let token: string | undefined
+let channelId: string | undefined
+let bot: Telegraf<Context<Update>> | undefined
 
-if (!token) {
-    const errorMsg = 'Telegram bot token not provided'
-    logger.error(errorMsg)
-    process.exit(1)
-}
+function init() {
+    if (environment !== 'test') {
+        token = process.env.TELEGRAM_BOT_TOKEN
+        channelId = process.env.TELEGRAM_CHANNEL_ID
 
-const bot: Telegraf<Context<Update>> | null = new Telegraf(token)
-bot.launch().then(() => {
-    logger.info('Telegram bot successfully connected.')
-})
+        if (!token) {
+            const errorMsg = 'Telegram bot token not provided'
+            logger.error(errorMsg)
+            return
+        }
 
-function _sendMessage(message: string) {
-    if (!bot) {
-        return
+        if (!channelId) {
+            const errorMsg = 'Telegram channelId not provided'
+            logger.error(errorMsg)
+            return
+        }
+
+        bot = new Telegraf(token)
     }
 
-    if (!channelId) {
-        const errorMsg = 'Telegram channelId not provided'
-        logger.error(errorMsg)
+    if (bot) {
+        bot.launch().then(() => {
+            logger.info('Telegram bot successfully connected.')
+        })
+    }
+}
+
+function _sendMessage(message: string) {
+    if (!bot || !channelId) {
         return
     }
 
@@ -91,6 +103,8 @@ function sendWarning(message: string) {
 
     _sendMessage(message)
 }
+
+init()
 
 export const notificationService = {
     sendNewActionNotification,

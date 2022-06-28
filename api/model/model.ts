@@ -189,13 +189,15 @@ async function _makeBatchedDeletes({
     }
 
     try {
-        await _query(
+        const postgresRes = await _query(
             `DELETE FROM ${collection} WHERE id IN (${docIds
                 .map((docId) => `'${docId}'`)
-                .join(',')})`
+                .join(',')}) RETURNING id`
         )
 
-        return [null, null]
+        const result = postgresRes.rows.map(({ id }) => id)
+
+        return [result, null]
     } catch (e) {
         logger.error('Error trying to perform makeBatchedDeletes query: ' + e)
         return [null, e]
@@ -462,6 +464,8 @@ async function _processPostgresRes({
                 const row = postgresRes.rows[0]
                 if (row) {
                     result = _factoryRowToEntity(row)
+                } else {
+                    return [null, { msg: 'Not Found', code: 404 }]
                 }
             } else {
                 const rows = postgresRes.rows
@@ -472,7 +476,12 @@ async function _processPostgresRes({
             result = _factoryRowToEntity(postgresRes.rows[0])
             break
         case 'update':
-            result = _factoryRowToEntity(postgresRes.rows[0])
+            const row = postgresRes.rows[0]
+            if (row) {
+                result = _factoryRowToEntity(postgresRes.rows[0])
+            } else {
+                return [null, { msg: 'Not Found', code: 404 }]
+            }
             break
     }
 
