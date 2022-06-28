@@ -39,7 +39,7 @@ jobs:
               run: |
                   cd api
                   npm run build
-                  npm run test-server & wait-on http://localhost:8081
+                  npm run test-server
             - name: Run tests
               run: |
                   cd api
