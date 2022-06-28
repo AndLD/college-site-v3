@@ -8,7 +8,7 @@
         "prod": "node ts-built/index",
         "dev": "nodemon index.ts",
         "test-server": "NODE_ENV=test npm run prod",
-        "test": "env-cmd -f .env.test jest --runInBand --coverage",
+        "test": "env-cmd -f .env.test jest --runInBand",
         "build": "tsc"
     },
     "keywords": [
