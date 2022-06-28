@@ -39,7 +39,7 @@ jobs:
               run: |
                   cd api
                   npm run build
-                  npm run test-server
+                  npm run test-server &
             - name: Run tests
               run: |
                   cd api
