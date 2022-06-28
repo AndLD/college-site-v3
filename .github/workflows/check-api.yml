@@ -30,9 +30,11 @@ jobs:
                   cd api
                   npm i
             - name: Create .env.test file
+              env:
+                  API_ENV_TEST: ${{ secrets.API_ENV_TEST }}
               run: |
                   cd api
-                  printf "${{ secrets.API_ENV_TEST }}" > .env.test
+                  echo "$API_ENV_TEST" > .env.test
             - name: Start server for testing
               run: |
                   cd api 
