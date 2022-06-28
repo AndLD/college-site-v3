@@ -42,8 +42,8 @@ jobs:
             - name: Wait For HTTP Responses
               uses: cygnetdigital/wait_for_response@v2.0.0
               with:
-                  url: 'http://localhost:8081/api/private/menu'
-                  timeout: 15000
+                  url: 'http://localhost:8081/api/public/menu'
+                  timeout: 30000
                   interval: 1000
             - name: Run tests
               run: |
