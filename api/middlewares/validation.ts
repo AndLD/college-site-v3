@@ -18,21 +18,14 @@ export const validateBody = (req: any, res: Response, next: NextFunction) => {
     switch (entity) {
         case entities.MENU:
             if (method === 'POST')
-                var { IMenuBlockPost: IMenuBlockChecker } = createCheckers(
-                    { IMenuBlockPost },
-                    { IMenuElement }
-                )
+                var { IMenuBlockPost: IMenuBlockChecker } = createCheckers({ IMenuBlockPost }, { IMenuElement })
             else if (method === 'PUT')
-                var { IMenuBlockPut: IMenuBlockChecker } = createCheckers(
-                    { IMenuBlockPut },
-                    { IMenuElement }
-                )
+                var { IMenuBlockPut: IMenuBlockChecker } = createCheckers({ IMenuBlockPut }, { IMenuElement })
 
             error = _checkInterface(req.body, IMenuBlockChecker)
             break
         case entities.APP_SETTINGS:
-            if (method === 'PUT')
-                var { IAppSettingsPut: IAppSettingsChecker } = createCheckers({ IAppSettingsPut })
+            if (method === 'PUT') var { IAppSettingsPut: IAppSettingsChecker } = createCheckers({ IAppSettingsPut })
 
             error = _checkInterface(req.body, IAppSettingsChecker)
             break

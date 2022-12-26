@@ -1,40 +1,33 @@
-import { Request, Response } from 'express'
-import { tryCatch } from '../../utils/decorators'
+import { Response } from 'express'
+import { notificationsService } from '../../services/notifications'
 import { appSettingsService } from '../../services/app-settings'
-import { Any, HttpMethod } from '../../utils/types'
+import { tryCatch } from '../../utils/decorators'
 
-type RequestData = {
-    method: HttpMethod
-    body: Any
+async function getSettings(_: any, res: Response) {
+    const settings = await appSettingsService.getAll()
+
+    return res.json({
+        result: settings
+    })
 }
 
-function _parseReq(req: any) {
-    const { method, body: obj }: RequestData = req
+async function putSettings(req: any, res: Response) {
+    const body = req.body
 
-    return { method, obj }
-}
+    const ok = await appSettingsService.set(body)
 
-export const appSettingsController = tryCatch(async function (req: Request, res: Response) {
-    // Парсинг необходимых данных из запроса
-    const reqData = _parseReq(req)
-
-    const { method, obj } = reqData
-
-    if (method !== 'GET' && method !== 'PUT')
-        return res.status(405).json({
-            error: 'You can only to GET or PUT app settings. Any other methods not allowed!'
-        })
-
-    let result
-    switch (method) {
-        case 'GET':
-            result = appSettingsService.get()
-            break
-        case 'PUT':
-            result = appSettingsService.set(obj)
+    if (body.notificationsService === true) {
+        await notificationsService.init()
+    } else if (body.notificationsService === false) {
+        await notificationsService.stop()
     }
 
     return res.json({
-        result
+        result: ok
     })
-})
+}
+
+export const appSettingsPrivateControllers = {
+    getSettings: tryCatch(getSettings),
+    putSettings: tryCatch(putSettings)
+}

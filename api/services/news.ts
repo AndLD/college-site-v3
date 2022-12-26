@@ -14,18 +14,13 @@ import {
     Options
 } from '../utils/types'
 import { googleDriveService } from './google-drive'
-import { notificationService } from './notification'
+import { notificationsService } from './notifications'
 
 const logger = getLogger('services/news')
 
 const newsCollection = 'news'
 
-async function addNews(
-    docId: string,
-    newsMetadata: INews,
-    file: NewsFileData,
-    image?: NewsFileData
-) {
+async function addNews(docId: string, newsMetadata: INews, file: NewsFileData, image?: NewsFileData) {
     await addMetadataToDBFlow(docId, newsMetadata)
 
     await addFileToGoogleDriveFlow(docId, file)
@@ -87,8 +82,7 @@ async function _deleteMetadatasFromDB(docIds: string[], errorMsg?: string, colle
         collection: collection || newsCollection
     })
 
-    if (deleteModelError)
-        throw errorMsg || 'Deleting metadatas failed with error: ' + deleteModelError.msg
+    if (deleteModelError) throw errorMsg || 'Deleting metadatas failed with error: ' + deleteModelError.msg
 }
 
 async function addFileToGoogleDrive(
@@ -129,9 +123,7 @@ async function addFileToGoogleDriveFlow(
             if (!html) throw 'Result of convertion DOCX to HTML is empty'
         } catch {
             // If DOCX was not converted to HTML we should delete DOCX from Google Drive and it's document from database
-            const baseErrorMsg = `News file [${
-                filename || docId
-            }.html] was not stored to Google Drive!`
+            const baseErrorMsg = `News file [${filename || docId}.html] was not stored to Google Drive!`
 
             await googleDriveService.deleteFiles([filename || docId], 'news')
 
@@ -157,12 +149,7 @@ async function addFileToGoogleDriveFlow(
     }
 }
 
-async function updateNews(
-    docId: string,
-    newsMetadataUpdate: INewsUpdate,
-    file?: NewsFileData,
-    image?: NewsFileData
-) {
+async function updateNews(docId: string, newsMetadataUpdate: INewsUpdate, file?: NewsFileData, image?: NewsFileData) {
     await updateMetadataToDBFlow(docId, newsMetadataUpdate)
 
     if (file) {
@@ -335,10 +322,7 @@ async function replaceOldIds(docIds: string[], options?: Options) {
         }
 
         if (oldIds.includes(newsMetadata.oldId)) {
-            notificationService.sendError(
-                innerErrors.NEWS_OLD_ID_DUBLICATE,
-                `oldId = ${newsMetadata.oldId}`
-            )
+            notificationsService.sendError(innerErrors.NEWS_OLD_ID_DUBLICATE, `oldId = ${newsMetadata.oldId}`)
             logger.error(
                 `ERROR [${innerErrors.NEWS_OLD_ID_DUBLICATE.code}]: ${innerErrors.NEWS_OLD_ID_DUBLICATE.msg}: oldId = ${newsMetadata.oldId}`
             )

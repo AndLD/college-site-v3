@@ -24,17 +24,14 @@ async function getDownloadNews(req: any, res: Response) {
             error: '"ids" query param is missed!'
         })
 
-    let options: Options | undefined =
-        req.headers['download-options'] && JSON.parse(req.headers['download-options'])
+    let options: Options | undefined = req.headers['download-options'] && JSON.parse(req.headers['download-options'])
 
     ;[ids, options] = (await newsService.replaceOldIds(ids, options)) as [string[], Options]
 
-    const bufferOptions =
-        (options && bufferService.getBufferAvailableOptions('news', ids, options)) || undefined
+    const bufferOptions = (options && bufferService.getBufferAvailableOptions('news', ids, options)) || undefined
 
     const substractedOptions =
-        (options && bufferOptions && bufferUtils.substractOptions(options, bufferOptions)) ||
-        undefined
+        (options && bufferOptions && bufferUtils.substractOptions(options, bufferOptions)) || undefined
 
     const filenames: {
         path: string
@@ -57,11 +54,7 @@ async function getDownloadNews(req: any, res: Response) {
     }
 
     if (substractedOptions && Object.keys(substractedOptions).length) {
-        const downloadedFilenames = await googleDriveService.downloadFiles(
-            ids,
-            'news',
-            substractedOptions
-        )
+        const downloadedFilenames = await googleDriveService.downloadFiles(ids, 'news', substractedOptions)
 
         if (!downloadedFilenames.length) {
             return res.sendStatus(404)
@@ -98,8 +91,8 @@ async function getDownloadNews(req: any, res: Response) {
     })
 }
 
-function getPinnedNewsIds(_: Request, res: Response) {
-    const pinnedNewsIds = appSettingsService.get().pinnedNewsIds || []
+async function getPinnedNewsIds(_: Request, res: Response) {
+    const pinnedNewsIds = ((await appSettingsService.get('pinnedNewsIds')) as string[]) || []
 
     res.json({
         result: pinnedNewsIds

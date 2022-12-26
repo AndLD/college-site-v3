@@ -8,14 +8,13 @@ import {
     IAction,
     ModelResult,
     NewsFileData,
-    NewsAllowedFileExtension,
-    WhereOperator
+    NewsAllowedFileExtension
 } from '../utils/types'
 import { getLogger } from '../utils/logger'
 import { articlesService } from './articles'
 import { googleDriveService } from './google-drive'
 import { ArticleData, IArticle } from '../utils/interfaces/articles/articles'
-import { notificationService } from './notification'
+import { notificationsService } from './notifications'
 import { newsService } from './news'
 import { INews, NewsData } from '../utils/interfaces/news/news'
 
@@ -44,9 +43,7 @@ async function addAction(
     actionId = modelResult?.mainResult?.id
 
     if (!actionId) {
-        throw new Error(
-            'Action was not stored to database! Body: ' + JSON.stringify(actionMetadata)
-        )
+        throw new Error('Action was not stored to database! Body: ' + JSON.stringify(actionMetadata))
     }
 
     if ((file || image) && actionMetadata.status === 'pending') {
@@ -60,7 +57,7 @@ async function addAction(
     }
 
     if (actionMetadata.status === 'pending') {
-        notificationService.sendNewActionNotification(actionId, actionMetadata)
+        notificationsService.sendNewActionNotification(actionId, actionMetadata)
     }
 
     return actionId
@@ -91,10 +88,7 @@ async function updateActions(actionIds: string[], newStatus: ActionStatus, email
                     if (actionMetadata.action === 'add') {
                         const docId = actionMetadata.payloadIds[0]
 
-                        await articlesService.addMetadataToDBFlow(
-                            docId,
-                            actionMetadata.payload as IArticle
-                        )
+                        await articlesService.addMetadataToDBFlow(docId, actionMetadata.payload as IArticle)
                         const articleData: ArticleData = actionMetadata.payload.data
                         if (articleData.docx) {
                             await googleDriveService.updateFilename(
@@ -154,10 +148,7 @@ async function updateActions(actionIds: string[], newStatus: ActionStatus, email
                     if (actionMetadata.action === 'add') {
                         const docId = actionMetadata.payloadIds[0]
 
-                        await newsService.addMetadataToDBFlow(
-                            docId,
-                            actionMetadata.payload as INews
-                        )
+                        await newsService.addMetadataToDBFlow(docId, actionMetadata.payload as INews)
                         const newsData: NewsData = actionMetadata.payload.data
                         if (newsData.docx) {
                             await googleDriveService.updateFilename(
@@ -192,8 +183,10 @@ async function updateActions(actionIds: string[], newStatus: ActionStatus, email
                     } else if (actionMetadata.action === 'update') {
                         const docId = actionMetadata.payloadIds[0]
 
-                        const { docBeforeUpdate: newsMetadata } =
-                            await newsService.updateMetadataToDBFlow(docId, actionMetadata.payload)
+                        const { docBeforeUpdate: newsMetadata } = await newsService.updateMetadataToDBFlow(
+                            docId,
+                            actionMetadata.payload
+                        )
 
                         const fileMetadatas = await googleDriveService.getFilesMetadataByDocIds(
                             [actionMetadata.id + '_pending'],
@@ -203,8 +196,9 @@ async function updateActions(actionIds: string[], newStatus: ActionStatus, email
                         const areFilesUpdated = fileMetadatas.length
 
                         if (areFilesUpdated) {
-                            const updatedFileExtensions: NewsAllowedFileExtension[] =
-                                fileMetadatas.map((fileMetadata) => fileMetadata.fileExtension)
+                            const updatedFileExtensions: NewsAllowedFileExtension[] = fileMetadatas.map(
+                                (fileMetadata) => fileMetadata.fileExtension
+                            )
 
                             const fileExtensionsToDelete: NewsAllowedFileExtension[] = []
 
@@ -307,9 +301,7 @@ async function _updateActionMetadata(actionId: string, newStatus: ActionStatus, 
     const updatedActionId = modelResult?.mainResult?.id
 
     if (!updatedActionId) {
-        throw new Error(
-            `Something went wrong. No ID in result of action [${actionId}] status update`
-        )
+        throw new Error(`Something went wrong. No ID in result of action [${actionId}] status update`)
     }
 
     const actionMetadata = modelResult.mainResult as IAction

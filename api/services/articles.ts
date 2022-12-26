@@ -6,7 +6,7 @@ import { IArticle, IArticleUpdate } from '../utils/interfaces/articles/articles'
 import { getLogger } from '../utils/logger'
 import { Error, ArticleFileData, Filter, ModelResult, Options } from '../utils/types'
 import { googleDriveService } from './google-drive'
-import { notificationService } from './notification'
+import { notificationsService } from './notifications'
 
 const logger = getLogger('services/articles')
 
@@ -44,9 +44,7 @@ async function addMetadataToDB(docId: string, obj: IArticle) {
 async function addMetadataToDBFlow(docId: string, articleMetadata: IArticle) {
     articleMetadata.keywords = getAllCompatibleInputForString(articleMetadata.title)
     if (articleMetadata.description) {
-        articleMetadata.keywords.push(
-            ...getAllCompatibleInputForString(articleMetadata.description)
-        )
+        articleMetadata.keywords.push(...getAllCompatibleInputForString(articleMetadata.description))
     }
     if (articleMetadata.tags) {
         for (const tag of articleMetadata.tags) {
@@ -55,9 +53,7 @@ async function addMetadataToDBFlow(docId: string, articleMetadata: IArticle) {
     }
     articleMetadata.keywords.push(...getAllCompatibleInputForString(docId))
     if (articleMetadata.oldId) {
-        articleMetadata.keywords.push(
-            ...getAllCompatibleInputForString(articleMetadata.oldId.toString())
-        )
+        articleMetadata.keywords.push(...getAllCompatibleInputForString(articleMetadata.oldId.toString()))
     }
 
     const mainResult = await addMetadataToDB(docId, articleMetadata)
@@ -103,9 +99,7 @@ async function addFileToGoogleDrive(
             filename && filename.includes('_pending') ? 'actions' : undefined
         )
 
-        throw new Error(
-            `Article file [${filename || docId}.${file.ext}] was not stored to Google Drive!`
-        )
+        throw new Error(`Article file [${filename || docId}.${file.ext}] was not stored to Google Drive!`)
     }
 }
 
@@ -125,9 +119,7 @@ async function addFileToGoogleDriveFlow(
             }
         } catch (e) {
             // If DOCX was not converted to HTML we should delete DOCX from Google Drive and it's document from database
-            const baseErrorMsg = `Article file [${
-                filename || docId
-            }.html] was not stored to Google Drive! Cause: ${e}`
+            const baseErrorMsg = `Article file [${filename || docId}.html] was not stored to Google Drive! Cause: ${e}`
 
             await googleDriveService.deleteFiles([filename || docId], 'articles')
 
@@ -153,11 +145,7 @@ async function addFileToGoogleDriveFlow(
     }
 }
 
-async function updateArticle(
-    docId: string,
-    articleMetadataUpdate: IArticleUpdate,
-    file?: ArticleFileData
-) {
+async function updateArticle(docId: string, articleMetadataUpdate: IArticleUpdate, file?: ArticleFileData) {
     await updateMetadataToDBFlow(docId, articleMetadataUpdate)
 
     if (file) {
@@ -317,10 +305,7 @@ async function replaceOldIds(docIds: string[], options?: Options) {
         }
 
         if (oldIds.includes(articleMetadata.oldId)) {
-            notificationService.sendError(
-                innerErrors.ARTICLE_OLD_ID_DUBLICATE,
-                `oldId = ${articleMetadata.oldId}`
-            )
+            notificationsService.sendError(innerErrors.ARTICLE_OLD_ID_DUBLICATE, `oldId = ${articleMetadata.oldId}`)
             logger.error(
                 `ERROR [${innerErrors.ARTICLE_OLD_ID_DUBLICATE.code}]: ${innerErrors.ARTICLE_OLD_ID_DUBLICATE.msg}: oldId = ${articleMetadata.oldId}`
             )

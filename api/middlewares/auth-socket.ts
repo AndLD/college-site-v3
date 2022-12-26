@@ -63,7 +63,7 @@
 //                                 return
 //                             }
 
-//                             notificationService.sendNewUserNofication(
+//                             notificationsService.sendNewUserNofication(
 //                                 socket.user.name,
 //                                 socket.user.email
 //                             )

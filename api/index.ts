@@ -4,9 +4,11 @@ import { getLogger } from './utils/logger'
 import { setupServer } from './setup/server'
 import { ping } from './model/model'
 import { environment } from './utils/constants'
+import { appSettingsService } from './services/app-settings'
 
 const logger = getLogger('index')
 
+appSettingsService.init()
 const server = setupServer()
 
 const port = process.env.PORT || 8080
