@@ -85,8 +85,7 @@ function _nextStep(id: string) {
 
     performance.measure(measureName, `${measureName} start`, `${measureName} end`)
 
-    jobs[id].steps[jobs[id].currentStep].duration =
-        performance.getEntriesByName(measureName)[0].duration
+    // jobs[id].steps[jobs[id].currentStep].duration = performancegetEntriesByName(measureName)[0].duration
     jobs[id].currentStep++
 
     performance.mark(`job:${id}:step:${jobs[id].currentStep} start`)
@@ -186,12 +185,7 @@ function _finish(id: string) {
     // Clear marks and measures
     jobsUtils.clearPerformanceResources(
         [stepMeasureName, jobMeasureName],
-        [
-            `${stepMeasureName} start`,
-            `${stepMeasureName} end`,
-            `${jobMeasureName} start`,
-            `${jobMeasureName} end`
-        ]
+        [`${stepMeasureName} start`, `${stepMeasureName} end`, `${jobMeasureName} start`, `${jobMeasureName} end`]
     )
 }
 

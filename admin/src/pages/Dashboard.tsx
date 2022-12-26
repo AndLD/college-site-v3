@@ -50,9 +50,9 @@ function Dashboard() {
         <AdminLayout>
             <Title level={1}>Dashboard</Title>
 
-            {statistics ? (
+            {statistics && (
                 <>
-                    <div style={{ display: 'flex', textAlign: 'center', margin: '50px 0' }}>
+                    <div style={{ display: 'flex', textAlign: 'center', margin: '25px 0' }}>
                         <Tooltip title="Menu">
                             <div style={{ flex: 1 }}>
                                 <Title level={2}>
@@ -73,15 +73,13 @@ function Dashboard() {
                             <Tooltip title="News">
                                 <Title level={2}>
                                     <div>{statistics.newsTotal}</div>
-                                    <FileImageOutlined
-                                        style={{ fontSize: '60px', marginTop: 10 }}
-                                    />
+                                    <FileImageOutlined style={{ fontSize: '60px', marginTop: 10 }} />
                                 </Title>
                             </Tooltip>
                         </div>
                     </div>
 
-                    <div style={{ display: 'flex', textAlign: 'center', margin: '50px 0' }}>
+                    <div style={{ display: 'flex', textAlign: 'center', margin: '25px 0' }}>
                         <div style={{ flex: 1 }}>
                             <Tooltip title="Users">
                                 <Title level={2}>
@@ -100,7 +98,7 @@ function Dashboard() {
                         </div>
                     </div>
 
-                    <div style={{ display: 'flex', textAlign: 'center', margin: '50px 0' }}>
+                    <div style={{ display: 'flex', textAlign: 'center', margin: '25px 0' }}>
                         <div style={{ flex: 1 }}>
                             <Tooltip title="Server buffer folder size total">
                                 <Title level={2}>
@@ -112,24 +110,14 @@ function Dashboard() {
                         <div style={{ flex: 1 }}>
                             <Tooltip title="Start time">
                                 <Title level={2}>
-                                    <div>
-                                        {moment(statistics.startTimestamp).format(
-                                            'DD.MM.YYYY HH:mm:ss'
-                                        )}
-                                    </div>
-                                    <ClockCircleOutlined
-                                        style={{ fontSize: '60px', marginTop: 10 }}
-                                    />
+                                    <div>{moment(statistics.startTimestamp).format('DD.MM.YYYY HH:mm:ss')}</div>
+                                    <ClockCircleOutlined style={{ fontSize: '60px', marginTop: 10 }} />
                                 </Title>
                             </Tooltip>
                         </div>
                     </div>
                 </>
-            ) : null}
-
-            {/* <div style={{ textAlign: 'center', padding: 10 }}>
-                <button onClick={() => navigator.clipboard.writeText(token)}>Copy token</button>
-            </div> */}
+            )}
         </AdminLayout>
     )
 }

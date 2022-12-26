@@ -14,6 +14,10 @@ services:
         hostname: college-site-v3_api
         build: api/
         restart: unless-stopped
+        volumes:
+            - type: bind
+              source: ./api/app-settings.json
+              target: /ts-built/app-settings.json
         depends_on:
             - postgres
             - redis
@@ -26,7 +30,7 @@ services:
             - api
 
     postgres:
-        image: 'postgres:latest'
+        image: 'postgres:14'
         container_name: 'college-site-v3_postgres'
         environment:
             - POSTGRES_USER=${POSTGRES_USER}
@@ -38,11 +42,11 @@ services:
             - ./db/postgres.sql:/docker-entrypoint-initdb.d/db.sql
             - ./db/volumes/postgres:/var/lib/postgresql/data
         restart: unless-stopped
+        
     redis:
-        image: 'redis:latest'
+        image: 'redis:7'
         container_name: 'college-site-v3_redis'
+        volumes:
+            - ./db/volumes/redis:/data
         ports:
             - '6379:6379'
-        volumes:
-            - './db/volumes/redis:/data'
-        restart: always

@@ -18,14 +18,14 @@ function AppRouterSwitch() {
     useEffect(() => {
         if (auth === true && user && user.status !== 'admin' && user.status !== 'moderator') {
             setRoutes([{ path: '/forbidden', component: Forbidden }])
-        } else if (auth === true && user && user.status === 'admin') {
+        } else if (auth === true && user?.status === 'admin') {
             setRoutes(privateRoutes)
-        } else if (auth === true && user && user.status === 'moderator') {
-            setRoutes([
-                ...privateRoutes.filter(
+        } else if (auth === true && user?.status === 'moderator') {
+            setRoutes(
+                privateRoutes.filter(
                     (route: any) => !['/admin/settings', '/admin/users'].includes(route.path)
                 )
-            ])
+            )
         } else {
             setRoutes(publicRoutes)
             dispatch(setToken(''))
@@ -43,8 +43,10 @@ function AppRouterSwitch() {
                 to={
                     auth && user && user.status !== 'admin' && user.status !== 'moderator'
                         ? '/forbidden'
-                        : auth //&& user
-                        ? location.pathname
+                        : auth
+                        ? location.pathname.includes('/admin')
+                            ? location.pathname
+                            : '/admin'
                         : !auth
                         ? '/auth'
                         : '/'

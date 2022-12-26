@@ -10,9 +10,7 @@ const templates = {
                 { title: 'Build action metadata object' },
                 { title: 'Check action auto approve availability' },
                 { title: 'Store action' },
-                {
-                    title: 'Store article'
-                }
+                { title: 'Store article' }
             ]
         }
     }

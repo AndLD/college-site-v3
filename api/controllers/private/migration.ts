@@ -64,7 +64,7 @@ async function postMigration(req: any, res: Response) {
             error: 'Bad entity'
         })
     }
-
+    
     const isAutoApproveEnabled = (
         await appSettingsService[await appSettingsService.appSettingsMode].get()
     ).actionAutoApproveEnabledForAdmins.includes(user.email)
