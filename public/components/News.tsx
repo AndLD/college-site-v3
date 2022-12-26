@@ -19,11 +19,11 @@ function News({ news }: { news: INewsCombined }) {
                             {news.metadata.title}
                         </p>
                         <p className={style['single-new-date-mobile']}>
-                            {moment(news.metadata.publicTimestamp).format('DD.MM.YYYY HH:mm')}
+                            {moment(news.metadata.publicTimestamp).format('DD.MM.YYYY')}
                         </p>
                         <p className={style['single-new-text']}>{news.metadata.description}</p>
                         <p className={style['single-new-date']}>
-                            {moment(news.metadata.publicTimestamp).format('DD.MM.YYYY HH:mm')}
+                            {moment(news.metadata.publicTimestamp).format('DD.MM.YYYY')}
                         </p>
                     </div>
                 </div>

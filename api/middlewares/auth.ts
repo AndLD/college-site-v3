@@ -4,7 +4,7 @@ import { NextFunction, Response } from 'express'
 import { model } from '../model/model'
 import { IUser } from '../utils/interfaces/users/users'
 import { getAllCompatibleInputForString } from '../utils/keywords'
-import { notificationService } from '../services/notification'
+import { notificationsService } from '../services/notifications'
 import { getLogger } from '../utils/logger'
 import { environment } from '../utils/constants'
 import jwt from 'jwt-simple'
@@ -20,8 +20,7 @@ async function isUserAuthorized(req: any, res: Response, next: NextFunction) {
 
     try {
         // TODO: Refactor (Take out firebaseAuth variable existence check from the function)
-        const decodeValue: Any | undefined =
-            firebaseAuth && (await firebaseAuth().verifyIdToken(token))
+        const decodeValue: Any | undefined = firebaseAuth && (await firebaseAuth().verifyIdToken(token))
         if (!decodeValue) return res.sendStatus(401)
 
         req.user = decodeValue
@@ -62,7 +61,7 @@ async function isUserAuthorized(req: any, res: Response, next: NextFunction) {
                 })
             }
 
-            notificationService.sendNewUserNofication(req.user.name, req.user.email)
+            notificationsService.sendNewUserNofication(req.user.name, req.user.email)
 
             req.user._doc = result?.mainResult
         } else {
@@ -125,7 +124,7 @@ async function mockIsUserAuthorized(req: any, res: Response, next: NextFunction)
                 })
             }
 
-            notificationService.sendNewUserNofication(req.user.name, req.user.email)
+            notificationsService.sendNewUserNofication(req.user.name, req.user.email)
 
             req.user._doc = result?.mainResult
         } else {

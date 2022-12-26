@@ -44,6 +44,7 @@
         "googleapis": "^95.0.0",
         "helmet": "^5.1.0",
         "html-tags": "^3.2.0",
+        "ioredis": "^5.2.4",
         "jszip": "^3.9.1",
         "jwt-simple": "^0.5.6",
         "log4js": "^6.3.0",

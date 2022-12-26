@@ -20,9 +20,7 @@ const MainPage: NextPage<IndexPageProps> = ({ menu, newsMetadatas }: IndexPagePr
             )
             setNews(newsCombined)
 
-            newsService.fetchNewsData(newsMetadatas, newsCombined, (newsCombined) =>
-                setNews(newsCombined)
-            )
+            newsService.fetchNewsData(newsMetadatas, newsCombined, (newsCombined) => setNews(newsCombined))
         }
     }, [])
 
@@ -34,29 +32,26 @@ const MainPage: NextPage<IndexPageProps> = ({ menu, newsMetadatas }: IndexPagePr
                         <Slider />
                     </section>
                     <div className={`${style['flex-child-1']} ${style['info-block']}`}>
-                        <div id={style['offer']}>Запрошуємо на навчання!</div>
+                        <div id={style['offer']}>Підготовчі курси!</div>
                         {/* // TODO: Refactor (move to a new component) */}
                         {/* // TODO: Load info block data (link:string, color?: 'red', title:string)[] from API */}
                         <div className={style['desk-wrapper-info-block']}>
                             <div className={style['desk']}>
                                 <div className={style['desk-title']}>
-                                    <Link href="/article/2446">
-                                        <a>
-                                            <h3 className={style['red-link']}>
-                                                ОСОБЛИВОСТІ ВСТУПУ 2022
-                                            </h3>
-                                        </a>
-                                    </Link>
+                                    Для запису на підготовчі курси для вступників 2023 року телефонуйте
+                                </div>
+                                <div className={style['desk-title']} style={{ color: 'red' }}>
+                                    067-296-71-75
                                 </div>
                                 <div className={style['desk-title']}>
-                                    <Link href="/article/2453">
-                                        <a>ДОВІДНИК ВСТУПНИКА 2022</a>
-                                    </Link>
+                                    або заповніть{' '}
+                                    <a href="https://docs.google.com/forms/d/e/1FAIpQLSeXMQWzIGzprMef2ROEGEeXRz-lOlnDqA74ESmuX2MOJcon_Q/viewform?vc=0&amp;c=0&amp;w=1&amp;flr=0&amp;usp=mail_form_link">
+                                        електронну форму
+                                    </a>
                                 </div>
-                                <div
-                                    className={style['ribbon']}
-                                    style={{ visibility: isMobile ? 'hidden' : 'visible' }}
-                                ></div>
+                                <div className={style['desk-title']}>
+                                    Увага! Запис на підготовчі курси триває постійно
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -67,184 +62,12 @@ const MainPage: NextPage<IndexPageProps> = ({ menu, newsMetadatas }: IndexPagePr
                 <table className={style['phrase-in-table']}>
                     <tbody>
                         <tr>
-                            <td>На які спеціальності я можу поступити?</td>
+                            <td>
+                                <a href="/article/3037">На які спеціальності я можу поступити?</a>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
-
-                <div className={style['desk-wrapper']}>
-                    <div className={`${style['desk']} ${style['desk-left']}`}>
-                        <div className={style['desk-title']}>Денна форма навчання</div>
-                        <div className={style['desk-text']}>
-                            <div>
-                                <p>Фаховий молодший бакалавр:</p>
-                                <ul>
-                                    <li>
-                                        <Link href="/article/1981">
-                                            <a>121 Інженерія програмного забезпечення</a>
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/article/1983">
-                                            <a>123 Комп'ютерна інженерія</a>
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/article/1971">
-                                            <a>
-                                                141 Електроенергетика, електротехніка та
-                                                електромеханіка
-                                            </a>
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/article/1985">
-                                            <a>
-                                                151 Автоматизація та комп`ютерно-інтегровані
-                                                технології
-                                            </a>
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/article/1977">
-                                            <a>172 Телекомунікації та радіотехніка</a>
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/article/1972">
-                                            <a>173 Авіоніка</a>
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/article/1976">
-                                            <a>275 Транспортні технології (повітряний транспорт)</a>
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/article/1973">
-                                            <a>272 Авіаційний транспорт</a>
-                                        </Link>
-                                    </li>
-                                </ul>
-                            </div>
-                            <div>
-                                <p>Бакалавр:</p>
-                                <ul>
-                                    <li>
-                                        <Link href="/article/247">
-                                            <a>123 Комп'ютерна інженерія</a>
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/article/251">
-                                            <a>
-                                                141 Електроенергетика, електротехніка та
-                                                електромеханіка
-                                            </a>
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/article/255">
-                                            <a>172 Телекомунікації та радіотехніка</a>
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/article/259">
-                                            <a>272 Авіаційний транспорт</a>
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/article/170">
-                                            <a>073 Менеджмент</a>
-                                        </Link>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div className={style['ribbon']}></div>
-                    </div>
-
-                    <div className={`${style['desk']} ${style['desk-right']}`}>
-                        <div className={style['desk-title']}>Заочна форма навчання</div>
-                        <div className={style['desk-text']}>
-                            <div>
-                                <p>Фаховий молодший бакалавр:</p>
-                                <ul>
-                                    <li>
-                                        <Link href="/article/1983">
-                                            <a>123 Комп'ютерна інженерія</a>
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/article/1971">
-                                            <a>
-                                                141 Електроенергетика, електротехніка та
-                                                електромеханіка
-                                            </a>
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/article/1985">
-                                            <a>
-                                                151 Автоматизація та комп`ютерно-інтегровані
-                                                технології
-                                            </a>
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/article/1977">
-                                            <a>172 Телекомунікації та радіотехніка</a>
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/article/1972">
-                                            <a>173 Авіоніка</a>
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/article/1976">
-                                            <a>275 Транспортні технології (повітряний транспорт)</a>
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/article/1973">
-                                            <a>272 Авіаційний транспорт</a>
-                                        </Link>
-                                    </li>
-                                </ul>
-                            </div>
-                            <div>
-                                <p>Бакалавр:</p>
-                                <ul>
-                                    <li>
-                                        <Link href="/article/247">
-                                            <a>123 Комп'ютерна інженерія</a>
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/article/251">
-                                            <a>
-                                                141 Електроенергетика, електротехніка та
-                                                електромеханіка
-                                            </a>
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/article/255">
-                                            <a>172 Телекомунікації та радіотехніка</a>
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/article/259">
-                                            <a>272 Авіаційний транспорт</a>
-                                        </Link>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div className={style['ribbon']}></div>
-                    </div>
-                </div>
 
                 <NewsList />
             </div>
