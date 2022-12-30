@@ -7,6 +7,7 @@ import { articlesService } from '../services/articles'
 import { newsService } from '../services/news'
 import { errors } from '../utils/constants'
 import { tryCatch } from '../utils/decorators'
+import { IAppSettingsPut } from '../utils/interfaces/app-settings/app-settings'
 import {
     Any,
     Controller,
@@ -22,26 +23,25 @@ import {
 
 export const controller = tryCatch(async function (req: Request, res: Response) {
     // Parse data from request
-    const [reqData, parseReqError] = parseReq(req) as DefaultResult
+    const [reqData, parseReqError] = (await parseReq(req)) as DefaultResult
     if (parseReqError)
         return res.status(parseReqError.code).json({
             error: parseReqError.msg
         })
 
-    const { method, id, singleResult, ids, pagination, select, order, obj, entity, email, where } =
-        reqData as {
-            method: HttpMethod
-            id: string
-            singleResult: boolean
-            ids: string[]
-            pagination?: Pagination
-            select?: string[]
-            order?: [string, string]
-            obj: Any
-            entity: string
-            email: string
-            where: Filter[]
-        }
+    const { method, id, singleResult, ids, pagination, select, order, obj, entity, email, where } = reqData as {
+        method: HttpMethod
+        id: string
+        singleResult: boolean
+        ids: string[]
+        pagination?: Pagination
+        select?: string[]
+        order?: [string, string]
+        obj: Any
+        entity: string
+        email: string
+        where: Filter[]
+    }
 
     let replacedId: string | undefined
 
@@ -152,17 +152,7 @@ const controllerMethods = {
             }
         }),
 
-    DELETE: async ({
-        email,
-        id,
-        ids,
-        entity
-    }: {
-        email: string
-        id: string
-        ids: string[]
-        entity: string
-    }) => {
+    DELETE: async ({ email, id, ids, entity }: { email: string; id: string; ids: string[]; entity: string }) => {
         const [result, error] = await model({
             email,
             collection: entity,
@@ -174,16 +164,17 @@ const controllerMethods = {
     }
 }
 
-const parseReq = (req: any) => {
+async function parseReq(req: any) {
     // Метод запроса
     const method: HttpMethod = req.method
 
-    // Получение id из настроек в файле json
+    // Получение id из настроек
     const settingsQuery: [string, string, string] | undefined = req.query.settings?.split(',')
     let idFromSettings: string | number | undefined
-    if (settingsQuery && settingsQuery[0] === 'id' && settingsQuery[1] === '==') {
-        const settings = appSettingsService.get()
-        idFromSettings = settings[settingsQuery[2]]
+    if (settingsQuery && settingsQuery[0] === 'id' && settingsQuery[1] === '==' && settingsQuery[2]) {
+        // TODO: Refactor: replace 'any'
+        const settings: any = await appSettingsService.getAll()
+        const idFromSettings = settings[settingsQuery[2]]
     }
 
     // id объекта в БД для манипуляций
@@ -251,22 +242,14 @@ const parseReq = (req: any) => {
 }
 
 // Функция парсит фильтры из query-параметров запроса
-function parseFilters({
-    queryParams
-}: {
-    queryParams: { filters: string | undefined }
-}): DefaultResult {
+function parseFilters({ queryParams }: { queryParams: { filters: string | undefined } }): DefaultResult {
     if (!queryParams.filters) return [[], null]
 
     try {
         const filters: Filter[] | ArrayContainsFilter[] = decodeURI(queryParams.filters)
             .split(':')
             .map((filter: string) => {
-                const [key, operator, value] = filter.split(',') as [
-                    string,
-                    LogicOperator | 'contains' | 'in',
-                    string
-                ]
+                const [key, operator, value] = filter.split(',') as [string, LogicOperator | 'contains' | 'in', string]
 
                 let convertedValue: number | boolean | string = value
 

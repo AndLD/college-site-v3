@@ -47,9 +47,7 @@ function _processArticleFile(file: IRequestFile): ArticleFileData {
 
     return {
         ext,
-        mimetype: articlesAllowedFileTypes[
-            ext as ArticlesAllowedFileExtension
-        ] as ArticlesAllowedFileType,
+        mimetype: articlesAllowedFileTypes[ext as ArticlesAllowedFileExtension] as ArticlesAllowedFileType,
         body: file.buffer,
         size: file.size
     }
@@ -65,17 +63,14 @@ async function getDownloadArticles(req: any, res: Response) {
             error: '"ids" query param is missed!'
         })
 
-    let options: Options | undefined =
-        req.headers['download-options'] && JSON.parse(req.headers['download-options'])
+    let options: Options | undefined = req.headers['download-options'] && JSON.parse(req.headers['download-options'])
 
     ;[ids, options] = (await articlesService.replaceOldIds(ids, options)) as [string[], Options]
 
-    const bufferOptions =
-        (options && bufferService.getBufferAvailableOptions('articles', ids, options)) || undefined
+    const bufferOptions = (options && bufferService.getBufferAvailableOptions('articles', ids, options)) || undefined
 
     const substractedOptions =
-        (options && bufferOptions && bufferUtils.substractOptions(options, bufferOptions)) ||
-        undefined
+        (options && bufferOptions && bufferUtils.substractOptions(options, bufferOptions)) || undefined
 
     const filenames: {
         path: string
@@ -98,11 +93,7 @@ async function getDownloadArticles(req: any, res: Response) {
     }
 
     if (substractedOptions && Object.keys(substractedOptions).length) {
-        const downloadedFilenames = await googleDriveService.downloadFiles(
-            ids,
-            'articles',
-            substractedOptions
-        )
+        const downloadedFilenames = await googleDriveService.downloadFiles(ids, 'articles', substractedOptions)
 
         if (!downloadedFilenames.length) {
             return res.sendStatus(404)
@@ -147,11 +138,7 @@ async function postArticle(req: any, res: Response) {
 
     const jobId = req.isSimulation
         ? null
-        : jobsService.add(
-              user.email,
-              jobsUtils.templates.articles.post.title,
-              jobsUtils.templates.articles.post.steps
-          )
+        : jobsService.add(user.email, jobsUtils.templates.articles.post.title, jobsUtils.templates.articles.post.steps)
 
     const timestamp = Date.now()
 
@@ -218,10 +205,7 @@ async function postArticle(req: any, res: Response) {
         payload: articleMetadata,
         payloadIds: [docId],
         user: user.email,
-        keywords: [
-            ...getAllCompatibleInputForString(actionId),
-            ...getAllCompatibleInputForString(docId)
-        ],
+        keywords: [...getAllCompatibleInputForString(actionId), ...getAllCompatibleInputForString(docId)],
         timestamp
     }
 
@@ -230,16 +214,13 @@ async function postArticle(req: any, res: Response) {
     // If action auto approve disabled for current admin
     if (
         user.status === 'admin' &&
-        !appSettingsService.get().actionAutoApproveEnabledForAdmins?.includes(user.email)
+        !(await appSettingsService.getAll()).actionAutoApproveEnabledForAdmins?.includes(user.email)
     ) {
         actionMetadata.status = 'pending'
     }
 
     if (jobId && actionMetadata.status === 'pending') {
-        jobsService.updateTitle(
-            jobId,
-            `Requesting to ADD Article [${articleMetadata.title}, ${docId}]`
-        )
+        jobsService.updateTitle(jobId, `Requesting to ADD Article [${articleMetadata.title}, ${docId}]`)
         jobsService.updateStepDescription(jobId, 'Auto approve unavailable')
     } else if (jobId) {
         jobsService.updateStepDescription(jobId, 'Auto approve available')
@@ -344,17 +325,14 @@ async function putArticle(req: any, res: Response) {
         payload: articleMetadataUpdate,
         payloadIds: [docId],
         user: user.email,
-        keywords: [
-            ...getAllCompatibleInputForString(actionId),
-            ...getAllCompatibleInputForString(docId)
-        ],
+        keywords: [...getAllCompatibleInputForString(actionId), ...getAllCompatibleInputForString(docId)],
         timestamp: Date.now()
     }
 
     // If action auto approve disabled for current admin
     if (
         user.status === 'admin' &&
-        !appSettingsService.get().actionAutoApproveEnabledForAdmins?.includes(user.email)
+        !(await appSettingsService.getAll()).actionAutoApproveEnabledForAdmins?.includes(user.email)
     ) {
         actionMetadata.status = 'pending'
     }
@@ -421,7 +399,7 @@ async function deleteArticle(req: any, res: Response) {
     // If action auto approve disabled for current admin
     if (
         user.status === 'admin' &&
-        !appSettingsService.get().actionAutoApproveEnabledForAdmins?.includes(user.email)
+        !(await appSettingsService.getAll()).actionAutoApproveEnabledForAdmins?.includes(user.email)
     ) {
         actionMetadata.status = 'pending'
     }

@@ -1,5 +1,5 @@
 import admin from 'firebase-admin'
-import { environment } from '../utils/constants'
+import { ENV } from '../utils/constants'
 import { getLogger } from '../utils/logger'
 import { ServiceAccount } from '../utils/types'
 
@@ -36,7 +36,7 @@ function init() {
     }
 }
 
-if (environment !== 'test') {
+if (ENV !== 'test') {
     init()
 }
 

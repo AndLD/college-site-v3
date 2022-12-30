@@ -210,11 +210,11 @@ $boxShadowSize1600px: 0.6vw;
         font-size: 4vw;
     }
 
-    box-shadow: -1 * $boxShadowSize1600px $boxShadowSize1600px $boxShadowSize1600px 0.5 *
-        $boxShadowSize1600px rgba(0, 0, 0, 0.7);
+    box-shadow: -1 * $boxShadowSize1600px $boxShadowSize1600px $boxShadowSize1600px 0.5 * $boxShadowSize1600px
+        rgba(0, 0, 0, 0.7);
     @media screen and (min-width: 1900px) {
-        box-shadow: -1 * $boxShadowSize1900px $boxShadowSize1900px $boxShadowSize1900px 0.5 *
-            $boxShadowSize1900px rgba(0, 0, 0, 0.7);
+        box-shadow: -1 * $boxShadowSize1900px $boxShadowSize1900px $boxShadowSize1900px 0.5 * $boxShadowSize1900px
+            rgba(0, 0, 0, 0.7);
     }
 
     div {
@@ -292,7 +292,7 @@ $ribbonColor: $menuColor;
     font-weight: bold;
     font-size: 1.5em;
     @media screen and (min-width: 1900px) {
-        font-size: 1.5em;
+        font-size: 1.1em;
     }
     @media screen and (max-width: 480px) {
         font-size: 5vw;

@@ -9,11 +9,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { setActionModalVisibility } from '../../store/actions'
 import { privateRoute, privateRoutes } from '../../utils/constants'
 import { configMenu, deconfigMenu } from '../../utils/menu'
-import {
-    errorNotification,
-    successNotification,
-    warningNotification
-} from '../../utils/notifications'
+import { errorNotification, successNotification, warningNotification } from '../../utils/notifications'
 import { IMenuBlock, IMenuBlockUpdate, IMenuElementOfTree } from '../../utils/types'
 import MenuTree from './SelectedMenu/MenuTree'
 
@@ -41,8 +37,7 @@ function MenuActionModal() {
     // Menu updates array of the interface
     const [menuTreeDataUpdates, setMenuTreeDataUpdates] = useState<IMenuBlockUpdate[]>([])
     // Is menu from interface auto updatable
-    const [isMenuTreeDataAutoUpdateEnabled, setIsMenuTreeDataAutoUpdateEnabled] =
-        useState<boolean>(true)
+    const [isMenuTreeDataAutoUpdateEnabled, setIsMenuTreeDataAutoUpdateEnabled] = useState<boolean>(true)
     // Is JSON in textarea auto updatable
     const [isMenuJsonAutoUpdateEnabled, setIsMenuJsonAutoUpdateEnabled] = useState<boolean>(false)
     const [draggerFileList, setDraggerFileList] = useState<UploadFile<any>[]>([])
@@ -79,13 +74,9 @@ function MenuActionModal() {
             }
 
             if (menu) {
-                const configuredMenu = configMenu(
-                    menu,
-                    [menuTreeDataUpdates, setMenuTreeDataUpdates],
-                    () => {
-                        setMenuJsonErrorMessage('JSON input does not match the menu structure.')
-                    }
-                )
+                const configuredMenu = configMenu(menu, [menuTreeDataUpdates, setMenuTreeDataUpdates], () => {
+                    setMenuJsonErrorMessage('JSON input does not match the menu structure.')
+                })
 
                 if (configuredMenu) {
                     setMenuTreeData(configuredMenu)
@@ -122,11 +113,7 @@ function MenuActionModal() {
         <Form.Item key={1} name="description" label="Description">
             <Input placeholder="Enter menu block description" />
         </Form.Item>,
-        <Tabs
-            key={2}
-            onChange={(activeKey: string) => setTabsActiveKey(activeKey)}
-            activeKey={tabsActiveKey}
-        >
+        <Tabs key={2} onChange={(activeKey: string) => setTabsActiveKey(activeKey)} activeKey={tabsActiveKey}>
             <Tabs.TabPane tab="Menu tree" key={1} style={{ overflow: 'scroll' }}>
                 <MenuTree
                     treeDataState={[menuTreeData, setMenuTreeData]}
@@ -234,9 +221,7 @@ function MenuActionModal() {
             )
                 .then((res: AxiosResponse) => {
                     successNotification(
-                        `Entity was successfully ${
-                            action === 'Add' ? 'added' : action === 'Update' ? 'updated' : ''
-                        }!`
+                        `Entity was successfully ${action === 'Add' ? 'added' : action === 'Update' ? 'updated' : ''}!`
                     )
                     dispatch(setActionModalVisibility(false))
                     actionSuccessCallback()

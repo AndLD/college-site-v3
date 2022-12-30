@@ -55,17 +55,14 @@ async function getDownloadNews(req: any, res: Response) {
             error: '"ids" query param is missed!'
         })
 
-    let options: Options | undefined =
-        req.headers['download-options'] && JSON.parse(req.headers['download-options'])
+    let options: Options | undefined = req.headers['download-options'] && JSON.parse(req.headers['download-options'])
 
     ;[ids, options] = (await newsService.replaceOldIds(ids, options)) as [string[], Options]
 
-    const bufferOptions =
-        (options && bufferService.getBufferAvailableOptions('news', ids, options)) || undefined
+    const bufferOptions = (options && bufferService.getBufferAvailableOptions('news', ids, options)) || undefined
 
     const substractedOptions =
-        (options && bufferOptions && bufferUtils.substractOptions(options, bufferOptions)) ||
-        undefined
+        (options && bufferOptions && bufferUtils.substractOptions(options, bufferOptions)) || undefined
 
     const filenames: {
         path: string
@@ -88,11 +85,7 @@ async function getDownloadNews(req: any, res: Response) {
     }
 
     if (substractedOptions && Object.keys(substractedOptions).length) {
-        const downloadedFilenames = await googleDriveService.downloadFiles(
-            ids,
-            'news',
-            substractedOptions
-        )
+        const downloadedFilenames = await googleDriveService.downloadFiles(ids, 'news', substractedOptions)
 
         if (!downloadedFilenames.length) {
             return res.sendStatus(404)
@@ -139,8 +132,7 @@ async function postNews(req: any, res: Response) {
     try {
         var body: INewsPost = JSON.parse(req.body.json)
         var file = req.files.file[0] && _processNewsFile(req.files.file[0])
-        var image =
-            req.files.image?.length && req.files.image[0] && _processNewsFile(req.files.image[0])
+        var image = req.files.image?.length && req.files.image[0] && _processNewsFile(req.files.image[0])
 
         if (!file) {
             throw 'File missed'
@@ -188,17 +180,14 @@ async function postNews(req: any, res: Response) {
         payload: newsMetadata,
         payloadIds: [docId],
         user: user.email,
-        keywords: [
-            ...getAllCompatibleInputForString(actionId),
-            ...getAllCompatibleInputForString(docId)
-        ],
+        keywords: [...getAllCompatibleInputForString(actionId), ...getAllCompatibleInputForString(docId)],
         timestamp
     }
 
     // If action auto approve disabled for current admin
     if (
         user.status === 'admin' &&
-        !appSettingsService.get().actionAutoApproveEnabledForAdmins?.includes(user.email)
+        !(await appSettingsService.getAll()).actionAutoApproveEnabledForAdmins?.includes(user.email)
     ) {
         actionMetadata.status = 'pending'
     }
@@ -255,10 +244,8 @@ async function putNews(req: any, res: Response) {
     }
 
     try {
-        var file =
-            req.files.file?.length && req.files.file[0] && _processNewsFile(req.files.file[0])
-        var image =
-            req.files.image?.length && req.files.image[0] && _processNewsFile(req.files.image[0])
+        var file = req.files.file?.length && req.files.file[0] && _processNewsFile(req.files.file[0])
+        var image = req.files.image?.length && req.files.image[0] && _processNewsFile(req.files.image[0])
     } catch (e) {
         logger.error(e)
         return res.status(400).json({
@@ -294,17 +281,14 @@ async function putNews(req: any, res: Response) {
         payload: newsMetadataUpdate,
         payloadIds: [docId],
         user: user.email,
-        keywords: [
-            ...getAllCompatibleInputForString(actionId),
-            ...getAllCompatibleInputForString(docId)
-        ],
+        keywords: [...getAllCompatibleInputForString(actionId), ...getAllCompatibleInputForString(docId)],
         timestamp: Date.now()
     }
 
     // If action auto approve disabled for current admin
     if (
         user.status === 'admin' &&
-        !appSettingsService.get().actionAutoApproveEnabledForAdmins?.includes(user.email)
+        !(await appSettingsService.getAll()).actionAutoApproveEnabledForAdmins?.includes(user.email)
     ) {
         actionMetadata.status = 'pending'
     }
@@ -344,7 +328,7 @@ async function deleteNews(req: any, res: Response) {
             error: '"ids" query param is missed!'
         })
 
-    const pinnedNewsIds = appSettingsService.get().pinnedNewsIds
+    const pinnedNewsIds = (await appSettingsService.getAll()).pinnedNewsIds
     for (const id of ids) {
         if (pinnedNewsIds.includes(id)) {
             return res.status(400).json({
@@ -379,7 +363,7 @@ async function deleteNews(req: any, res: Response) {
     // If action auto approve disabled for current admin
     if (
         user.status === 'admin' &&
-        !appSettingsService.get().actionAutoApproveEnabledForAdmins?.includes(user.email)
+        !(await appSettingsService.getAll()).actionAutoApproveEnabledForAdmins?.includes(user.email)
     ) {
         actionMetadata.status = 'pending'
     }

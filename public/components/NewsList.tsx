@@ -13,7 +13,16 @@ function NewsList() {
                 <div className={style['desk-title']}>Останні новини</div>
                 <div className={style['desk-text']}>
                     {news.length ? (
-                        news.map((n, i) => <News news={n} key={'News' + i} />)
+                        <>
+                            {news.map((n, i) => (
+                                <News news={n} key={'News' + i} />
+                            ))}
+                            {news.length <= 3 && (
+                                <a href="/news" style={{ fontSize: 22 }}>
+                                    Більше новин
+                                </a>
+                            )}
+                        </>
                     ) : (
                         <span>Новин поки що немає</span>
                     )}

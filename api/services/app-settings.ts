@@ -1,40 +1,73 @@
-import fs from 'fs'
-import path from 'path'
+import { IAppSettings, IAppSettingsPut } from '../utils/interfaces/app-settings/app-settings'
+import { redisService } from './redis'
 
-const appSettingsPath = path.join(__dirname, '..', 'app-settings.json')
+const _defaultSettings: IAppSettings = {
+    selectedMenuId: null,
+    pinnedNewsIds: [],
+    actionAutoApproveEnabledForAdmins: [],
+    notificationsService: true
+}
 
-function _init() {
-    if (!fs.existsSync(appSettingsPath)) {
-        const defaultSettings = {
-            selectedMenuId: null,
-            pinnedNewsIds: [],
-            actionAutoApproveEnabledForAdmins: []
+async function init() {
+    const settings = await appSettingsService.getAll()
+    if (!settings) {
+        await _reset()
+    }
+}
+
+async function _reset() {
+    await appSettingsService.setAll(_defaultSettings)
+}
+
+async function get(setting: keyof IAppSettings) {
+    const settings = await appSettingsService.getAll()
+    return settings[setting]
+}
+
+async function getAll(): Promise<IAppSettings> {
+    const redisClient = await redisService.getClient()
+    const settingsJson = await redisClient.get('settings')
+
+    if (settingsJson) {
+        const settings = JSON.parse(settingsJson)
+
+        let isSettingsValid = false
+
+        if (typeof settings === 'object') {
+            isSettingsValid = true
+
+            let key: keyof IAppSettings
+            for (key in _defaultSettings) {
+                if (typeof settings[key] !== typeof _defaultSettings[key]) {
+                    isSettingsValid = false
+                    break
+                }
+            }
         }
 
-        fs.writeFileSync(appSettingsPath, JSON.stringify(defaultSettings))
+        if (isSettingsValid) {
+            return settings
+        }
     }
+
+    await _reset()
+
+    return _defaultSettings
 }
 
-// TODO: Add return type
-function get() {
+async function set(newSettings: any) {
     try {
-        const settings = fs.readFileSync(appSettingsPath)
-        return JSON.parse(settings.toString())
-    } catch (e) {
-        throw 'Failed to get appSettings with error: ' + e
-    }
-}
-
-function set(newSettings: any) {
-    try {
-        const settings = get()
+        // TODO: Refactor: replace 'any'
+        const settings: any = await getAll()
         for (const key in newSettings) {
+            if (!newSettings[key]) {
+                continue
+            }
+
             if (key === 'actionAutoApproveEnabledForAdmins' || key === 'pinnedNewsIds') {
                 if (settings[key]) {
                     if (settings[key].includes(newSettings[key])) {
-                        settings[key] = settings[key].filter(
-                            (email: string) => email !== newSettings[key]
-                        )
+                        settings[key] = settings[key].filter((email: string) => email !== newSettings[key])
                     } else {
                         settings[key].push(newSettings[key])
                     }
@@ -45,7 +78,8 @@ function set(newSettings: any) {
                 settings[key] = newSettings[key]
             }
         }
-        fs.writeFileSync(appSettingsPath, JSON.stringify(settings))
+
+        await appSettingsService.setAll(settings)
 
         return true
     } catch (e) {
@@ -53,9 +87,15 @@ function set(newSettings: any) {
     }
 }
 
-_init()
+async function setAll(settings: IAppSettings) {
+    const redisClient = await redisService.getClient()
+    await redisClient.set('settings', JSON.stringify(settings))
+}
 
 export const appSettingsService = {
+    init,
     get,
-    set
+    getAll,
+    set,
+    setAll
 }

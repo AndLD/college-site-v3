@@ -2,9 +2,9 @@ import { Any, EntityName, HttpMethod, UserStatus } from '../utils/types'
 import { IMenuBlockPost, IMenuBlockPut, IMenuElement } from '../utils/interfaces/menu/menu-ti'
 import { IAppSettingsPut } from '../utils/interfaces/app-settings/app-settings-ti'
 import { IUserPutByAdmin, IUserPutByModerator } from '../utils/interfaces/users/users-ti'
-import { Checker, createCheckers } from 'ts-interface-checker'
-import { NextFunction, Request, Response } from 'express'
-import { entities } from '../utils/constants'
+import { Checker, createCheckers, ICheckerSuite } from 'ts-interface-checker'
+import { NextFunction, Response } from 'express'
+import { DEFAULT_ADMIN, entities } from '../utils/constants'
 
 // Validate request body for accordance to interface of specified entity
 export const validateBody = (req: any, res: Response, next: NextFunction) => {
@@ -17,32 +17,36 @@ export const validateBody = (req: any, res: Response, next: NextFunction) => {
     let error: string | undefined
     switch (entity) {
         case entities.MENU:
+            let IMenuBlockChecker: Checker | undefined
             if (method === 'POST')
-                var { IMenuBlockPost: IMenuBlockChecker } = createCheckers(
-                    { IMenuBlockPost },
-                    { IMenuElement }
-                )
+                IMenuBlockChecker = createCheckers({ IMenuBlockPost }, { IMenuElement }).IMenuBlockPost
             else if (method === 'PUT')
-                var { IMenuBlockPut: IMenuBlockChecker } = createCheckers(
-                    { IMenuBlockPut },
-                    { IMenuElement }
-                )
+                IMenuBlockChecker = createCheckers({ IMenuBlockPut }, { IMenuElement }).IMenuBlockPost
 
-            error = _checkInterface(req.body, IMenuBlockChecker)
+            if (IMenuBlockChecker) {
+                error = _checkInterface(req.body, IMenuBlockChecker)
+            }
             break
         case entities.APP_SETTINGS:
-            if (method === 'PUT')
-                var { IAppSettingsPut: IAppSettingsChecker } = createCheckers({ IAppSettingsPut })
+            let IAppSettingsChecker: Checker | undefined
 
-            error = _checkInterface(req.body, IAppSettingsChecker)
+            if (method === 'PUT') IAppSettingsChecker = createCheckers({ IAppSettingsPut }).IAppSettingsBlockPut
+
+            if (IAppSettingsChecker) {
+                error = _checkInterface(req.body, IAppSettingsChecker)
+            }
             break
         case entities.USERS:
-            if (method === 'PUT' && status === 'admin')
-                var { IUserPutByAdmin: IUserChecker } = createCheckers({ IUserPutByAdmin })
-            else if (method === 'PUT' && status === 'moderator')
-                var { IUserPutByModerator: IUserChecker } = createCheckers({ IUserPutByModerator })
+            let IUserChecker: Checker | undefined
 
-            error = _checkInterface(req.body, IUserChecker)
+            if (method === 'PUT' && status === 'admin')
+                IUserChecker = createCheckers({ IUserPutByAdmin }).IUserPutByAdmin
+            else if (method === 'PUT' && status === 'moderator')
+                IUserChecker = createCheckers({ IUserPutByModerator }).IUserPutByModerator
+
+            if (IUserChecker) {
+                error = _checkInterface(req.body, IUserChecker)
+            }
 
             if (error && status !== 'admin') {
                 errorCode = 403

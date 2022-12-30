@@ -71,8 +71,7 @@ function MenuTable() {
             params: {
                 ids: selectedRows
                     .map((elem: any) => {
-                        if (selectedMenu && elem.id === selectedMenu.id)
-                            isSelectedMenuUpdateNeeds = true
+                        if (selectedMenu && elem.id === selectedMenu.id) isSelectedMenuUpdateNeeds = true
                         return elem.id
                     })
                     .toString()
@@ -125,8 +124,7 @@ function MenuTable() {
                 columns={[
                     {
                         title: '#',
-                        render: (_, row, index) =>
-                            index + 1 + (pagination.current - 1) * pagination.pageSize,
+                        render: (_, row, index) => index + 1 + (pagination.current - 1) * pagination.pageSize,
                         width: 70
                     },
                     {
@@ -148,8 +146,7 @@ function MenuTable() {
                         title: 'Last Update Timestamp',
                         dataIndex: 'lastUpdateTimestamp',
                         render: (value: number) => value && new Date(value).toLocaleString(),
-                        sorter: (row1: any, row2: any) =>
-                            row1.lastUpdateTimestamp - row2.lastUpdateTimestamp,
+                        sorter: (row1: any, row2: any) => row1.lastUpdateTimestamp - row2.lastUpdateTimestamp,
                         sortDirections: ['ascend', 'descend']
                     },
                     {
@@ -164,8 +161,7 @@ function MenuTable() {
                                             : undefined
                                     }
                                 >
-                                    <Badge status={value === 'Selected' ? 'success' : 'error'} />{' '}
-                                    {value}
+                                    <Badge status={value === 'Selected' ? 'success' : 'error'} /> {value}
                                 </div>
                                 {userStatus === 'admin' ? (
                                     <Button
@@ -173,11 +169,7 @@ function MenuTable() {
                                         type="default"
                                         danger={value === 'Selected' ? true : false}
                                         size="small"
-                                        onClick={
-                                            value === 'Selected'
-                                                ? deselectMenu
-                                                : () => selectMenu(row.id)
-                                        }
+                                        onClick={value === 'Selected' ? deselectMenu : () => selectMenu(row.id)}
                                     >
                                         {value === 'Selected' ? 'deselect' : 'select'}
                                     </Button>
@@ -191,19 +183,14 @@ function MenuTable() {
                     tableData &&
                     tableData.map((row: any) => ({
                         ...row,
-                        status:
-                            selectedMenu && row.id === selectedMenu.id ? 'Selected' : 'Not selected'
+                        status: selectedMenu && row.id === selectedMenu.id ? 'Selected' : 'Not selected'
                     }))
                 }
                 pagination={pagination}
                 loading={isTableLoading}
                 onChange={(pagination: any, filters: any, sorter: any) => {
                     const sorterOrder =
-                        sorter.order === 'ascend'
-                            ? 'asc'
-                            : sorter.order === 'descend'
-                            ? 'desc'
-                            : undefined
+                        sorter.order === 'ascend' ? 'asc' : sorter.order === 'descend' ? 'desc' : undefined
                     const order = sorterOrder && `${sorter.field},${sorterOrder}`
                     fetchMenu(pagination, order)
                 }}
