@@ -18,5 +18,5 @@ jobs:
                   script: |
                       cd ~/college-site-v3
                       git pull
-                      docker compose build
-                      docker compose up -d
+                      docker-compose build
+                      docker-compose up -d
