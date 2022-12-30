@@ -43,12 +43,6 @@ const ArticlePage: NextPage<ArticlePageProps> = ({
                             {articleMetadata?.title}
                         </div>
                         <div className={`${indexStyle['desk-text']} ${pageStyle['desk-text']}`}>
-                            <div className={`${pageStyle['add-date']}`}>
-                                {moment(articleMetadata?.publicTimestamp).format(
-                                    'DD.MM.YYYY HH:mm'
-                                )}
-                            </div>
-
                             {articleMetadata && articleContent ? (
                                 articleMetadata.data.html ? (
                                     <div

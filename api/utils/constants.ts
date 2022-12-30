@@ -1,8 +1,8 @@
 import { Error } from './types'
 
 export const startTimestamp = Date.now()
-
-export const environment = process.env.NODE_ENV || 'development'
+export const ENV = process.env.NODE_ENV || 'development'
+export const DEFAULT_ADMIN = process.env.DEFAULT_ADMIN
 
 export const errors: {
     [key: string]: Error

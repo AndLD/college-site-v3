@@ -18,8 +18,7 @@ export default Router()
         '/authorized',
         hasModeratorStatus,
         validateBody,
-        (req: any, res: Response, next: NextFunction) =>
-            setReqParamsProp('id', req.user._doc.id)(req, res, next),
+        (req: any, res: Response, next: NextFunction) => setReqParamsProp('id', req.user._doc.id)(req, res, next),
         controller
     )
     // User editing
