@@ -1,6 +1,6 @@
 import { Context, Telegraf } from 'telegraf'
 import { Update } from 'telegraf/typings/core/types/typegram'
-import { environment } from '../utils/constants'
+import { ENV } from '../utils/constants'
 import { getLogger } from '../utils/logger'
 import { Error, IAction } from '../utils/types'
 import { appSettingsService } from './app-settings'
@@ -23,7 +23,7 @@ function init() {
             return
         }
 
-        if (environment !== 'test') {
+        if (ENV !== 'test') {
             token = process.env.TELEGRAM_BOT_TOKEN
             channelId = process.env.TELEGRAM_CHANNEL_ID
 
