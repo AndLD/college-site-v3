@@ -23,16 +23,14 @@ function convertMenuElement({ title, link, children }: IMenuElement, deepLevel: 
                 className={style[deepLevel === 0 ? 'drop-menu' : 'deep-drop-menu']}
                 style={{ left: `${deepLevel * 100}%` }}
             >
-                <ul>
-                    {children.map((menuElement) => convertMenuElement(menuElement, deepLevel + 1))}
-                </ul>
+                <ul>{children.map((menuElement) => convertMenuElement(menuElement, deepLevel + 1))}</ul>
             </div>
         </li>
     )
 }
 
 function removeHiddenElements(menuElements: IMenuElement[]) {
-    return menuElements.filter((menuElement) => {
+    return menuElements?.filter((menuElement) => {
         if (!menuElement.hidden) {
             menuElement.children = removeHiddenElements(menuElement.children)
             return true

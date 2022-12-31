@@ -1,13 +1,12 @@
 import type { NextPage } from 'next'
 import PublicLayout from '../components/PublicLayout'
 import { menuService } from '../services/menu'
-import { IMenuElement, IndexPageProps, INews, INewsCombined } from '../utils/types'
+import { IMenuElement, IndexPageProps, INewsCombined } from '../utils/types'
 import style from '../styles/Index.module.scss'
 import Slider from '../components/Slider'
 import NewsList from '../components/NewsList'
 import { newsService } from '../services/news'
 import { useEffect, useState } from 'react'
-import { isMobile } from 'react-device-detect'
 import Link from 'next/link'
 
 const MainPage: NextPage<IndexPageProps> = ({ menu, newsMetadatas }: IndexPageProps) => {
@@ -45,9 +44,9 @@ const MainPage: NextPage<IndexPageProps> = ({ menu, newsMetadatas }: IndexPagePr
                                 </div>
                                 <div className={style['desk-title']}>
                                     або заповніть{' '}
-                                    <a href="https://docs.google.com/forms/d/e/1FAIpQLSeXMQWzIGzprMef2ROEGEeXRz-lOlnDqA74ESmuX2MOJcon_Q/viewform?vc=0&amp;c=0&amp;w=1&amp;flr=0&amp;usp=mail_form_link">
+                                    <Link href="https://docs.google.com/forms/d/e/1FAIpQLSeXMQWzIGzprMef2ROEGEeXRz-lOlnDqA74ESmuX2MOJcon_Q/viewform?vc=0&amp;c=0&amp;w=1&amp;flr=0&amp;usp=mail_form_link">
                                         електронну форму
-                                    </a>
+                                    </Link>
                                 </div>
                                 <div className={style['desk-title']}>
                                     Увага! Запис на підготовчі курси триває постійно
@@ -63,7 +62,7 @@ const MainPage: NextPage<IndexPageProps> = ({ menu, newsMetadatas }: IndexPagePr
                     <tbody>
                         <tr>
                             <td>
-                                <a href="/article/3037">На які спеціальності я можу поступити?</a>
+                                <Link href="/article/3037">На які спеціальності я можу поступити?</Link>
                             </td>
                         </tr>
                     </tbody>
