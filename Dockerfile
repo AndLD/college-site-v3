@@ -5,7 +5,7 @@ WORKDIR /app
 
 COPY package*.json ./
 
-COPY ./admin/* ./
+COPY admin/* ./
 
 RUN npm install
 
