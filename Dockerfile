@@ -3,9 +3,9 @@ FROM node:16.13.1 as build
 
 WORKDIR /app
 
-COPY package*.json .
+COPY package*.json ./
 
-COPY ./admin/ .
+COPY ./admin/* ./
 
 RUN npm install
 
