@@ -3,6 +3,7 @@ import { PublicLayoutContext } from '../contexts'
 import { INewsCombined } from '../utils/types'
 import style from '../styles/Index.module.scss'
 import News from './News'
+import Link from 'next/link'
 
 function NewsList() {
     const news: INewsCombined[] = useContext(PublicLayoutContext).news
@@ -18,9 +19,9 @@ function NewsList() {
                                 <News news={n} key={'News' + i} />
                             ))}
                             {news.length <= 3 && (
-                                <a href="/news" style={{ fontSize: 22 }}>
-                                    Більше новин
-                                </a>
+                                <Link href="/news">
+                                    <span style={{ fontSize: 22 }}>Більше новин</span>
+                                </Link>
                             )}
                         </>
                     ) : (
