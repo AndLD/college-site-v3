@@ -1,9 +1,11 @@
 # build environment
-FROM node:18.12.1 as build
+FROM node:16.13.1 as build
 
 WORKDIR /app
 
-COPY admin/* ./
+COPY ./admin/* ./
+
+RUN ls
 
 RUN npm install
 
