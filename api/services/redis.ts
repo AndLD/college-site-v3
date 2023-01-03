@@ -1,4 +1,5 @@
 import Redis from 'ioredis'
+import { ENV } from '../utils/constants'
 import { getLogger } from '../utils/logger'
 
 const logger = getLogger('services/redis')
@@ -15,7 +16,7 @@ async function getClient() {
 
 async function _createClient() {
     return new Promise((resolve, reject) => {
-        client = new Redis()
+        client = new Redis({ host: process.env.REDIS_HOST || '127.0.0.1' })
         client.on('error', (err) => logger.error(`REDIS ERROR: ${err}`))
         client.on('connect', () => {
             logger.info('Redis successfully connected.')
