@@ -5,6 +5,7 @@ WORKDIR /app
 
 COPY ./admin/* ./
 
+RUN cd ..
 RUN ls
 
 RUN npm install
