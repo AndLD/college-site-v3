@@ -3,10 +3,7 @@ FROM node:16.13.1 as build
 
 WORKDIR /app
 
-COPY ./admin/* ./
-
-RUN cd ..
-RUN ls
+COPY admin ./
 
 RUN npm install
 
