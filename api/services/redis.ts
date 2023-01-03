@@ -1,5 +1,4 @@
 import Redis from 'ioredis'
-import { ENV } from '../utils/constants'
 import { getLogger } from '../utils/logger'
 
 const logger = getLogger('services/redis')
