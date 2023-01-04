@@ -40,6 +40,7 @@ function Menu() {
                     if (!menu) {
                         warningNotification('No selected menu found!')
                     }
+                    console.log(menu)
                     setSelectedMenu(menu)
                 }
             })

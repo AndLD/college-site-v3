@@ -179,13 +179,10 @@ function MenuTable() {
                     }
                 ]}
                 rowKey={(record: any) => record.id}
-                dataSource={
-                    tableData &&
-                    tableData.map((row: any) => ({
-                        ...row,
-                        status: selectedMenu && row.id === selectedMenu.id ? 'Selected' : 'Not selected'
-                    }))
-                }
+                dataSource={tableData?.map((row: any) => ({
+                    ...row,
+                    status: selectedMenu && row.id === selectedMenu.id ? 'Selected' : 'Not selected'
+                }))}
                 pagination={pagination}
                 loading={isTableLoading}
                 onChange={(pagination: any, filters: any, sorter: any) => {

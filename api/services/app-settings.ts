@@ -35,17 +35,10 @@ async function getAll(): Promise<IAppSettings> {
 
         if (typeof settings === 'object') {
             isSettingsValid = true
-
-            let key: keyof IAppSettings
-            for (key in _defaultSettings) {
-                if (typeof settings[key] !== typeof _defaultSettings[key]) {
-                    isSettingsValid = false
-                    break
-                }
-            }
         }
 
         if (isSettingsValid) {
+            console.log('getAll', settings)
             return settings
         }
     }
@@ -60,10 +53,6 @@ async function set(newSettings: any) {
         // TODO: Refactor: replace 'any'
         const settings: any = await getAll()
         for (const key in newSettings) {
-            if (!newSettings[key]) {
-                continue
-            }
-
             if (key === 'actionAutoApproveEnabledForAdmins' || key === 'pinnedNewsIds') {
                 if (settings[key]) {
                     if (settings[key].includes(newSettings[key])) {
@@ -78,6 +67,8 @@ async function set(newSettings: any) {
                 settings[key] = newSettings[key]
             }
         }
+
+        console.log('NEW SETTINGS', settings)
 
         await appSettingsService.setAll(settings)
 

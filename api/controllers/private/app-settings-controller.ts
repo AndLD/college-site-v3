@@ -14,6 +14,8 @@ async function getSettings(_: any, res: Response) {
 async function putSettings(req: any, res: Response) {
     const body = req.body
 
+    console.log('body', body)
+
     const ok = await appSettingsService.set(body)
 
     if (body.notificationsService === true) {
