@@ -174,7 +174,7 @@ async function parseReq(req: any) {
     if (settingsQuery && settingsQuery[0] === 'id' && settingsQuery[1] === '==' && settingsQuery[2]) {
         // TODO: Refactor: replace 'any'
         const settings: any = await appSettingsService.getAll()
-        const idFromSettings = settings[settingsQuery[2]]
+        idFromSettings = settings[settingsQuery[2]]
     }
 
     // id объекта в БД для манипуляций
