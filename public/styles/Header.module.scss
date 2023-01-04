@@ -6,21 +6,22 @@
     padding-top: 1%;
     padding-bottom: 1%;
 
-    // max-height: 22vh;
-
     #logo {
-        // flex: 1; // закомментировано for Mozilla
+        //flex: 1; // commented for Mozilla
 
         text-align: center;
 
-        max-height: 10vh; // for Mozilla
+        max-height: 30vh; // for Mozilla
 
         @media screen and(min-width: 1600px) {
-            max-height: 30vh;
+            max-height: 35vh;
         }
 
         @media screen and(min-width: 1900px) {
             max-height: 25vh;
+            @supports (-moz-appearance: none) {
+                max-height: 30vh;
+            }
         }
 
         @media screen and(min-width: 481px) {
@@ -38,7 +39,7 @@
     }
 
     #title {
-        // flex: 6; // закомментировано for Mozilla
+        // flex: 6; // commented for Mozilla
 
         @media screen and(max-width: 1900px) {
             line-height: 1.4;
