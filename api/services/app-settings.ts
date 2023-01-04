@@ -38,7 +38,6 @@ async function getAll(): Promise<IAppSettings> {
         }
 
         if (isSettingsValid) {
-            console.log('getAll', settings)
             return settings
         }
     }
@@ -67,8 +66,6 @@ async function set(newSettings: any) {
                 settings[key] = newSettings[key]
             }
         }
-
-        console.log('NEW SETTINGS', settings)
 
         await appSettingsService.setAll(settings)
 
