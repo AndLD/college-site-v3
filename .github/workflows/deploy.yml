@@ -19,4 +19,5 @@ jobs:
                       cd ~/college-site-v3
                       git pull
                       docker-compose build
+                      docker-compose stop
                       docker-compose up -d
