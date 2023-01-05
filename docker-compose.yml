@@ -42,6 +42,7 @@ services:
     redis:
         image: 'redis:7'
         container_name: 'college-site-v3_redis'
+        command: redis-server --appendonly yes --replica-read-only no
         volumes:
             - ./db/volumes/redis:/data
         ports:
