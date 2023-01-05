@@ -1,7 +1,7 @@
-import { v4 as uuidv4 } from 'uuid'
 import Link from 'next/link'
-import { IMenuElement } from './types'
+import { v4 as uuidv4 } from 'uuid'
 import style from '../styles/Menu-v2.module.scss'
+import { IMenuElement } from './types'
 
 // TODO: Implement advanced 'drop-menu' component to allow increase max deep level (current deep level is 2)
 function convertMenuElement({ title, link, children }: IMenuElement, deepLevel: number) {

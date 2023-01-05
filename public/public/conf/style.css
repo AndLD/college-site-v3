@@ -1,0 +1,42 @@
+@charset "windows-1251";
+	  
+body {font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 1em; background-color: #FFFFFF; }
+
+.logo
+{
+float: left;
+clear : left;
+}
+.header {clear: both; background: url(img/head.jpg)}	   
+h1 {margin : 0}
+.header h1 {display: block; font-family: Georgia,serif; text-align: center}
+.menu {clear: both; margin: 0 1em 1em 1em; border-bottom-color: black; border-bottom-style: solid; border-top-color: black; border-top-style: solid}			 
+.menu ul {padding: 0; margin: 0}
+.menu li {list-style: none; float:left; padding: 0.5em 1em 0.5em 1em;}
+.menu a {color: black; text-decoration: none}
+.menu a:hover {color: blue}  
+
+ul {padding:0}
+ul li {list-style: none;}
+
+.cur {font-weight: bold}
+
+.main {width: 62%; float: left; clear: left; line-height: 1.5em; padding: 0 1em 0 1em}		   
+
+img {border : 0}
+
+.main table {width:100%}	
+
+.main td {text-align:center;}
+.main td img {width:90%;}
+
+.org {width: 30%; float: left; clear: right; border-left: thin solid black; padding: 0 1em 0 1em}
+
+.org a {color: blue; text-decoration: none}
+.org a:hover {font-weight: bold} 
+
+.org ul {padding: 0; margin: 0}
+
+.org li {list-style: none; padding: 1em 0.5em 1em 0.5em}
+
+.footer {clear: both; text-align: center}	
