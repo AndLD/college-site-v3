@@ -1,10 +1,3 @@
-import { Spin, Statistic, Tooltip, Typography } from 'antd'
-import axios, { AxiosError, AxiosResponse } from 'axios'
-import { useSelector } from 'react-redux'
-import { useEffect, useState } from 'react'
-import AdminLayout from '../components/AdminLayout'
-import { errorNotification } from '../utils/notifications'
-import { privateRoute } from '../utils/constants'
 import {
     BranchesOutlined,
     ClockCircleOutlined,
@@ -14,7 +7,14 @@ import {
     ProfileOutlined,
     TeamOutlined
 } from '@ant-design/icons'
+import { Tooltip, Typography } from 'antd'
+import axios, { AxiosError, AxiosResponse } from 'axios'
 import moment from 'moment'
+import { useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
+import AdminLayout from '../components/AdminLayout'
+import { privateRoute } from '../utils/constants'
+import { errorNotification } from '../utils/notifications'
 
 const { Title } = Typography
 

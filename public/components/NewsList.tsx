@@ -1,9 +1,9 @@
-import { useContext, useEffect } from 'react'
-import { PublicLayoutContext } from '../contexts'
-import { INewsCombined } from '../utils/types'
-import style from '../styles/Index.module.scss'
-import News from './News'
 import Link from 'next/link'
+import { useContext } from 'react'
+import { PublicLayoutContext } from '../contexts'
+import style from '../styles/Index.module.scss'
+import { INewsCombined } from '../utils/types'
+import News from './News'
 
 function NewsList() {
     const news: INewsCombined[] = useContext(PublicLayoutContext).news
@@ -20,7 +20,9 @@ function NewsList() {
                             ))}
                             {news.length <= 3 && (
                                 <Link href="/news">
-                                    <span style={{ fontSize: 22 }}>Більше новин</span>
+                                    <span style={{ fontSize: 22, color: '#0600FF', cursor: 'pointer' }}>
+                                        Більше новин
+                                    </span>
                                 </Link>
                             )}
                         </>

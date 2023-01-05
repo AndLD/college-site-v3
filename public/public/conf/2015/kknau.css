@@ -1,0 +1,123 @@
+body {	background-image:url(img/1.png); font-family: Verdana,sans-serif;	/*max-width:63em;*/}
+#background{
+
+position:fixed;
+width:100%;
+z-index:-3;
+}
+
+#lay{
+position:absolute;
+width:100%;
+height:150px;
+z-index:-1;
+}
+#header{
+
+width:100%;
+height:150px;
+z-index:5;
+}
+
+#layer1{
+
+position:fixed;
+
+z-index:1;
+}
+div.menu_body{display:none;}
+.Tbody 
+ {
+    float:left;
+    width:200px;
+	margin:10px ;
+	
+	font: 75%/120% Verdana,Arial, Helvetica, sans-serif;
+	z-index:78;
+}
+.menu_list {	
+
+	width: 200px;
+}
+.menu_head {
+	 opacity:0.8;
+	padding: 7px 5px;
+	cursor: pointer;
+	position: relative;
+	margin:1px;
+    font-weight:bold;
+    background: #123 ;
+	color:#aaa;
+	}  
+.menu_head ul {
+   opacity:0.8;
+	cursor: pointer;
+	position: relative;
+	margin:1px;
+    font-weight:bold;
+    background: #123 ;
+	color:#aaa;
+}            
+
+
+
+div.menu_body {
+  display:block;
+  color:#123;
+  opacity:0.7;
+  background-color:#aaa;
+  margin:2px;
+  padding-left:15px;
+  font-weight:bold;
+  text-decoration:none;
+}
+div.menu_body :hover{
+  
+  text-decoration:underline;
+  }
+
+#banner {text-align:left;}
+
+div.container#parent  {
+  width: 82%;
+ margin-left:225px;
+  margin-bottom: 10%;
+ /*padding:25px*/
+background-color:#fff;
+background-repeat:repeat-y;
+        -webkit-box-shadow:7px 7px 5px rgba(50,50,50,0.75) ;
+        -moz-box-shadow:7px 7px 5px rgba(50,50,50,0.75);
+         box-shadow:7px 7px 5px rgba(50,50,50,0.75);  
+}                                                  
+   #child {
+
+    /*  padding:50px; /* Поля вокруг текста */
+    margin: 40px; /* Отступы вокруг*/ 
+   }
+
+#page_pic {float:left; margin: 1em 1em 1em 1em}
+h2 {background-color: #FFDEBF;font-family: Georgia,serif;}
+h3 {border-top: 1px dotted black; border-bottom: 1px dotted black; margin-top: 1em; font-family: Georgia,serif;}
+p {text-indent: 1em}
+.search {padding: 0.5em; border:1px solid black; background-color: #00A5FF; margin-bottom:0.5em; text-align:center;}
+img {border: 0px}
+                                       
+
+
+#footer  {
+ margin-left: 20%;
+ margin-bottom: 10%;
+width :900px;
+
+background-image:url(img/notebook.png);
+background-repeat:repeat-y;
+}
+   #footertext {
+      padding: 10px; /* Поля вокруг текста */
+    margin: 40px; /* Отступы вокруг */
+   }
+
+
+
+
+#bookshelf {border-bottom: 1px dotted black}
